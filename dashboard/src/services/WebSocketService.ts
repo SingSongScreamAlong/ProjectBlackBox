@@ -187,6 +187,7 @@ type EventMap = {
   'competitor_data': CompetitorData[];
   'strategy_data': StrategyData;
   'validation_summary': any;
+  'request_validation': { component: string };
   'track_position': any;
   'video_data': any;
   'driver_update': DriverUpdateEvent;
@@ -897,6 +898,14 @@ class WebSocketService {
    */
   requestDriverList(): boolean {
     return this.sendMessage('request_comparison', { requestType: 'driver_list' } as any);
+  }
+
+  /**
+   * Request validation for a specific dashboard component
+   * @param component Component key to validate (e.g., 'telemetry', 'driver_selector')
+   */
+  requestValidation(component: string): boolean {
+    return this.sendMessage('request_validation', { component });
   }
   
   /**

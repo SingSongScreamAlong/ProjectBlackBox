@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { addTeamMessage, markMessageRead, markAllMessagesRead } from '../../redux/slices/driversSlice';
 import TeamCommunication from '../../services/TeamCommunication';
-import { TeamMessage } from '../../services/TeamCommunication';
+import { TeamMessage, TeamMessageUtils } from '../../types/TeamMessage';
 import './TeamChat.css';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -63,8 +63,8 @@ const TeamChat: React.FC<TeamChatProps> = ({
       // Add to Redux store
       dispatch(addTeamMessage(message));
       
-      // Send via TeamCommunication service
-      teamComm.sendMessage(message);
+      // Send via TeamCommunication service (server will echo with canonical ID)
+      teamComm.sendMessage(newMessage.trim(), 'normal');
       
       setNewMessage('');
     } catch (err) {
@@ -85,8 +85,8 @@ const TeamChat: React.FC<TeamChatProps> = ({
     return driver ? driver.name : 'Unknown Driver';
   };
 
-  const getMessageTime = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const getMessageTime = (message: TeamMessage): string => {
+    return TeamMessageUtils.formatTimestamp(message, 'time');
   };
 
   const getFilteredMessages = () => {
@@ -108,10 +108,10 @@ const TeamChat: React.FC<TeamChatProps> = ({
       <div key={message.id} className={messageClass}>
         <div className="message-header">
           <span className="sender-name">{message.senderName}</span>
-          <span className="message-time">{getMessageTime(message.timestamp)}</span>
+          <span className="message-time">{getMessageTime(message)}</span>
         </div>
         <div className="message-content">{message.content}</div>
-        {message.recipientId !== 'all' && (
+        {message.recipientId && message.recipientId !== 'all' && (
           <div className="message-recipient">
             To: {getDriverName(message.recipientId)}
           </div>

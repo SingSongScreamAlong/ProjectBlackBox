@@ -77,9 +77,7 @@ class MultiDriverService {
         name: driver.name,
         team: 'Default Team', // Default team
         role: 'primary', // Default role
-        status: driver.status as 'active' | 'standby' | 'offline',
-        joinedAt: new Date().toISOString(), // Required by Driver interface as string
-        telemetryEnabled: true // Required by Driver interface
+        status: driver.status as 'active' | 'standby' | 'offline'
       });
       store.dispatch(setDrivers(currentDrivers));
     }

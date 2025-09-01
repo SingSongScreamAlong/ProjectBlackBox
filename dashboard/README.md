@@ -94,6 +94,25 @@ python3 validation/validate_dashboard_integration.py
 
 This script starts a WebSocket server and generates mock telemetry data to simulate a real racing session.
 
+## Tacview Telemetry (MVP)
+
+A lightweight Tacview-like visualization is available on the Team side for session playback and live streaming.
+
+Setup
+- Copy `.env.local.example` to `.env.local` and set `REACT_APP_BACKEND_URL` (defaults to `http://localhost:4000`).
+- Start backend (persistence + Socket.IO): `cd server && npm start`.
+- Start dashboard: `cd dashboard && npm start`.
+
+Quick demo
+- In the Tacview tab toolbar:
+  - Create Dev Session → Append Sample → Load Session.
+  - Refresh Sessions → Pick Session to choose a session from the backend.
+  - Toggle Live to stream live telemetry for the selected session.
+
+Notes
+- Busy operations temporarily disable controls; the timeline shows mm:ss labels.
+- Legacy services are kept under `dashboard/archived/**` and excluded from builds—do not import from there.
+
 ## Documentation
 
 For more detailed information about the dashboard integration, architecture, and extension points, see the [Dashboard Integration Documentation](../docs/dashboard_integration.md).

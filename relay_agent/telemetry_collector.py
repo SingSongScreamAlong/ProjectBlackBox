@@ -15,10 +15,124 @@ import threading
 import socket
 import websocket
 import zlib
-import irsdk
 import random
 from typing import Dict, List, Optional, Tuple, Union, Any
 from datetime import datetime
+
+# Try to import real iRacing SDK, fallback to simulation
+try:
+    import irsdk
+    HAS_REAL_SDK = True
+    logger.info("✅ Real iRacing SDK available")
+except ImportError:
+    HAS_REAL_SDK = False
+    logger.warning("⚠️  Real iRacing SDK not available, using simulation")
+
+    # Import simulation class
+    class IRacingSimulator:
+        """Simulates iRacing telemetry data for testing."""
+
+        def __init__(self):
+            self.is_connected = False
+            self.session_info = None
+            self.telemetry_data = {}
+            self.start_time = time.time()
+            self._init_simulated_data()
+
+        def startup(self):
+            logger.info("🚗 Starting iRacing simulator...")
+            time.sleep(1)
+            self.is_connected = True
+            logger.info("✅ iRacing simulator connected")
+
+        def shutdown(self):
+            self.is_connected = False
+            logger.info("🛑 iRacing simulator shutdown")
+
+        def _init_simulated_data(self):
+            """Initialize simulated telemetry data."""
+            self.telemetry_data = {
+                'Speed': 0.0, 'RPM': 1000, 'Gear': 1, 'Throttle': 0.0, 'Brake': 0.0,
+                'Clutch': 0.0, 'SteeringWheelAngle': 0.0, 'FuelLevel': 100.0,
+                'FuelUsePerHour': 0.0, 'LapCurrentLapTime': 0.0, 'LapDist': 0.0,
+                'TrackTemp': 25.0, 'AirTemp': 20.0, 'SessionTime': 0.0,
+                'SessionLapsRemaining': 10, 'SessionTimeRemaining': 600.0,
+                'PlayerCarPosition': 1, 'Lap': 1, 'LapLastLapTime': 85.5,
+                'LapBestLapTime': 84.2, 'SessionNum': 0
+            }
+
+            # Tire data simulation
+            for tire in ['LF', 'RF', 'LR', 'RR']:
+                for pos in ['L', 'M', 'R']:
+                    self.telemetry_data[f'{tire}tempC{pos}'] = 85 + random.uniform(-5, 5)
+                    self.telemetry_data[f'{tire}wear{pos}'] = 0.1 + random.uniform(0, 0.2)
+
+            # Session info
+            self.session_info = {
+                'WeekendInfo': {
+                    'TrackName': 'Silverstone Circuit',
+                    'TrackLength': 5891,
+                    'TrackID': 1001
+                },
+                'DriverInfo': {
+                    'DriverName': 'Test Driver',
+                    'UserID': 12345,
+                    'TeamName': 'BlackBox Team',
+                    'CarName': 'Formula 1 Car',
+                    'CarID': 2001
+                },
+                'Sessions': [{
+                    'SessionType': 'Race',
+                    'SessionLaps': 10,
+                    'SessionTime': 600
+                }]
+            }
+
+        def update_simulation(self):
+            """Update simulated telemetry data."""
+            if not self.is_connected:
+                return
+
+            import math
+            self.telemetry_data['SessionTime'] = time.time() - self.start_time
+            self.telemetry_data['SessionTimeRemaining'] = max(0, 600.0 - self.telemetry_data['SessionTime'])
+
+            throttle = self.telemetry_data.get('Throttle', 0.0)
+            brake = self.telemetry_data.get('Brake', 0.0)
+
+            target_speed = throttle * 350
+            current_speed = self.telemetry_data.get('Speed', 0.0)
+            speed_change = (target_speed - current_speed) * 0.1
+            if brake > 0:
+                speed_change -= brake * 50
+            self.telemetry_data['Speed'] = max(0, current_speed + speed_change)
+
+            gear = self.telemetry_data.get('Gear', 1)
+            rpm_base = (self.telemetry_data['Speed'] / 350) * 12000
+            rpm_variation = math.sin(time.time() * 2) * 500
+            self.telemetry_data['RPM'] = max(800, min(13000, rpm_base + rpm_variation))
+
+            fuel_burn = throttle * 0.1 + self.telemetry_data['RPM'] / 100000
+            self.telemetry_data['FuelLevel'] = max(0, self.telemetry_data['FuelLevel'] - fuel_burn)
+            self.telemetry_data['FuelUsePerHour'] = fuel_burn * 3600
+
+            self.telemetry_data['LapDist'] = (self.telemetry_data['SessionTime'] % 85.5) / 85.5 * 5891
+
+        def get(self, var_name: str) -> Any:
+            self.update_simulation()
+            return self.telemetry_data.get(var_name)
+
+        def __getitem__(self, var_name: str) -> Any:
+            return self.get(var_name)
+
+        def __contains__(self, var_name: str) -> bool:
+            return var_name in self.telemetry_data
+
+    # Use simulation as fallback
+    class MockIRSDK:
+        IRSDK = IRacingSimulator
+
+    irsdk = MockIRSDK()
 
 # Configure logging
 logging.basicConfig(

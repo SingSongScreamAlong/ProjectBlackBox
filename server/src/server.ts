@@ -1,0 +1,228 @@
+import express from 'express';
+import { createServer } from 'node:http';
+import cors from 'cors';
+import { Server as SocketIOServer } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
+import { pool, ping } from './db.js';
+import { authenticateToken, requireRole } from './auth.js';
+import authRoutes from './auth-routes.js';
+
+// Basic types aligned with dashboard expectations
+export interface TelemetryTire {
+  temp: number;
+  wear: number;
+  pressure: number;
+}
+
+export interface TelemetryData {
+  driverId?: string;
+  driverName?: string;
+  speed: number;
+  rpm: number;
+  gear: number;
+  throttle: number;
+  brake: number;
+  steering: number;
+  tires: {
+    frontLeft: TelemetryTire;
+    frontRight: TelemetryTire;
+    rearLeft: TelemetryTire;
+    rearRight: TelemetryTire;
+  };
+  position: { x: number; y: number; z: number };
+  lap: number;
+  sector: number;
+  lapTime: number;
+  sectorTime: number;
+  bestLapTime: number;
+  bestSectorTimes: number[];
+  gForce: { lateral: number; longitudinal: number; vertical: number };
+  trackPosition: number;
+  racePosition: number;
+  gapAhead: number;
+  gapBehind: number;
+  timestamp: number;
+}
+
+interface Session {
+  id: string;
+  name?: string;
+  track?: string;
+  createdAt: number;
+}
+
+// DB-backed; in-memory stores removed
+
+const app = express();
+const server = createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: '*',
+  },
+});
+
+app.use(cors());
+app.use(express.json({ limit: '2mb' }));
+
+// Authentication routes (public)
+app.use('/auth', authRoutes);
+
+// Health check (public)
+app.get('/health', async (_req, res) => {
+  const dbOk = await ping();
+  res.json({ status: 'ok', time: Date.now(), db: dbOk ? 'up' : 'down' });
+});
+
+// List sessions (for simple picker/testing) - requires authentication
+app.get('/sessions', authenticateToken, async (_req, res) => {
+  const q = await pool.query('SELECT id, name, track, extract(epoch from created_at)*1000 as created_at_ms FROM sessions ORDER BY created_at DESC');
+  const sessions = q.rows.map((r: any) => ({ id: r.id, name: r.name ?? undefined, track: r.track ?? undefined, createdAt: Math.round(Number(r.created_at_ms)) })) as Session[];
+  res.json({ sessions });
+});
+
+// Socket.IO basic rooms per session
+io.on('connection', (socket) => {
+  socket.on('join_session', (sessionId: string) => {
+    socket.join(`session:${sessionId}`);
+  });
+
+  socket.on('leave_session', (sessionId: string) => {
+    socket.leave(`session:${sessionId}`);
+  });
+});
+
+// Create session - requires authentication
+app.post('/sessions', authenticateToken, async (req, res) => {
+  const id: string = req.body?.id || uuidv4();
+  const name = req.body?.name as string | undefined;
+  const track = req.body?.track as string | undefined;
+
+  await pool.query('INSERT INTO sessions (id, name, track) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING', [id, name ?? null, track ?? null]);
+  const session: Session = { id, name, track, createdAt: Date.now() };
+  return res.status(201).json(session);
+});
+
+// Append telemetry (single or array) - requires authentication
+app.post('/sessions/:id/telemetry', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  // verify session exists
+  const exists = await pool.query('SELECT 1 FROM sessions WHERE id = $1', [id]);
+  if (exists.rowCount === 0) {
+    return res.status(404).json({ error: 'Session not found' });
+  }
+
+  const payload = req.body;
+  const list: TelemetryData[] = Array.isArray(payload) ? payload : [payload];
+
+  for (const t of list) {
+    if (typeof t.timestamp !== 'number') {
+      return res.status(400).json({ error: 'Each telemetry item must include numeric timestamp' });
+    }
+  }
+
+  // batch insert
+  const values: any[] = [];
+  const cols = [
+    'session_id','driver_id','ts','pos_x','pos_y','pos_z','speed','throttle','brake','gear','rpm','lap','sector',
+    'tire_fl_temp','tire_fl_wear','tire_fl_pressure','tire_fr_temp','tire_fr_wear','tire_fr_pressure','tire_rl_temp','tire_rl_wear','tire_rl_pressure','tire_rr_temp','tire_rr_wear','tire_rr_pressure',
+    'g_lat','g_long','g_vert','track_position','race_position','gap_ahead','gap_behind'
+  ];
+  const rowsSql: string[] = [];
+  let idx = 1;
+  for (const t of list) {
+    const fl = t.tires?.frontLeft; const fr = t.tires?.frontRight; const rl = t.tires?.rearLeft; const rr = t.tires?.rearRight;
+    rowsSql.push(`($${idx++}, $${idx++}, to_timestamp($${idx++} / 1000.0), $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++})`);
+    values.push(
+      id,
+      t.driverId ?? null,
+      t.timestamp,
+      t.position?.x ?? null,
+      t.position?.y ?? null,
+      t.position?.z ?? null,
+      t.speed ?? null,
+      t.throttle ?? null,
+      t.brake ?? null,
+      t.gear ?? null,
+      t.rpm ?? null,
+      t.lap ?? null,
+      t.sector ?? null,
+      fl?.temp ?? null, fl?.wear ?? null, fl?.pressure ?? null,
+      fr?.temp ?? null, fr?.wear ?? null, fr?.pressure ?? null,
+      rl?.temp ?? null, rl?.wear ?? null, rl?.pressure ?? null,
+      rr?.temp ?? null, rr?.wear ?? null, rr?.pressure ?? null,
+      t.gForce?.lateral ?? null, t.gForce?.longitudinal ?? null, t.gForce?.vertical ?? null,
+      t.trackPosition ?? null, t.racePosition ?? null,
+      t.gapAhead ?? null, t.gapBehind ?? null
+    );
+  }
+  if (rowsSql.length) {
+    const sql = `INSERT INTO telemetry (${cols.join(',')}) VALUES ${rowsSql.join(',')}`;
+    await pool.query(sql, values);
+  }
+
+  // Broadcast latest items to session room
+  io.to(`session:${id}`).emit('telemetry_update', list);
+  return res.status(202).json({ appended: list.length });
+});
+
+// Fetch telemetry window - requires authentication
+app.get('/sessions/:id/telemetry', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const fromTs = req.query.fromTs ? Number(req.query.fromTs) : undefined;
+  const toTs = req.query.toTs ? Number(req.query.toTs) : undefined;
+  const driverId = req.query.driverId as string | undefined;
+
+  const exists = await pool.query('SELECT 1 FROM sessions WHERE id = $1', [id]);
+  if (exists.rowCount === 0) {
+    return res.status(404).json({ error: 'Session not found' });
+  }
+
+  const where: string[] = ['session_id = $1'];
+  const params: any[] = [id];
+  let p = 2;
+  if (fromTs !== undefined) { where.push(`ts >= to_timestamp($${p++} / 1000.0)`); params.push(fromTs); }
+  if (toTs !== undefined) { where.push(`ts <= to_timestamp($${p++} / 1000.0)`); params.push(toTs); }
+  if (driverId) { where.push(`driver_id = $${p++}`); params.push(driverId); }
+
+  const sql = `SELECT driver_id, extract(epoch from ts)*1000 as ts_ms,
+    pos_x, pos_y, pos_z, speed, throttle, brake, gear, rpm, lap, sector,
+    tire_fl_temp, tire_fl_wear, tire_fl_pressure,
+    tire_fr_temp, tire_fr_wear, tire_fr_pressure,
+    tire_rl_temp, tire_rl_wear, tire_rl_pressure,
+    tire_rr_temp, tire_rr_wear, tire_rr_pressure,
+    g_lat, g_long, g_vert, track_position, race_position, gap_ahead, gap_behind
+    FROM telemetry WHERE ${where.join(' AND ')} ORDER BY ts ASC LIMIT 20000`;
+
+  const q = await pool.query(sql, params);
+  const data = q.rows.map((r: any) => ({
+    driverId: r.driver_id ?? undefined,
+    speed: r.speed ?? undefined,
+    rpm: r.rpm ?? undefined,
+    gear: r.gear ?? undefined,
+    throttle: r.throttle ?? undefined,
+    brake: r.brake ?? undefined,
+    tires: {
+      frontLeft: { temp: r.tire_fl_temp ?? 0, wear: r.tire_fl_wear ?? 0, pressure: r.tire_fl_pressure ?? 0 },
+      frontRight:{ temp: r.tire_fr_temp ?? 0, wear: r.tire_fr_wear ?? 0, pressure: r.tire_fr_pressure ?? 0 },
+      rearLeft:  { temp: r.tire_rl_temp ?? 0, wear: r.tire_rl_wear ?? 0, pressure: r.tire_rl_pressure ?? 0 },
+      rearRight: { temp: r.tire_rr_temp ?? 0, wear: r.tire_rr_wear ?? 0, pressure: r.tire_rr_pressure ?? 0 },
+    },
+    position: { x: r.pos_x ?? 0, y: r.pos_y ?? 0, z: r.pos_z ?? 0 },
+    lap: r.lap ?? 0,
+    sector: r.sector ?? 0,
+    gForce: { lateral: r.g_lat ?? 0, longitudinal: r.g_long ?? 0, vertical: r.g_vert ?? 0 },
+    trackPosition: r.track_position ?? 0,
+    racePosition: r.race_position ?? 0,
+    gapAhead: r.gap_ahead ?? 0,
+    gapBehind: r.gap_behind ?? 0,
+    timestamp: Math.round(Number(r.ts_ms)),
+  })) as TelemetryData[];
+
+  return res.json({ count: data.length, data });
+});
+
+const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
+server.listen(PORT, () => {
+  // eslint-disable-next-line no-console
+  console.log(`Server listening on http://localhost:${PORT}`);
+});

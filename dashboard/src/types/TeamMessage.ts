@@ -5,6 +5,8 @@ export interface TeamMessage {
   id: string;
   senderId: string;
   senderName: string;
+  // Optional recipient: 'all' for broadcast or a specific driverId
+  recipientId?: string;
   content: string;
   priority: 'normal' | 'high' | 'critical';
   read: boolean;

@@ -5,13 +5,15 @@ import DriverSelector from '../DriverSelector/DriverSelector';
 import DriverComparison from '../DriverComparison/DriverComparison';
 import HandoffManager from '../HandoffManager/HandoffManager';
 import TeamChat from '../TeamChat/TeamChat';
+import TacviewPanel from '../Tacview/TacviewPanel';
 import './MultiDriverPanel.css';
 
 enum TabType {
   DRIVERS = 'drivers',
   COMPARISON = 'comparison',
   HANDOFF = 'handoff',
-  TEAM_CHAT = 'team_chat'
+  TEAM_CHAT = 'team_chat',
+  TACVIEW = 'tacview'
 }
 
 interface MultiDriverPanelProps {
@@ -38,6 +40,8 @@ const MultiDriverPanel: React.FC<MultiDriverPanelProps> = ({ onClose }) => {
         return <HandoffManager />;
       case TabType.TEAM_CHAT:
         return <TeamChat />;
+      case TabType.TACVIEW:
+        return <TacviewPanel />;
       default:
         return <div>Select a tab</div>;
     }
@@ -88,6 +92,13 @@ const MultiDriverPanel: React.FC<MultiDriverPanelProps> = ({ onClose }) => {
           {unreadMessageCount > 0 && (
             <span className="tab-badge alert">{unreadMessageCount}</span>
           )}
+        </button>
+
+        <button 
+          className={`tab-button ${activeTab === TabType.TACVIEW ? 'active' : ''}`}
+          onClick={() => setActiveTab(TabType.TACVIEW)}
+        >
+          Tacview
         </button>
       </div>
       

@@ -12,7 +12,7 @@ export const initializeMockDriverData = () => {
     {
       name: 'John Smith',
       status: 'active' as const,
-      role: 'Primary Driver',
+      role: 'primary' as const,
       team: 'Team Alpha',
       telemetryEnabled: true,
       profileData: {
@@ -26,7 +26,7 @@ export const initializeMockDriverData = () => {
     {
       name: 'Sarah Johnson',
       status: 'standby' as const,
-      role: 'Secondary Driver',
+      role: 'secondary' as const,
       team: 'Team Alpha',
       telemetryEnabled: true,
       profileData: {
@@ -40,7 +40,7 @@ export const initializeMockDriverData = () => {
     {
       name: 'Michael Chen',
       status: 'standby' as const,
-      role: 'Reserve Driver',
+      role: 'reserve' as const,
       team: 'Team Beta',
       telemetryEnabled: true,
       profileData: {

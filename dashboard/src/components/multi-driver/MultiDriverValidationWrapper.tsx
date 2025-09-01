@@ -55,7 +55,7 @@ const MultiDriverValidationWrapper: React.FC<Props> = ({
             aria-live="assertive"
           >
             <h4>
-              <FiAlertTriangle aria-hidden="true" className="error-icon" />
+              {React.createElement(FiAlertTriangle as any, { 'aria-hidden': true, className: 'error-icon' })}
               Error in {component.replace(/_/g, ' ')}
             </h4>
             <p>An error occurred while validating this component.</p>
@@ -64,7 +64,7 @@ const MultiDriverValidationWrapper: React.FC<Props> = ({
               className="retry-button"
               aria-label="Retry component validation"
             >
-              <FiRefreshCw aria-hidden="true" className="retry-icon" />
+              {React.createElement(FiRefreshCw as any, { 'aria-hidden': true, className: 'retry-icon' })}
               Retry
             </button>
           </div>

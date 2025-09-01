@@ -22,7 +22,7 @@ const MultiDriverLoadingState: React.FC<Props> = ({ message, size = 'medium' }) 
       aria-busy="true"
     >
       <div className="spinner-container" aria-hidden="true">
-        <FiLoader className="spinner-icon" />
+        {React.createElement(FiLoader as any, { className: 'spinner-icon' })}
         <div className="spinner" />
       </div>
       <p className="loading-text" id="loading-message">{message}</p>

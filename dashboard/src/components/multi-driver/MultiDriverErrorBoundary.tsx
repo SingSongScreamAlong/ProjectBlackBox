@@ -125,7 +125,7 @@ class MultiDriverErrorBoundary extends Component<Props, State> {
           aria-describedby={errorMessageId}
         >
           <ErrorHeading id={errorId}>
-            <FiAlertTriangle aria-hidden="true" />
+            {React.createElement(FiAlertTriangle as any, { 'aria-hidden': true })}
             Multi-Driver Component Error
           </ErrorHeading>
           <ErrorMessage id={errorMessageId}>
@@ -135,7 +135,7 @@ class MultiDriverErrorBoundary extends Component<Props, State> {
             onClick={this.handleRetry}
             aria-label="Retry loading the component"
           >
-            <FiRefreshCw aria-hidden="true" />
+            {React.createElement(FiRefreshCw as any, { 'aria-hidden': true })}
             Retry
           </RetryButton>
         </ErrorContainer>

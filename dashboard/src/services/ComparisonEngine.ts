@@ -45,7 +45,7 @@ interface TelemetrySnapshot {
  */
 class ComparisonEngine {
   private static instance: ComparisonEngine;
-  private websocketService: WebSocketService;
+  private websocketService;
   private driverManager: DriverManager;
   
   // Store active comparisons by ID
@@ -58,7 +58,7 @@ class ComparisonEngine {
   private readonly MAX_HISTORY_PER_DRIVER = 100;
 
   private constructor() {
-    this.websocketService = WebSocketService.getInstance();
+    this.websocketService = WebSocketService;
     this.driverManager = DriverManager.getInstance();
     this.setupEventListeners();
   }
@@ -78,12 +78,12 @@ class ComparisonEngine {
    */
   private setupEventListeners(): void {
     // Listen for comparison results from the server
-    this.websocketService.on('comparison_result', (event) => {
+    this.websocketService.on('comparison_result', (event: ComparisonResultEvent) => {
       this.handleComparisonResult(event);
     });
 
     // Listen for telemetry updates to store history
-    this.websocketService.on('telemetry', (data) => {
+    this.websocketService.on('telemetry', (data: TelemetryData) => {
       if (data.driverId) {
         this.storeTelemetrySnapshot(data.driverId, data);
       }
@@ -149,7 +149,11 @@ class ComparisonEngine {
       return null;
     }
     
-    const comparisonId = this.websocketService.requestDriverComparison(driverAId, driverBId);
+    // Generate a comparison ID (keep consistent with MultiDriverService format)
+    const comparisonId = `${driverAId}-${driverBId}`;
+
+    // Send the request via WebSocket (returns boolean for send status)
+    this.websocketService.requestDriverComparison(driverAId, driverBId);
     
     // Create a placeholder for the comparison
     this.activeComparisons.set(comparisonId, {
@@ -231,85 +235,101 @@ class ComparisonEngine {
       }
     });
     
-    // Compare lap time if available
-    if (latestA.lastLapTime && latestB.lastLapTime) {
+    // Compare last lap time if available (mapped to lapTime)
+    if (latestA.lapTime && latestB.lapTime) {
       metrics.push({
         name: 'Last Lap Time',
         driverA: {
-          value: this.formatTime(latestA.lastLapTime),
-          delta: latestB.lastLapTime - latestA.lastLapTime
+          value: this.formatTime(latestA.lapTime),
+          delta: latestB.lapTime - latestA.lapTime
         },
         driverB: {
-          value: this.formatTime(latestB.lastLapTime),
-          delta: latestA.lastLapTime - latestB.lastLapTime
+          value: this.formatTime(latestB.lapTime),
+          delta: latestA.lapTime - latestB.lapTime
         }
       });
     }
     
-    // Compare fuel level
-    metrics.push({
-      name: 'Fuel Level',
-      driverA: {
-        value: latestA.fuel.toFixed(1),
-        delta: latestA.fuel - latestB.fuel
-      },
-      driverB: {
-        value: latestB.fuel.toFixed(1),
-        delta: latestB.fuel - latestA.fuel
-      }
-    });
+    // Compare fuel level if present in incoming telemetry (not part of TelemetryData type)
+    const aFuel = (latestA as any).fuel as number | undefined;
+    const bFuel = (latestB as any).fuel as number | undefined;
+    if (typeof aFuel === 'number' && typeof bFuel === 'number') {
+      metrics.push({
+        name: 'Fuel Level',
+        driverA: {
+          value: aFuel.toFixed(1),
+          delta: aFuel - bFuel
+        },
+        driverB: {
+          value: bFuel.toFixed(1),
+          delta: bFuel - aFuel
+        }
+      });
+    }
     
-    // Compare tire wear if available
-    if (latestA.tireWear && latestB.tireWear) {
+    // Compare tire wear if available (mapped from TelemetryData.tires)
+    const aFL = latestA.tires?.frontLeft?.wear;
+    const aFR = latestA.tires?.frontRight?.wear;
+    const aRL = latestA.tires?.rearLeft?.wear;
+    const aRR = latestA.tires?.rearRight?.wear;
+    const bFL = latestB.tires?.frontLeft?.wear;
+    const bFR = latestB.tires?.frontRight?.wear;
+    const bRL = latestB.tires?.rearLeft?.wear;
+    const bRR = latestB.tires?.rearRight?.wear;
+
+    if (
+      aFL != null && aFR != null && aRL != null && aRR != null &&
+      bFL != null && bFR != null && bRL != null && bRR != null
+    ) {
       // Front left
       metrics.push({
         name: 'Front Left Tire',
         driverA: {
-          value: `${(latestA.tireWear.fl * 100).toFixed(1)}%`,
-          delta: latestA.tireWear.fl - latestB.tireWear.fl
+          value: `${(aFL * 100).toFixed(1)}%`,
+          delta: aFL - bFL
         },
         driverB: {
-          value: `${(latestB.tireWear.fl * 100).toFixed(1)}%`,
-          delta: latestB.tireWear.fl - latestA.tireWear.fl
+          value: `${(bFL * 100).toFixed(1)}%`,
+          delta: bFL - aFL
         }
       });
-      
+
       // Front right
       metrics.push({
         name: 'Front Right Tire',
         driverA: {
-          value: `${(latestA.tireWear.fr * 100).toFixed(1)}%`,
-          delta: latestA.tireWear.fr - latestB.tireWear.fr
+          value: `${(aFR * 100).toFixed(1)}%`,
+          delta: aFR - bFR
         },
         driverB: {
-          value: `${(latestB.tireWear.fr * 100).toFixed(1)}%`,
-          delta: latestB.tireWear.fr - latestA.tireWear.fr
+          value: `${(bFR * 100).toFixed(1)}%`,
+          delta: bFR - aFR
         }
       });
-      
+
       // Rear left
       metrics.push({
         name: 'Rear Left Tire',
         driverA: {
-          value: `${(latestA.tireWear.rl * 100).toFixed(1)}%`,
-          delta: latestA.tireWear.rl - latestB.tireWear.rl
+          value: `${(aRL * 100).toFixed(1)}%`,
+          delta: aRL - bRL
         },
         driverB: {
-          value: `${(latestB.tireWear.rl * 100).toFixed(1)}%`,
-          delta: latestB.tireWear.rl - latestA.tireWear.rl
+          value: `${(bRL * 100).toFixed(1)}%`,
+          delta: bRL - aRL
         }
       });
-      
+
       // Rear right
       metrics.push({
         name: 'Rear Right Tire',
         driverA: {
-          value: `${(latestA.tireWear.rr * 100).toFixed(1)}%`,
-          delta: latestA.tireWear.rr - latestB.tireWear.rr
+          value: `${(aRR * 100).toFixed(1)}%`,
+          delta: aRR - bRR
         },
         driverB: {
-          value: `${(latestB.tireWear.rr * 100).toFixed(1)}%`,
-          delta: latestB.tireWear.rr - latestA.tireWear.rr
+          value: `${(bRR * 100).toFixed(1)}%`,
+          delta: bRR - aRR
         }
       });
     }

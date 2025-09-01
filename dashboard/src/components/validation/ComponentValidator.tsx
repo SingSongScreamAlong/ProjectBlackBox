@@ -55,17 +55,17 @@ const ComponentValidator: React.FC = () => {
     try {
       webSocketService.connect(serverUrl, ConnectionType.NATIVE_WEBSOCKET);
       
-      const connectUnsubscribe = webSocketService.on('connect', () => {
+      const connectSubscription = webSocketService.on('connect', () => {
         setIsConnected(true);
         console.log('Connected to validation server');
       });
       
-      const disconnectUnsubscribe = webSocketService.on('disconnect', () => {
+      const disconnectSubscription = webSocketService.on('disconnect', () => {
         setIsConnected(false);
         console.log('Disconnected from validation server');
       });
       
-      const validationUnsubscribe = webSocketService.on('validation_summary', (data) => {
+      const validationSubscription = webSocketService.on('validation_summary', (data) => {
         const result: ValidationResult = {
           component: data.component,
           status: data.status,
@@ -79,9 +79,9 @@ const ComponentValidator: React.FC = () => {
       });
       
       return () => {
-        connectUnsubscribe();
-        disconnectUnsubscribe();
-        validationUnsubscribe();
+        connectSubscription.unsubscribe();
+        disconnectSubscription.unsubscribe();
+        validationSubscription.unsubscribe();
       };
     } catch (error) {
       console.error('Failed to connect to validation server:', error);
@@ -100,6 +100,8 @@ const ComponentValidator: React.FC = () => {
     }
     
     setIsValidating(true);
+    // Request validation for the selected component via WebSocketService
+    // This uses a typed helper on the service which emits a 'request_validation' event
     webSocketService.requestValidation(selectedComponent);
   };
 

@@ -1,6 +1,10 @@
-# BlackBox Driver App Development Guide
+at# BlackBox Driver App Development Guide
 
 This guide provides instructions for setting up and developing the BlackBox Driver App.
+
+> Note on archived code
+>
+> The repository may contain an `archived/` directory for legacy or experimental modules retained for reference (for example, `dashboard/archived/services/TacviewDataService.ts`). This path is excluded from TypeScript builds and ESLint to prevent accidental imports. Do not import anything from `archived/**` into active code. If you need a module back, move it into the appropriate `src/` folder and modernize types/tests.
 
 ## Development Environment Setup
 
@@ -35,6 +39,140 @@ This guide provides instructions for setting up and developing the BlackBox Driv
    npm install
    npm start
    ```
+
+## Tacview Development Workflow (Dashboard)
+
+The team dashboard includes a Tacview-like telemetry view for historical playback and live streaming.
+
+1. Backend URL
+   - Dashboard uses `REACT_APP_BACKEND_URL` for the persistence API (default: `http://localhost:4000`).
+   - Ensure this is set in `dashboard/.env.local` (see `.env.local.example`).
+
+2. Start services
+   - Backend: `cd server && npm start` (serves REST + Socket.IO on port 4000 by default).
+   - Dashboard: `cd dashboard && npm start`.
+
+3. Quick demo flow
+   - In the Tacview tab toolbar:
+     - Click “Create Dev Session” (creates `dev-session-1`).
+     - Click “Append Sample” to add a sample telemetry point.
+     - Click “Load Session” to fetch and render data.
+
+4. Session picker
+   - Click “Refresh Sessions” to load available sessions.
+   - Click “Pick Session” and select one; “Load Session” will use the selected ID.
+
+5. Live mode
+   - Toggle “Live: On” to connect to Socket.IO and stream telemetry for the selected session.
+   - Live updates append to the current view; toggle “Live: Off” to disconnect and clean up.
+
+Notes
+- Busy operations disable controls to prevent concurrent requests.
+- Timeline labels show `mm:ss`; slider is disabled while busy.
+
+## Backend Persistence (Postgres/Timescale)
+
+The backend now persists sessions and telemetry to Postgres using TimescaleDB.
+
+### Install Postgres and TimescaleDB
+
+- macOS (Homebrew):
+  ```bash
+  brew install postgresql@16
+  brew services start postgresql@16
+  # TimescaleDB
+  brew install timescaledb
+  timescaledb-tune --quiet --yes || true
+  ```
+
+- Ubuntu/Debian (apt):
+  ```bash
+  sudo apt-get update
+  sudo apt-get install -y postgresql postgresql-contrib
+  # TimescaleDB
+  # See: https://docs.timescale.com/self-hosted/latest/install/installation-linux/
+  # Example for Ubuntu 22.04:
+  sudo apt-get install -y gnupg wget lsb-release
+  echo "deb https://packagecloud.io/timescale/timescaledb/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/timescaledb.list
+  curl -L https://packagecloud.io/timescale/timescaledb/gpgkey | sudo apt-key add -
+  sudo apt-get update
+  sudo apt-get install -y timescaledb-2-postgresql-14 || true
+  sudo timescaledb-tune --quiet --yes || true
+  sudo systemctl restart postgresql
+  ```
+
+### Create database and enable extension
+
+```sql
+-- In psql
+CREATE DATABASE blackbox_telemetry;
+\c blackbox_telemetry
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+```
+
+### Configure backend env
+
+Copy and edit `server/.env.example` to `server/.env`:
+
+```
+PG_CONNECTION_STRING=postgres://postgres:postgres@localhost:5432/blackbox_telemetry
+```
+
+### Install server deps and run migrations
+
+```bash
+cd server
+npm install
+npm run migrate:dev
+```
+
+### Run backend and verify
+
+```bash
+npm run dev
+# In another terminal
+curl -s http://localhost:4000/health | jq
+curl -s -X POST http://localhost:4000/sessions -H 'Content-Type: application/json' -d '{"name":"Dev Session","track":"Test"}' | jq
+curl -s http://localhost:4000/sessions | jq
+
+# Append sample telemetry (replace SESSION_ID)
+SESSION_ID=<id from previous output>
+curl -s -X POST http://localhost:4000/sessions/$SESSION_ID/telemetry \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "driverId":"d1",
+    "speed":120,
+    "rpm":7500,
+    "gear":4,
+    "throttle":0.85,
+    "brake":0.0,
+    "steering":0.02,
+    "tires":{
+      "frontLeft":{"temp":85,"wear":0.02,"pressure":26.2},
+      "frontRight":{"temp":86,"wear":0.02,"pressure":26.3},
+      "rearLeft":{"temp":90,"wear":0.03,"pressure":25.9},
+      "rearRight":{"temp":91,"wear":0.03,"pressure":26.0}
+    },
+    "position":{"x":123.4,"y":56.7,"z":0},
+    "lap":5,
+    "sector":2,
+    "lapTime":0,
+    "sectorTime":0,
+    "bestLapTime":0,
+    "bestSectorTimes":[],
+    "gForce":{"lateral":1.1,"longitudinal":0.2,"vertical":0.9},
+    "trackPosition":0.45,
+    "racePosition":3,
+    "gapAhead":1.2,
+    "gapBehind":0.8,
+    "timestamp":'"$(node -e 'console.log(Date.now())')"'
+  }' | jq
+
+# Query back
+curl -s "http://localhost:4000/sessions/$SESSION_ID/telemetry?fromTs=0" | jq '.count'
+```
+
+The dashboard Tacview panel will now show persisted data when selecting this session and live streaming remains functional via Socket.IO.
 
 ## Project Structure
 

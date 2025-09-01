@@ -95,11 +95,12 @@ class TeamCommunication {
     }
     
     // Send the message via WebSocket
+    const wsPriority: 'normal' | 'critical' = priority === 'critical' ? 'critical' : 'normal';
     this.websocketService.sendTeamMessage(
       content,
+      wsPriority,
       activeDriver.id,
-      activeDriver.name,
-      priority
+      activeDriver.name
     );
     
     // Note: The message will be added to the messages map when it comes back from the server
