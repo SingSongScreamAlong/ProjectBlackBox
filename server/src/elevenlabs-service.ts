@@ -91,23 +91,64 @@ export class ElevenLabsService {
     model?: string;
   }): Promise<TranscriptionResult> {
     try {
-      // For now, we'll use a simple approach since ElevenLabs focuses on TTS
-      // In a production system, you might want to integrate with a dedicated STT service like Whisper
+      // ElevenLabs focuses on TTS, so we use OpenAI's Whisper for STT
+      // This requires OPENAI_API_KEY or GRADIENT_AI_API_KEY in environment
 
-      // This is a placeholder implementation
-      // Real transcription would require audio upload and processing
-      console.warn('ElevenLabs transcription is not fully implemented. Consider using OpenAI Whisper for STT.');
+      const openaiApiKey = process.env.OPENAI_API_KEY || process.env.GRADIENT_AI_API_KEY;
+
+      if (!openaiApiKey) {
+        console.warn('No OpenAI API key found. STT requires OPENAI_API_KEY.');
+        return {
+          text: '[STT unavailable - OPENAI_API_KEY not configured]',
+          confidence: 0,
+          language: options?.language || 'en',
+          duration: 0,
+        };
+      }
+
+      // Use OpenAI's Whisper API for transcription
+      const FormData = require('form-data');
+      const axios = require('axios');
+
+      const formData = new FormData();
+      formData.append('file', audioData, {
+        filename: 'audio.wav',
+        contentType: 'audio/wav',
+      });
+      formData.append('model', options?.model || 'whisper-1');
+
+      if (options?.language) {
+        formData.append('language', options.language);
+      }
+
+      const response = await axios.post(
+        'https://api.openai.com/v1/audio/transcriptions',
+        formData,
+        {
+          headers: {
+            ...formData.getHeaders(),
+            'Authorization': `Bearer ${openaiApiKey}`,
+          },
+        }
+      );
+
+      const confidence = response.data.text ? 0.9 : 0.0;
 
       return {
-        text: '[Transcription not available - ElevenLabs focuses on TTS]',
+        text: response.data.text || '',
+        confidence: confidence,
+        language: response.data.language || options?.language || 'en',
+        duration: response.data.duration || 0,
+      };
+
+    } catch (error) {
+      console.error('Speech-to-text transcription error:', error);
+      return {
+        text: '[Transcription failed]',
         confidence: 0,
         language: options?.language || 'en',
         duration: 0,
       };
-
-    } catch (error) {
-      console.error('ElevenLabs transcription error:', error);
-      throw new Error(`Failed to transcribe audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

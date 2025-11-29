@@ -344,11 +344,41 @@ class VideoEncoder:
                     if not self._connect_to_backend():
                         time.sleep(2.0)  # Wait before retry
                         continue
-                
-                # TODO: Implement actual frame transmission
-                # For now, just simulate transmission
-                time.sleep(1.0 / self.frame_rate)
-                
+
+                # Check if there are encoded frames to transmit
+                # For real-time streaming, we can send periodic keyframes and deltas
+                # For now, we'll send frame acknowledgments and monitor encoding progress
+
+                # Calculate transmission timing
+                frame_duration = 1.0 / self.frame_rate
+                time.sleep(frame_duration)
+
+                # Check encoding queue status and send status updates
+                if self.ws and self.connected:
+                    try:
+                        status_message = {
+                            "type": "video_status",
+                            "session_id": self.session_id,
+                            "timestamp": datetime.now().isoformat(),
+                            "stats": {
+                                "frames_encoded": self.stats["frames_encoded"],
+                                "frames_received": self.stats["frames_received"],
+                                "dropped_frames": self.stats["dropped_frames"],
+                                "encoding_fps": self.stats["encoding_fps"],
+                                "queue_size": self.frame_queue.qsize(),
+                                "bitrate": self.stats["current_bitrate"]
+                            }
+                        }
+
+                        # Send status update every 60 frames
+                        if frames_transmitted % 60 == 0:
+                            self.ws.send(json.dumps(status_message))
+
+                    except Exception as e:
+                        logger.error(f"Error sending status: {e}")
+                        self.connected = False
+                        continue
+
                 # Update stats
                 frames_transmitted += 1
                 self.stats["frames_transmitted"] += 1

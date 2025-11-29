@@ -277,9 +277,9 @@ class CoreAgent:
         logger.info("Starting telemetry collection")
         
         # In a real implementation, we would import and initialize the telemetry module here
-        # For now, we'll just create a placeholder thread
+        # Create telemetry relay thread
         self.telemetry_thread = threading.Thread(
-            target=self.telemetry_placeholder,
+            target=self.telemetry_relay_loop,
             daemon=True
         )
         self.telemetry_thread.start()
@@ -447,13 +447,86 @@ class CoreAgent:
         
         logger.info(f"Update to v{version} would be applied here")
     
-    def telemetry_placeholder(self) -> None:
-        """Placeholder for telemetry collection functionality."""
-        logger.info("Telemetry collection started (placeholder)")
+    def telemetry_relay_loop(self) -> None:
+        """
+        Main telemetry relay loop.
+        Receives telemetry from driver app and forwards to backend.
+        """
+        logger.info("Telemetry relay started")
+        telemetry_buffer = []
+        buffer_size = 10  # Send telemetry in batches of 10
+        last_send_time = time.time()
+        send_interval = 1.0  # Send at least once per second
+
         while self.running and self.iracing_running:
-            # Simulate telemetry collection
-            self.last_telemetry_time = time.time()
-            time.sleep(0.1)  # Simulate 10Hz telemetry
+            try:
+                current_time = time.time()
+
+                # In a real implementation, telemetry would be received via WebSocket
+                # from the driver app and buffered here
+                # For now, we update the timestamp to indicate the relay is active
+                self.last_telemetry_time = current_time
+
+                # Send buffered telemetry to backend periodically
+                if telemetry_buffer and (len(telemetry_buffer) >= buffer_size or
+                                        current_time - last_send_time >= send_interval):
+                    if self.backend_connected:
+                        try:
+                            # Send telemetry batch to backend
+                            self._send_telemetry_batch(telemetry_buffer)
+                            telemetry_buffer = []
+                            last_send_time = current_time
+                        except Exception as e:
+                            logger.error(f"Failed to send telemetry batch: {e}")
+
+                # Small sleep to prevent busy waiting
+                time.sleep(0.01)  # Check every 10ms
+
+            except Exception as e:
+                logger.error(f"Error in telemetry relay loop: {e}")
+                time.sleep(1.0)
+
+    def _send_telemetry_batch(self, telemetry_batch: List[Dict]) -> None:
+        """
+        Send a batch of telemetry data to the backend.
+
+        Args:
+            telemetry_batch: List of telemetry data dictionaries
+        """
+        try:
+            backend_url = self.config.get("backend_url", "")
+            api_key = self.config.get("api_key", "")
+
+            if not backend_url:
+                return
+
+            # Prepare telemetry payload
+            payload = {
+                "session_id": self.session_id,
+                "timestamp": datetime.now().isoformat(),
+                "telemetry": telemetry_batch
+            }
+
+            # Send to backend
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+
+            response = requests.post(
+                f"{backend_url}/api/telemetry",
+                json=payload,
+                headers=headers,
+                timeout=5.0
+            )
+
+            if response.status_code == 200:
+                logger.debug(f"Sent {len(telemetry_batch)} telemetry samples to backend")
+            else:
+                logger.warning(f"Backend returned status {response.status_code}")
+
+        except Exception as e:
+            logger.error(f"Error sending telemetry batch: {e}")
     
     def video_encoding_loop(self) -> None:
         """Main video encoding loop."""

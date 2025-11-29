@@ -409,18 +409,48 @@ export class DriverIdentificationService extends EventEmitter {
       weight: 80,
       method: async () => {
         try {
-          // In a real implementation, this would check iRacing credentials file
-          // For now, we'll just simulate this with a placeholder
+          // Check for iRacing installation and credentials
           const iRacingPath = path.join(app.getPath('documents'), 'iRacing');
           if (!existsSync(iRacingPath)) return null;
-          
+
+          // Try to read iRacing member ID from login.json or credentials file
+          let iRacingId: string | null = null;
+
+          // Check for credentials file
+          const credentialsPath = path.join(iRacingPath, 'credentials.json');
+          if (existsSync(credentialsPath)) {
+            try {
+              const credentials = JSON.parse(readFileSync(credentialsPath, 'utf8').toString());
+              iRacingId = credentials.customerId || credentials.memberId || null;
+            } catch (e) {
+              console.debug('Could not parse credentials file');
+            }
+          }
+
+          // Check for account info file
+          if (!iRacingId) {
+            const accountPath = path.join(iRacingPath, 'account.json');
+            if (existsSync(accountPath)) {
+              try {
+                const account = JSON.parse(readFileSync(accountPath, 'utf8').toString());
+                iRacingId = account.custId || account.id || null;
+              } catch (e) {
+                console.debug('Could not parse account file');
+              }
+            }
+          }
+
+          if (!iRacingId) {
+            console.debug('No iRacing ID found in credentials or account files');
+            return null;
+          }
+
           // Find driver with matching iRacing ID
-          // This is a placeholder - in a real implementation we would extract the actual ID
-          const simulatedId = 'ir_12345';
-          const driver = this.drivers.find(d => 
-            d.identifiers.iRacingId === simulatedId
+          const iRacingIdStr = `ir_${iRacingId}`;
+          const driver = this.drivers.find(d =>
+            d.identifiers.iRacingId === iRacingIdStr
           );
-          
+
           return driver?.id || null;
         } catch (error) {
           console.error('Error in iRacing detection:', error);
@@ -435,15 +465,47 @@ export class DriverIdentificationService extends EventEmitter {
       weight: 60,
       method: async () => {
         try {
-          // In a real implementation, this would check connected peripherals
-          // For now, we'll just simulate this with a placeholder
-          const simulatedPeripheralId = 'wheel_t300rs';
-          
-          // Find driver with matching peripheral ID
-          const driver = this.drivers.find(d => 
-            d.identifiers.peripheralIds?.includes(simulatedPeripheralId)
-          );
-          
+          // Detect connected racing peripherals
+          const connectedPeripherals: string[] = [];
+
+          // On Windows, we can check for common racing wheel vendor/product IDs
+          // Common racing wheel manufacturers:
+          // - Logitech: VID_046D
+          // - Thrustmaster: VID_044F
+          // - Fanatec: VID_0EB7
+
+          // For cross-platform compatibility, we'll check for HID devices
+          // This would require a native addon or USB library in production
+          // For now, we'll check if the driver has any saved peripheral profiles
+
+          // Check for saved wheel profiles in app data
+          const appDataPath = app.getPath('userData');
+          const peripheralsFile = path.join(appDataPath, 'peripherals.json');
+
+          if (existsSync(peripheralsFile)) {
+            try {
+              const savedPeripherals = JSON.parse(readFileSync(peripheralsFile, 'utf8').toString());
+              if (savedPeripherals.lastConnected) {
+                connectedPeripherals.push(...savedPeripherals.lastConnected);
+              }
+            } catch (e) {
+              console.debug('Could not read peripherals file');
+            }
+          }
+
+          // If no peripherals detected, return null
+          if (connectedPeripherals.length === 0) {
+            return null;
+          }
+
+          // Find driver with matching peripheral IDs
+          const driver = this.drivers.find(d => {
+            if (!d.identifiers.peripheralIds) return false;
+            return d.identifiers.peripheralIds.some(pid =>
+              connectedPeripherals.includes(pid)
+            );
+          });
+
           return driver?.id || null;
         } catch (error) {
           console.error('Error in peripherals detection:', error);
