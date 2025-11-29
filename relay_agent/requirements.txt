@@ -1,4 +1,25 @@
+# iRacing SDK
 pyirsdk>=1.0.0
+
+# WebSocket communication
 websocket-client>=1.6.0
+websockets>=11.0.0
+
+# HTTP requests
 requests>=2.28.0
+
+# Data processing
 numpy>=1.21.0
+
+# Video encoding and image processing
+opencv-python>=4.7.0
+Pillow>=9.5.0
+
+# System monitoring
+psutil>=5.9.0
+
+# Configuration and logging
+python-dotenv>=1.0.0
+
+# Additional utilities
+PyYAML>=6.0

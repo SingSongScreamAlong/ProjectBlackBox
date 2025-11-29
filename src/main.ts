@@ -674,20 +674,19 @@ const updateDriver = async (driverData: any): Promise<void> => {
 // Delete driver profile
 const deleteDriver = async (driverData: any): Promise<void> => {
   try {
-    if (!blackBoxCore.deleteDriver) {
-      // Fallback if deleteDriver doesn't exist
-      console.log('Delete driver not implemented in BlackBoxCore, using mock implementation');
-      // Mock implementation
+    // Delete driver using BlackBoxCore
+    const success = blackBoxCore.deleteDriver(driverData.id);
+
+    if (success) {
+      console.log(`Driver ${driverData.id} deleted successfully`);
       if (mainWindow) {
-        mainWindow.webContents.send('driver-deleted', { success: true });
+        mainWindow.webContents.send('driver-deleted', {
+          success: true,
+          driverId: driverData.id
+        });
       }
-      return;
-    }
-    
-    await blackBoxCore.deleteDriver(driverData.id);
-    
-    if (mainWindow) {
-      mainWindow.webContents.send('driver-deleted', { success: true });
+    } else {
+      throw new Error('Failed to delete driver');
     }
   } catch (error: any) {
     console.error('Failed to delete driver:', error);
