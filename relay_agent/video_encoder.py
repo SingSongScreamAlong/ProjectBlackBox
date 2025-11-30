@@ -50,8 +50,11 @@ class VideoEncoder:
                 - use_hardware_accel: Whether to use hardware acceleration
         """
         self.config = config
-        self.backend_url = config.get("backend_url", "ws://localhost:3000/video")
-        self.api_key = config.get("api_key", "")
+        # Use environment variable first, then config, then fallback to localhost
+        import os
+        default_backend = os.environ.get('BACKEND_URL', 'ws://localhost:3000/video')
+        self.backend_url = config.get("backend_url", default_backend)
+        self.api_key = config.get("api_key", os.environ.get('API_KEY', ""))
         self.video_quality = config.get("video_quality", "medium")
         self.max_bitrate = config.get("max_bitrate", 2000)  # kbps
         self.frame_rate = config.get("frame_rate", 30)

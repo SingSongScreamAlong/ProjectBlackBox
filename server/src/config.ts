@@ -102,7 +102,25 @@ const validateEnvironment = (): void => {
   // Validate JWT secret strength
   const jwtSecret = process.env.JWT_SECRET!;
   if (jwtSecret.length < 32) {
-    console.warn('Warning: JWT_SECRET should be at least 32 characters long for security');
+    const errorMsg = 'FATAL: JWT_SECRET must be at least 32 characters long for security';
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(errorMsg);
+    } else {
+      console.error('ERROR:', errorMsg);
+      console.error('Starting anyway because NODE_ENV is not production, but this MUST be fixed before deployment!');
+    }
+  }
+
+  // Prevent common weak JWT secrets
+  const weakSecrets = ['secret', 'default', 'test', 'changeme', 'password', '12345'];
+  const lowerSecret = jwtSecret.toLowerCase();
+  if (weakSecrets.some(weak => lowerSecret.includes(weak))) {
+    const errorMsg = 'FATAL: JWT_SECRET appears to contain common weak values. Use a cryptographically secure random string.';
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(errorMsg);
+    } else {
+      console.error('ERROR:', errorMsg);
+    }
   }
 
   // Validate database connection string

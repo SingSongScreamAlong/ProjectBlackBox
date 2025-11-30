@@ -644,10 +644,11 @@ def create_telemetry_collector(config: Dict[str, Any]) -> TelemetryCollector:
 
 # For testing purposes
 if __name__ == "__main__":
-    # Test configuration
+    import os
+    # Test configuration - uses environment variables if available
     test_config = {
-        'backend_url': 'http://localhost:8000',
-        'api_key': 'test_api_key',
+        'backend_url': os.environ.get('BACKEND_URL', 'http://localhost:8000'),
+        'api_key': os.environ.get('API_KEY', 'test_api_key'),
         'telemetry_protocol': 'websocket',
         'compress_telemetry': True,
         'max_telemetry_rate': 10
