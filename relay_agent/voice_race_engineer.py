@@ -62,12 +62,52 @@ class EngineerContext:
 class VoiceRaceEngineer:
     """Conversational AI race engineer with voice I/O"""
 
-    def __init__(self, api_key: Optional[str] = None, elevenlabs_key: Optional[str] = None):
+    # ElevenLabs Voice Options for Race Engineers
+    ENGINEER_VOICES = {
+        'professional': {
+            'id': 'pNInz6obpgDQGcFmaJgB',  # Adam - Professional, authoritative
+            'name': 'Adam',
+            'description': 'Professional male voice, calm and authoritative'
+        },
+        'experienced': {
+            'id': 'VR6AewLTigWG4xSOukaG',  # Arnold - Experienced, reassuring
+            'name': 'Arnold',
+            'description': 'Mature male voice, experienced and reassuring'
+        },
+        'dynamic': {
+            'id': 'ErXwobaYiN019PkySvjV',  # Antoni - Dynamic, energetic
+            'name': 'Antoni',
+            'description': 'Dynamic male voice, energetic and engaging'
+        },
+        'calm': {
+            'id': 'TxGEqnHWrfWFTfGW9XjX',  # Josh - Calm, focused
+            'name': 'Josh',
+            'description': 'Calm male voice, focused and precise'
+        }
+    }
+
+    def __init__(self,
+                 api_key: Optional[str] = None,
+                 elevenlabs_key: Optional[str] = None,
+                 voice_profile: str = 'professional'):
         self.api_key = api_key or os.getenv('OPENAI_API_KEY')
         self.elevenlabs_key = elevenlabs_key or os.getenv('ELEVENLABS_API_KEY')
 
         if OPENAI_AVAILABLE and self.api_key:
             openai.api_key = self.api_key
+
+        # ElevenLabs voice configuration
+        self.voice_profile = voice_profile
+        if voice_profile not in self.ENGINEER_VOICES:
+            logger.warning(f"Unknown voice profile '{voice_profile}', using 'professional'")
+            self.voice_profile = 'professional'
+
+        self.voice_settings = {
+            'stability': 0.65,  # Balanced stability for consistent delivery
+            'similarity_boost': 0.80,  # High similarity for professional tone
+            'style': 0.45,  # Moderate style for natural speech
+            'use_speaker_boost': True  # Enhanced clarity
+        }
 
         # Audio setup
         self.audio_enabled = AUDIO_AVAILABLE
@@ -98,11 +138,15 @@ class VoiceRaceEngineer:
         self.ws_url = None
         self.ws = None
 
-        logger.info("Voice Race Engineer initialized")
+        voice_info = self.ENGINEER_VOICES[self.voice_profile]
+        logger.info(f"Voice Race Engineer initialized with '{voice_info['name']}' voice")
+        logger.info(f"Voice profile: {voice_info['description']}")
         if not AUDIO_AVAILABLE:
             logger.warning("Audio I/O disabled - install pyaudio for voice support")
         if not OPENAI_AVAILABLE:
             logger.warning("OpenAI disabled - install openai for speech recognition")
+        if not self.elevenlabs_key:
+            logger.warning("ElevenLabs API key not set - voice output disabled")
 
     def update_context(self, telemetry_data: Dict):
         """Update race engineer context with latest telemetry"""
@@ -362,15 +406,30 @@ Engineer: "You're good on fuel for 12 more laps. No need to lift and coast."
             return None
 
         try:
-            from elevenlabs import ElevenLabsClient
+            from elevenlabs import ElevenLabsClient, VoiceSettings
 
             client = ElevenLabsClient(api_key=self.elevenlabs_key)
 
-            # Use professional male voice for race engineer
+            # Get selected voice profile
+            voice_info = self.ENGINEER_VOICES[self.voice_profile]
+
+            # Configure voice settings for professional race engineer delivery
+            voice_settings = VoiceSettings(
+                stability=self.voice_settings['stability'],
+                similarity_boost=self.voice_settings['similarity_boost'],
+                style=self.voice_settings['style'],
+                use_speaker_boost=self.voice_settings['use_speaker_boost']
+            )
+
+            logger.info(f"Generating voice with {voice_info['name']} ({voice_info['description']})")
+
+            # Generate audio using ElevenLabs
             audio_stream = client.text_to_speech.convert(
-                voice_id="21m00Tcm4TlvDq8ikWAM",  # Rachel (can change to male voice)
+                voice_id=voice_info['id'],
                 text=text,
-                model_id="eleven_monolingual_v1"
+                model_id="eleven_turbo_v2_5",  # Fastest, lowest latency for real-time racing
+                voice_settings=voice_settings,
+                output_format="mp3_44100_128"  # High quality MP3
             )
 
             # Convert stream to bytes
@@ -379,11 +438,47 @@ Engineer: "You're good on fuel for 12 more laps. No need to lift and coast."
             for chunk in audio_stream:
                 audio_buffer.write(chunk)
 
-            return audio_buffer.getvalue()
+            audio_data = audio_buffer.getvalue()
+            logger.info(f"✓ Voice generated: {len(audio_data)} bytes")
+            return audio_data
 
         except Exception as e:
-            logger.error(f"Voice generation error: {e}")
+            logger.error(f"ElevenLabs voice generation error: {e}")
             return None
+
+    def set_voice_profile(self, profile: str):
+        """Change the voice profile (professional, experienced, dynamic, calm)"""
+        if profile in self.ENGINEER_VOICES:
+            self.voice_profile = profile
+            voice_info = self.ENGINEER_VOICES[profile]
+            logger.info(f"Voice profile changed to '{voice_info['name']}': {voice_info['description']}")
+            return True
+        else:
+            logger.error(f"Unknown voice profile: {profile}")
+            logger.info(f"Available profiles: {', '.join(self.ENGINEER_VOICES.keys())}")
+            return False
+
+    def customize_voice_settings(self, stability: float = None, similarity_boost: float = None,
+                                 style: float = None, use_speaker_boost: bool = None):
+        """
+        Customize ElevenLabs voice settings
+
+        Args:
+            stability (0.0-1.0): Higher = more consistent, lower = more expressive
+            similarity_boost (0.0-1.0): Higher = closer to original voice
+            style (0.0-1.0): Style exaggeration
+            use_speaker_boost: Enhanced clarity
+        """
+        if stability is not None:
+            self.voice_settings['stability'] = max(0.0, min(1.0, stability))
+        if similarity_boost is not None:
+            self.voice_settings['similarity_boost'] = max(0.0, min(1.0, similarity_boost))
+        if style is not None:
+            self.voice_settings['style'] = max(0.0, min(1.0, style))
+        if use_speaker_boost is not None:
+            self.voice_settings['use_speaker_boost'] = use_speaker_boost
+
+        logger.info(f"Voice settings updated: {self.voice_settings}")
 
     async def connect_to_server(self, ws_url: str):
         """Connect to BlackBox server via WebSocket for real-time telemetry"""
