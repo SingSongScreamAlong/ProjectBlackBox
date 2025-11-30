@@ -12,6 +12,7 @@ import aiRoutes from './ai-routes.js';
 import trackMapRoutes from './track-map-routes.js';
 import trackCalibrationRoutes from './track-calibration-routes.js';
 import voiceRoutes, { setupVoiceWebSocket } from './voice-routes.js';
+import strategyRoutes from './strategy-routes.js';
 import { apiLimiter, telemetryLimiter, authLimiter } from './middleware/rate-limit.js';
 import { sanitizeInputs } from './middleware/sql-injection-guard.js';
 
@@ -111,6 +112,9 @@ app.use('/api/calibrate', trackCalibrationRoutes);
 
 // Voice communication routes (authenticated) - Conversational race engineer with voice I/O
 app.use('/api/voice', voiceRoutes);
+
+// Race strategy routes (authenticated) - Fuel, tire, pit stop calculations
+app.use('/api/strategy', strategyRoutes);
 
 // Health check (public)
 app.get('/health', async (_req, res) => {
