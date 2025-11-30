@@ -38,5 +38,7 @@ export async function withTx<T>(fn: (client: import('pg').PoolClient) => Promise
 }
 
 export async function setStatementTimeout(ms: number): Promise<void> {
-  await pool.query(`SET statement_timeout = ${Math.max(0, Math.floor(ms))}`);
+  // Use parameterized query for SQL injection protection
+  const timeoutMs = Math.max(0, Math.floor(ms));
+  await pool.query('SET statement_timeout = $1', [timeoutMs]);
 }
