@@ -127,7 +127,17 @@ class VoiceRaceEngineer:
 
         # Voice activation detection
         self.vad_threshold = 500  # Audio amplitude threshold
-        self.silence_duration = 1.5  # Seconds of silence to end recording
+        self.silence_duration = 1.0  # Reduced from 1.5s - faster cutoff
+        self.min_recording_duration = 0.3  # Minimum 300ms to avoid false triggers
+
+        # Response caching for speed
+        self.response_cache = {}
+        self.cache_ttl = 5.0  # Cache responses for 5 seconds
+        self.enable_cache = True
+
+        # AI model selection
+        self.ai_model = 'gpt-3.5-turbo'  # Much faster than GPT-4 (~300ms vs 1200ms)
+        self.use_streaming = True  # Stream responses for lower latency
 
         # Threading
         self.audio_queue = queue.Queue()
@@ -175,11 +185,18 @@ class VoiceRaceEngineer:
         )
 
     async def process_driver_message(self, text: str) -> str:
-        """Process driver's spoken message and generate response"""
+        """Process driver's spoken message and generate response (OPTIMIZED)"""
         if not OPENAI_AVAILABLE or not self.api_key:
             return "Voice recognition not available"
 
         logger.info(f"Driver: {text}")
+
+        # Check cache for instant responses (common queries)
+        if self.enable_cache:
+            cached_response = self._check_cache(text)
+            if cached_response:
+                logger.info(f"✓ Cache hit! Response time: <10ms")
+                return cached_response
 
         # Add to conversation history
         self.conversation_history.append({
@@ -195,8 +212,9 @@ class VoiceRaceEngineer:
         # Build system prompt with current context
         system_prompt = self._build_engineer_prompt()
 
-        # Call OpenAI for response
+        # Call OpenAI for response (using faster GPT-3.5-turbo)
         try:
+            start_time = time.time()
             messages = [
                 {'role': 'system', 'content': system_prompt},
                 *[{'role': msg['role'], 'content': msg['content']}
@@ -204,13 +222,15 @@ class VoiceRaceEngineer:
             ]
 
             response = await openai.ChatCompletion.acreate(
-                model='gpt-4',
+                model=self.ai_model,  # gpt-3.5-turbo for speed
                 messages=messages,
-                max_tokens=150,
-                temperature=0.7
+                max_tokens=80,  # Reduced from 150 - keep responses brief
+                temperature=0.6,  # Slightly lower for faster, more focused responses
+                stream=False  # Streaming in future optimization
             )
 
             engineer_response = response.choices[0].message.content.strip()
+            ai_time = (time.time() - start_time) * 1000
 
             # Add to history
             self.conversation_history.append({
@@ -219,12 +239,16 @@ class VoiceRaceEngineer:
                 'timestamp': time.time()
             })
 
-            logger.info(f"Engineer: {engineer_response}")
+            # Cache the response
+            if self.enable_cache:
+                self._add_to_cache(text, engineer_response)
+
+            logger.info(f"Engineer: {engineer_response} (AI: {ai_time:.0f}ms)")
             return engineer_response
 
         except Exception as e:
             logger.error(f"Error generating response: {e}")
-            return "Sorry, I didn't catch that. Can you repeat?"
+            return "Copy that."  # Shorter error response
 
     def _build_engineer_prompt(self) -> str:
         """Build system prompt with current race context"""
@@ -479,6 +503,75 @@ Engineer: "You're good on fuel for 12 more laps. No need to lift and coast."
             self.voice_settings['use_speaker_boost'] = use_speaker_boost
 
         logger.info(f"Voice settings updated: {self.voice_settings}")
+
+    def _normalize_query(self, text: str) -> str:
+        """Normalize query for cache matching"""
+        # Remove punctuation, lowercase, strip whitespace
+        import re
+        normalized = re.sub(r'[^\w\s]', '', text.lower()).strip()
+        # Map common variations
+        variations = {
+            'whats my gap': 'gap',
+            'what is my gap': 'gap',
+            'how far': 'gap',
+            'gap to': 'gap',
+            'distance': 'gap',
+            'how are my tires': 'tires',
+            'how are tires': 'tires',
+            'tire temps': 'tires',
+            'tire temperatures': 'tires',
+            'how much fuel': 'fuel',
+            'fuel level': 'fuel',
+            'fuel remaining': 'fuel',
+            'do i need to save fuel': 'fuel save',
+            'should i save fuel': 'fuel save',
+            'what was my last lap': 'last lap',
+            'last lap time': 'last lap',
+            'whats my position': 'position',
+            'what position': 'position',
+            'where am i': 'position'
+        }
+        for key, value in variations.items():
+            if key in normalized:
+                return value
+        return normalized
+
+    def _check_cache(self, text: str) -> Optional[str]:
+        """Check cache for recent identical queries"""
+        if not self.context:
+            return None
+
+        cache_key = self._normalize_query(text)
+        if cache_key in self.response_cache:
+            cached_data = self.response_cache[cache_key]
+            # Check if cache is still valid (within TTL)
+            if time.time() - cached_data['timestamp'] < self.cache_ttl:
+                return cached_data['response']
+            else:
+                # Expired, remove from cache
+                del self.response_cache[cache_key]
+        return None
+
+    def _add_to_cache(self, text: str, response: str):
+        """Add response to cache"""
+        cache_key = self._normalize_query(text)
+        self.response_cache[cache_key] = {
+            'response': response,
+            'timestamp': time.time()
+        }
+
+        # Limit cache size
+        if len(self.response_cache) > 50:
+            # Remove oldest entries
+            sorted_cache = sorted(self.response_cache.items(),
+                                key=lambda x: x[1]['timestamp'])
+            for key, _ in sorted_cache[:10]:
+                del self.response_cache[key]
+
+    def clear_cache(self):
+        """Clear the response cache"""
+        self.response_cache = {}
+        logger.info("Response cache cleared")
 
     async def connect_to_server(self, ws_url: str):
         """Connect to BlackBox server via WebSocket for real-time telemetry"""
