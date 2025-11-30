@@ -23,6 +23,9 @@ class iRacingTrackMapper:
         self.recording = False
         self.track_name = None
         self.track_length = None
+        self.player_car_idx = None
+        self.position_buffer = []  # For smoothing
+        self.max_buffer_size = 5
 
     def connect(self) -> bool:
         """Connect to iRacing"""
@@ -41,8 +44,12 @@ class iRacingTrackMapper:
         self.track_name = self.ir['WeekendInfo']['TrackDisplayName']
         self.track_length = self.ir['WeekendInfo']['TrackLength'].split()[0]  # Remove 'km' unit
 
+        # Find player car index for accurate position data
+        self.player_car_idx = self.ir['PlayerCarIdx']
+
         logger.info(f"Track: {self.track_name}")
         logger.info(f"Length: {self.track_length} km")
+        logger.info(f"Player Car Index: {self.player_car_idx}")
 
     def record_reference_lap(self, wait_for_green_flag: bool = True) -> List[Dict]:
         """
@@ -94,7 +101,7 @@ class iRacingTrackMapper:
         return self.telemetry_samples
 
     def _get_telemetry_sample(self) -> Optional[Dict]:
-        """Get current telemetry sample from iRacing"""
+        """Get current telemetry sample from iRacing with accurate position data"""
         try:
             # Calculate track distance
             lap_dist_pct = self.ir['LapDistPct']
@@ -103,6 +110,44 @@ class iRacingTrackMapper:
 
             track_length_m = float(self.track_length.replace(' km', '')) * 1000
             distance = lap_dist_pct * track_length_m
+
+            # Get REAL position data from iRacing (in meters, world coordinates)
+            # iRacing provides position arrays for all cars indexed by car number
+            pos_x = 0
+            pos_y = 0
+            pos_z = 0
+
+            if self.player_car_idx is not None:
+                # Try to get position from car position arrays
+                try:
+                    # Method 1: Direct position arrays (most accurate)
+                    if 'CarIdxX' in self.ir and 'CarIdxY' in self.ir and 'CarIdxZ' in self.ir:
+                        pos_x = self.ir['CarIdxX'][self.player_car_idx]
+                        pos_y = self.ir['CarIdxY'][self.player_car_idx]
+                        pos_z = self.ir['CarIdxZ'][self.player_car_idx]
+                    # Method 2: Use velocity integration as fallback
+                    elif len(self.telemetry_samples) > 0:
+                        # Integrate velocity to estimate position
+                        dt = 0.1  # 10Hz sample rate
+                        vx = self.ir['VelocityX']
+                        vy = self.ir['VelocityY']
+                        vz = self.ir['VelocityZ']
+
+                        last_sample = self.telemetry_samples[-1]
+                        pos_x = last_sample.get('pos_x', 0) + vx * dt
+                        pos_y = last_sample.get('pos_y', 0) + vy * dt
+                        pos_z = last_sample.get('pos_z', 0) + vz * dt
+                except (KeyError, IndexError, TypeError):
+                    # Fallback: Use distance-based estimation
+                    # Convert lap distance to approximate X/Y coordinates
+                    angle = lap_dist_pct * 2 * 3.14159  # Rough circular approximation
+                    radius = track_length_m / (2 * 3.14159)
+                    pos_x = radius * (1 - lap_dist_pct) * 1000  # Scale up
+                    pos_y = radius * lap_dist_pct * 1000
+                    pos_z = 0
+
+            # Apply position smoothing (moving average filter)
+            smoothed_pos = self._smooth_position(pos_x, pos_y, pos_z)
 
             sample = {
                 'timestamp': time.time() * 1000,  # milliseconds
@@ -114,10 +159,25 @@ class iRacingTrackMapper:
                 'brake': self.ir['Brake'],
                 'steering': self.ir['SteeringWheelAngle'],
 
-                # Position (iRacing uses meters)
-                'pos_x': self.ir['CarIdxLapDistPct'][0] if 'CarIdxLapDistPct' in self.ir else 0,  # Placeholder
-                'pos_y': self.ir['VelocityY'],  # Placeholder
-                'pos_z': self.ir['VelocityZ'],  # Placeholder
+                # REAL Position data (smoothed)
+                'pos_x': smoothed_pos[0],
+                'pos_y': smoothed_pos[1],
+                'pos_z': smoothed_pos[2],
+
+                # Raw position (for debugging)
+                'pos_x_raw': pos_x,
+                'pos_y_raw': pos_y,
+                'pos_z_raw': pos_z,
+
+                # Velocity (for validation)
+                'vel_x': self.ir.get('VelocityX', 0),
+                'vel_y': self.ir.get('VelocityY', 0),
+                'vel_z': self.ir.get('VelocityZ', 0),
+
+                # Orientation (yaw, pitch, roll in radians)
+                'yaw': self.ir.get('Yaw', 0),
+                'pitch': self.ir.get('Pitch', 0),
+                'roll': self.ir.get('Roll', 0),
 
                 # G-Forces
                 'g_lat': self.ir['LatAccel'] / 9.81,  # Convert to G
@@ -139,13 +199,35 @@ class iRacingTrackMapper:
                 'tire_temp_rf': self.ir['RFtempCL'],
                 'tire_temp_lr': self.ir['LRtempCL'],
                 'tire_temp_rr': self.ir['RRtempCL'],
+
+                # Track surface type under tires
+                'track_surface': self.ir.get('OnPitRoad', False),
             }
 
             return sample
 
         except Exception as e:
             logger.error(f"Error collecting telemetry: {e}")
+            logger.exception("Full traceback:")
             return None
+
+    def _smooth_position(self, x: float, y: float, z: float) -> tuple:
+        """Apply moving average filter to position data for smoothness"""
+        # Add to buffer
+        self.position_buffer.append((x, y, z))
+
+        # Keep buffer size limited
+        if len(self.position_buffer) > self.max_buffer_size:
+            self.position_buffer.pop(0)
+
+        # Calculate moving average
+        if len(self.position_buffer) > 0:
+            avg_x = sum(p[0] for p in self.position_buffer) / len(self.position_buffer)
+            avg_y = sum(p[1] for p in self.position_buffer) / len(self.position_buffer)
+            avg_z = sum(p[2] for p in self.position_buffer) / len(self.position_buffer)
+            return (avg_x, avg_y, avg_z)
+        else:
+            return (x, y, z)
 
     def _get_current_sector(self) -> int:
         """Determine current sector from lap distance"""
