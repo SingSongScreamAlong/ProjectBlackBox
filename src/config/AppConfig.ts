@@ -52,9 +52,10 @@ export interface AppConfiguration {
 
 /**
  * Default configuration values
+ * Environment variables are checked first, with fallback to localhost for development
  */
 const DEFAULT_CONFIG: AppConfiguration = {
-  serverUrl: 'http://localhost:3000',
+  serverUrl: process.env.BACKEND_URL || process.env.SERVER_URL || 'http://localhost:3000',
   selectedSim: 'iracing',
   telemetryCaptureRate: 10,
   localCacheEnabled: true,
