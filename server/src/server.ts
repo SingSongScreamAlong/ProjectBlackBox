@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { pool, ping } from './db.js';
 import { authenticateToken, requireRole } from './auth.js';
 import authRoutes from './auth-routes.js';
+import exportRoutes from './export-routes.js';
+import aiRoutes from './ai-routes.js';
 import { apiLimiter, telemetryLimiter, authLimiter } from './middleware/rate-limit.js';
 import { sanitizeInputs } from './middleware/sql-injection-guard.js';
 
@@ -71,6 +73,12 @@ app.use(sanitizeInputs); // SQL injection protection
 
 // Authentication routes (public) - with brute force protection
 app.use('/auth', authLimiter, authRoutes);
+
+// Export routes (authenticated) - telemetry data exports
+app.use('/api/export', exportRoutes);
+
+// AI coaching routes (authenticated) - AI analysis and coaching
+app.use('/api/ai', aiRoutes);
 
 // Health check (public)
 app.get('/health', async (_req, res) => {
