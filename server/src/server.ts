@@ -9,6 +9,7 @@ import authRoutes from './auth-routes.js';
 import exportRoutes from './export-routes.js';
 import aiRoutes from './ai-routes.js';
 import trackMapRoutes from './track-map-routes.js';
+import trackCalibrationRoutes from './track-calibration-routes.js';
 import { apiLimiter, telemetryLimiter, authLimiter } from './middleware/rate-limit.js';
 import { sanitizeInputs } from './middleware/sql-injection-guard.js';
 
@@ -83,6 +84,9 @@ app.use('/api/ai', aiRoutes);
 
 // Track map routes (public) - Track layouts, corners, SVG visualizations
 app.use('/api/tracks', trackMapRoutes);
+
+// Track calibration routes (authenticated) - Upload telemetry to generate accurate maps
+app.use('/api/calibrate', trackCalibrationRoutes);
 
 // Health check (public)
 app.get('/health', async (_req, res) => {
