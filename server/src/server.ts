@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { pool, ping } from './db.js';
 import { authenticateToken, requireRole } from './auth.js';
 import authRoutes from './auth-routes.js';
+import { apiLimiter, telemetryLimiter, authLimiter } from './middleware/rate-limit.js';
+import { sanitizeInputs } from './middleware/sql-injection-guard.js';
 
 // Basic types aligned with dashboard expectations
 export interface TelemetryTire {
@@ -64,8 +66,11 @@ const io = new SocketIOServer(server, {
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
-// Authentication routes (public)
-app.use('/auth', authRoutes);
+// Security middleware - apply globally
+app.use(sanitizeInputs); // SQL injection protection
+
+// Authentication routes (public) - with brute force protection
+app.use('/auth', authLimiter, authRoutes);
 
 // Health check (public)
 app.get('/health', async (_req, res) => {
@@ -74,7 +79,7 @@ app.get('/health', async (_req, res) => {
 });
 
 // List sessions (for simple picker/testing) - requires authentication
-app.get('/sessions', authenticateToken, async (_req, res) => {
+app.get('/sessions', apiLimiter, authenticateToken, async (_req, res) => {
   const q = await pool.query('SELECT id, name, track, extract(epoch from created_at)*1000 as created_at_ms FROM sessions ORDER BY created_at DESC');
   const sessions = q.rows.map((r: any) => ({ id: r.id, name: r.name ?? undefined, track: r.track ?? undefined, createdAt: Math.round(Number(r.created_at_ms)) })) as Session[];
   res.json({ sessions });
@@ -92,7 +97,7 @@ io.on('connection', (socket) => {
 });
 
 // Create session - requires authentication
-app.post('/sessions', authenticateToken, async (req, res) => {
+app.post('/sessions', apiLimiter, authenticateToken, async (req, res) => {
   const id: string = req.body?.id || uuidv4();
   const name = req.body?.name as string | undefined;
   const track = req.body?.track as string | undefined;
@@ -102,8 +107,8 @@ app.post('/sessions', authenticateToken, async (req, res) => {
   return res.status(201).json(session);
 });
 
-// Append telemetry (single or array) - requires authentication
-app.post('/sessions/:id/telemetry', authenticateToken, async (req, res) => {
+// Append telemetry (single or array) - requires authentication, high-frequency data
+app.post('/sessions/:id/telemetry', telemetryLimiter, authenticateToken, async (req, res) => {
   const { id } = req.params;
   // verify session exists
   const exists = await pool.query('SELECT 1 FROM sessions WHERE id = $1', [id]);
@@ -166,7 +171,7 @@ app.post('/sessions/:id/telemetry', authenticateToken, async (req, res) => {
 });
 
 // Fetch telemetry window - requires authentication
-app.get('/sessions/:id/telemetry', authenticateToken, async (req, res) => {
+app.get('/sessions/:id/telemetry', telemetryLimiter, authenticateToken, async (req, res) => {
   const { id } = req.params;
   const fromTs = req.query.fromTs ? Number(req.query.fromTs) : undefined;
   const toTs = req.query.toTs ? Number(req.query.toTs) : undefined;

@@ -1,4 +1,5 @@
-import { ElevenLabsAPI } from 'elevenlabs';
+import { ElevenLabsClient } from 'elevenlabs';
+import { Readable } from 'stream';
 
 export interface VoiceMessage {
   text: string;
@@ -20,8 +21,18 @@ export interface TranscriptionResult {
   duration: number;
 }
 
+// Helper function to convert stream to buffer
+async function streamToBuffer(stream: Readable): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  return new Promise((resolve, reject) => {
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+}
+
 export class ElevenLabsService {
-  private client: ElevenLabsAPI;
+  private client: ElevenLabsClient;
   private defaultVoiceId: string;
   private defaultModel: string;
 
@@ -31,7 +42,7 @@ export class ElevenLabsService {
       throw new Error('ELEVENLABS_API_KEY environment variable is required');
     }
 
-    this.client = new ElevenLabsAPI({
+    this.client = new ElevenLabsClient({
       apiKey: apiKey,
     });
 
@@ -57,16 +68,7 @@ export class ElevenLabsService {
       });
 
       // Convert stream to buffer
-      const chunks: Uint8Array[] = [];
-      const reader = audioStream.getReader();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-      }
-
-      const audioData = Buffer.concat(chunks);
+      const audioData = await streamToBuffer(audioStream as Readable);
 
       // Estimate duration (rough calculation based on text length)
       // Approximately 150 words per minute, so ~2.5 words per second
@@ -154,8 +156,8 @@ export class ElevenLabsService {
 
   async getAvailableVoices(): Promise<any[]> {
     try {
-      const voices = await this.client.getVoices();
-      return voices;
+      const voices = await this.client.voices.getAll();
+      return voices.voices || [];
     } catch (error) {
       console.error('Error fetching voices:', error);
       return [];
@@ -202,16 +204,7 @@ export class ElevenLabsService {
       });
 
       // Convert stream to buffer
-      const chunks: Uint8Array[] = [];
-      const reader = audioStream.getReader();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-      }
-
-      const audioData = Buffer.concat(chunks);
+      const audioData = await streamToBuffer(audioStream as Readable);
 
       // Estimate duration
       const wordCount = coachingText.split(/\s+/).length;
