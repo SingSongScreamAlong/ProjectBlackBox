@@ -279,7 +279,8 @@ router.post('/message', authenticateToken, upload.single('audio'), async (req, r
     // Generate voice audio (optional)
     let audioUrl = null;
     if (req.body.includeVoice === 'true' || req.body.includeVoice === true) {
-      const audioData = await generateVoiceResponse(engineerResponse);
+      const voiceProfile = req.body.voiceProfile || 'professional';
+      const audioData = await generateVoiceResponse(engineerResponse, voiceProfile);
       if (audioData) {
         // Save to temp file and return URL
         const audioFilename = `engineer_${uuidv4()}.mp3`;
@@ -436,6 +437,26 @@ router.get('/commands', authenticateToken, async (req, res) => {
 });
 
 /**
+ * Get available ElevenLabs voice profiles
+ * GET /api/voice/profiles
+ */
+router.get('/profiles', authenticateToken, async (req, res) => {
+  const profiles = Object.entries(ENGINEER_VOICES).map(([key, value]) => ({
+    id: key,
+    voiceId: value.id,
+    name: value.name,
+    description: value.description
+  }));
+
+  return res.json({
+    profiles,
+    default: 'professional',
+    provider: 'ElevenLabs',
+    model: 'eleven_turbo_v2_5'
+  });
+});
+
+/**
  * Helper: Transcribe audio using OpenAI Whisper
  */
 async function transcribeAudio(audioFilePath: string): Promise<string | null> {
@@ -564,16 +585,51 @@ Engineer: "2.3 seconds to P3, you're gaining 2 tenths per lap. Keep this pace."`
 }
 
 /**
+ * ElevenLabs Voice Profiles for Race Engineers
+ */
+const ENGINEER_VOICES = {
+  professional: {
+    id: 'pNInz6obpgDQGcFmaJgB',  // Adam - Professional, authoritative
+    name: 'Adam',
+    description: 'Professional male voice, calm and authoritative'
+  },
+  experienced: {
+    id: 'VR6AewLTigWG4xSOukaG',  // Arnold - Experienced, reassuring
+    name: 'Arnold',
+    description: 'Mature male voice, experienced and reassuring'
+  },
+  dynamic: {
+    id: 'ErXwobaYiN019PkySvjV',  // Antoni - Dynamic, energetic
+    name: 'Antoni',
+    description: 'Dynamic male voice, energetic and engaging'
+  },
+  calm: {
+    id: 'TxGEqnHWrfWFTfGW9XjX',  // Josh - Calm, focused
+    name: 'Josh',
+    description: 'Calm male voice, focused and precise'
+  }
+};
+
+/**
  * Helper: Generate voice audio using ElevenLabs
  */
-async function generateVoiceResponse(text: string): Promise<Buffer | null> {
+async function generateVoiceResponse(
+  text: string,
+  voiceProfile: string = 'professional'
+): Promise<Buffer | null> {
   try {
     const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
     if (!elevenLabsKey) {
+      console.log('ElevenLabs API key not configured');
       return null;
     }
 
-    const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
+    // Get voice ID for selected profile
+    const voice = ENGINEER_VOICES[voiceProfile as keyof typeof ENGINEER_VOICES] || ENGINEER_VOICES.professional;
+
+    console.log(`Generating voice with ${voice.name} (${voice.description})`);
+
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice.id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -581,23 +637,30 @@ async function generateVoiceResponse(text: string): Promise<Buffer | null> {
       },
       body: JSON.stringify({
         text,
-        model_id: 'eleven_monolingual_v1',
+        model_id: 'eleven_turbo_v2_5',  // Fastest model for real-time racing
         voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75
-        }
+          stability: 0.65,  // Balanced for consistent delivery
+          similarity_boost: 0.80,  // High similarity for professional tone
+          style: 0.45,  // Moderate style for natural speech
+          use_speaker_boost: true  // Enhanced clarity
+        },
+        output_format: 'mp3_44100_128'  // High quality MP3
       })
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('ElevenLabs API error:', response.status, errorText);
       return null;
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer);
+    const audioBuffer = Buffer.from(arrayBuffer);
+    console.log(`✓ Voice generated: ${audioBuffer.length} bytes`);
+    return audioBuffer;
 
   } catch (error) {
-    console.error('Voice generation error:', error);
+    console.error('ElevenLabs voice generation error:', error);
     return null;
   }
 }
