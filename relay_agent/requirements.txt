@@ -23,3 +23,9 @@ python-dotenv>=1.0.0
 
 # Additional utilities
 PyYAML>=6.0
+
+# Voice I/O
+PyAudio>=0.2.13
+
+# AI and speech processing
+openai>=1.10.0
