@@ -526,7 +526,7 @@ async function generateEngineerResponse(
         'Authorization': `Bearer ${openaiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-3.5-turbo',  // 4x faster than GPT-4 (~300ms vs 1200ms)
         messages: [
           { role: 'system', content: systemPrompt },
           ...history.slice(-10).map(msg => ({
@@ -535,8 +535,8 @@ async function generateEngineerResponse(
           })),
           { role: 'user', content: driverMessage }
         ],
-        max_tokens: 150,
-        temperature: 0.7
+        max_tokens: 80,  // Reduced for speed - keep responses brief
+        temperature: 0.6  // Lower for faster, more focused responses
       })
     });
 
