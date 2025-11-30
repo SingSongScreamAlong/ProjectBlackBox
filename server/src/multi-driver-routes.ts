@@ -1,7 +1,7 @@
 import express from 'express';
-import { pool } from '../db.js';
-import { authenticateToken, AuthRequest } from '../auth.js';
-import { logApiRequest, logUserAction, logError } from '../logger.js';
+import { pool } from './db.js';
+import { authenticateToken, AuthRequest } from './auth.js';
+import { logApiRequest, logUserAction, logError } from './logger.js';
 
 const router = express.Router();
 

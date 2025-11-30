@@ -242,13 +242,11 @@ export class ConnectionPoolMonitor {
 
     setInterval(async () => {
       try {
-        const client = await pool.connect();
         const poolStats = {
-          totalCount: client.totalCount,
-          idleCount: client.idleCount,
-          waitingCount: client.waitingCount,
+          totalCount: pool.totalCount,
+          idleCount: pool.idleCount,
+          waitingCount: pool.waitingCount,
         };
-        client.release();
 
         // Log pool statistics
         logDatabaseOperation('pool_stats', 'connection_pool', 0, true, poolStats);

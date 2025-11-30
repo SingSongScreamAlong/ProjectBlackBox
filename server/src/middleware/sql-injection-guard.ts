@@ -4,7 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { Pool, PoolClient, QueryConfig, QueryResult } from 'pg';
+import { Pool, PoolClient, QueryConfig, QueryResult, QueryResultRow } from 'pg';
 
 /**
  * Safe query wrapper that enforces parameterized queries
@@ -27,7 +27,7 @@ export class SafeDB {
    * // BAD ❌ (won't compile with TypeScript strict mode)
    * await safeDB.query(`SELECT * FROM users WHERE email = '${userEmail}'`);
    */
-  async query<T = any>(text: string, params: any[] = []): Promise<QueryResult<T>> {
+  async query<T extends QueryResultRow = any>(text: string, params: any[] = []): Promise<QueryResult<T>> {
     // Validate that query uses parameterized format
     if (params.length > 0 && !text.includes('$')) {
       throw new Error('SQL Injection Prevention: Query has parameters but no placeholders. Use $1, $2, etc.');
@@ -45,7 +45,7 @@ export class SafeDB {
   /**
    * Execute query with QueryConfig object
    */
-  async queryConfig<T = any>(config: QueryConfig): Promise<QueryResult<T>> {
+  async queryConfig<T extends QueryResultRow = any>(config: QueryConfig): Promise<QueryResult<T>> {
     if (!config.values || config.values.length === 0) {
       if (config.text.includes('$')) {
         throw new Error('Query has placeholders but no values provided');
