@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from 'node:http';
 import cors from 'cors';
 import { Server as SocketIOServer } from 'socket.io';
+import { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { pool, ping } from './db.js';
 import { authenticateToken, requireRole } from './auth.js';
@@ -10,6 +11,7 @@ import exportRoutes from './export-routes.js';
 import aiRoutes from './ai-routes.js';
 import trackMapRoutes from './track-map-routes.js';
 import trackCalibrationRoutes from './track-calibration-routes.js';
+import voiceRoutes, { setupVoiceWebSocket } from './voice-routes.js';
 import { apiLimiter, telemetryLimiter, authLimiter } from './middleware/rate-limit.js';
 import { sanitizeInputs } from './middleware/sql-injection-guard.js';
 
@@ -67,6 +69,25 @@ const io = new SocketIOServer(server, {
   },
 });
 
+// WebSocket server for voice communication
+const wss = new WebSocketServer({ noServer: true });
+
+// Handle upgrade for WebSocket connections
+server.on('upgrade', (request, socket, head) => {
+  const pathname = new URL(request.url || '', `http://${request.headers.host}`).pathname;
+
+  if (pathname === '/api/voice/stream') {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request);
+    });
+  } else {
+    socket.destroy();
+  }
+});
+
+// Setup voice WebSocket handlers
+setupVoiceWebSocket(wss);
+
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
@@ -87,6 +108,9 @@ app.use('/api/tracks', trackMapRoutes);
 
 // Track calibration routes (authenticated) - Upload telemetry to generate accurate maps
 app.use('/api/calibrate', trackCalibrationRoutes);
+
+// Voice communication routes (authenticated) - Conversational race engineer with voice I/O
+app.use('/api/voice', voiceRoutes);
 
 // Health check (public)
 app.get('/health', async (_req, res) => {
