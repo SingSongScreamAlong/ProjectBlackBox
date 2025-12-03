@@ -123,6 +123,23 @@ A comprehensive telemetry and coaching platform for iRacing sim racing, featurin
 
 ## Configuration
 
+**⚠️ Security Notice**: Never commit sensitive credentials to version control. Always use environment variables for API keys, passwords, and secrets. See `docs/SECURITY_BEST_PRACTICES.md` for detailed security guidelines.
+
+### Environment Variables
+
+1. **Copy environment templates**:
+   ```bash
+   cp .env.example .env
+   cp deployment/digitalocean/.env.example deployment/digitalocean/.env
+   ```
+
+2. **Fill in your credentials**:
+   - `OPENAI_API_KEY` or `GRADIENT_AI_API_KEY`
+   - `ELEVENLABS_API_KEY`
+   - `JWT_SECRET` (generate with: `openssl rand -base64 32`)
+   - `POSTGRES_PASSWORD` (generate with: `openssl rand -base64 32`)
+   - `DATABASE_URL`
+
 ### Driver App (`driver_app/src/config/AppConfig.ts`)
 - **Relay Agent URL**: WebSocket connection to local relay agent
 - **Cloud Backend**: DigitalOcean backend endpoint
@@ -132,7 +149,7 @@ A comprehensive telemetry and coaching platform for iRacing sim racing, featurin
 ### Relay Agent (`relay_agent/config/config.json`)
 - **WebSocket Port**: Default 8765 for local connections
 - **Backend URL**: DigitalOcean cloud backend endpoint
-- **API Key**: Authentication for cloud services
+- **API Key**: Authentication for cloud services (use environment variables)
 - **Video Settings**: Encoding and streaming parameters
 
 ## Development
@@ -171,9 +188,24 @@ npm run validate:hybrid-cloud
 ```
 
 ### Component Testing
-- **Driver App**: `npm run test:video` (Electron-based video capture test)
-- **Relay Agent**: `python test_websocket_server.py`
-- **Dashboard**: `npm test` (React component tests)
+- **Driver App**: `npm test` (unit tests in `src/services/__tests__/`)
+- **Relay Agent**: `cd relay_agent && python -m pytest`
+- **Dashboard**: `cd dashboard && npm test` (React component tests)
+
+## Security
+
+Security is a top priority for BlackBox. Please review our comprehensive security documentation:
+
+- **[Security Best Practices](docs/SECURITY_BEST_PRACTICES.md)** - Complete security guidelines
+- **Environment Variables** - Use `.env.example` files as templates (never commit `.env` files)
+- **API Key Management** - Rotate keys regularly, use unique keys per environment
+- **JWT Secrets** - Generate strong random secrets (min 32 bytes)
+- **Database Security** - Use strong passwords, enable SSL, implement backups
+- **SSL/TLS** - Always use HTTPS in production
+
+### Reporting Security Issues
+
+If you discover a security vulnerability, please email security@blackbox.example.com. Do not create public GitHub issues for security vulnerabilities.
 
 ## Contributing
 

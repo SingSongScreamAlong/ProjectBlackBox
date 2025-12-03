@@ -69,9 +69,11 @@ class VideoEncoder:
         self.connected = False
         self.session_id = ""
         self.frame_queue = queue.Queue(maxsize=100)  # Max 100 frames in queue
+        self.encoded_frame_queue = queue.Queue(maxsize=50)  # Queue for encoded frames ready to transmit
         self.ws = None
         self.encode_thread = None
         self.transmit_thread = None
+        self.current_quality = 85  # JPEG quality (0-100)
         self.stats = {
             "frames_received": 0,
             "frames_encoded": 0,
@@ -308,20 +310,46 @@ class VideoEncoder:
                 if frame.shape[1] != self.width or frame.shape[0] != self.height:
                     frame = cv2.resize(frame, (self.width, self.height))
                 
-                # Write frame to video writer
-                self.video_writer.write(frame)
-                
+                # Write frame to video writer for recording
+                if hasattr(self, 'video_writer') and self.video_writer:
+                    self.video_writer.write(frame)
+
+                # Encode frame to JPEG for transmission
+                encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), self.current_quality]
+                success, buffer = cv2.imencode('.jpg', frame, encode_param)
+
+                if success:
+                    # Create frame packet
+                    frame_packet = {
+                        "session_id": self.session_id,
+                        "frame_number": frame_data.get("frame_number", 0),
+                        "timestamp": frame_data.get("timestamp", time.time()),
+                        "data": buffer.tobytes(),
+                        "metadata": frame_data.get("metadata", {})
+                    }
+
+                    # Add to transmission queue
+                    try:
+                        self.encoded_frame_queue.put(frame_packet, block=False)
+                    except queue.Full:
+                        # Drop oldest frame and add new one
+                        try:
+                            self.encoded_frame_queue.get_nowait()
+                            self.encoded_frame_queue.put(frame_packet, block=False)
+                        except:
+                            pass
+
                 # Update stats
                 frames_encoded += 1
                 self.stats["frames_encoded"] += 1
                 self.stats["encoding_latency_ms"] = (time.time() - start_time) * 1000
-                
+
                 # Calculate FPS
                 if time.time() - last_fps_time >= 1.0:
                     self.stats["encoding_fps"] = frames_encoded
                     frames_encoded = 0
                     last_fps_time = time.time()
-                
+
                 # Mark as done
                 self.frame_queue.task_done()
                 
@@ -344,20 +372,52 @@ class VideoEncoder:
                     if not self._connect_to_backend():
                         time.sleep(2.0)  # Wait before retry
                         continue
-                
-                # TODO: Implement actual frame transmission
-                # For now, just simulate transmission
-                time.sleep(1.0 / self.frame_rate)
-                
-                # Update stats
-                frames_transmitted += 1
-                self.stats["frames_transmitted"] += 1
-                
-                # Calculate FPS
-                if time.time() - last_fps_time >= 1.0:
-                    self.stats["transmission_fps"] = frames_transmitted
-                    frames_transmitted = 0
-                    last_fps_time = time.time()
+
+                # Get encoded frame from queue
+                try:
+                    frame_packet = self.encoded_frame_queue.get(timeout=0.1)
+                except queue.Empty:
+                    continue
+
+                # Measure transmission time
+                start_time = time.time()
+
+                try:
+                    # Send frame via WebSocket
+                    if self.ws and self.connected:
+                        # Create message with frame data
+                        message = {
+                            "type": "video_frame",
+                            "session_id": frame_packet["session_id"],
+                            "frame_number": frame_packet["frame_number"],
+                            "timestamp": frame_packet["timestamp"],
+                            "metadata": frame_packet["metadata"]
+                        }
+
+                        # Send metadata first
+                        self.ws.send(json.dumps(message))
+
+                        # Send binary frame data
+                        self.ws.send(frame_packet["data"], opcode=websocket.ABNF.OPCODE_BINARY)
+
+                        # Update stats
+                        frames_transmitted += 1
+                        self.stats["frames_transmitted"] += 1
+                        self.stats["transmission_latency_ms"] = (time.time() - start_time) * 1000
+
+                        # Calculate FPS
+                        if time.time() - last_fps_time >= 1.0:
+                            self.stats["transmission_fps"] = frames_transmitted
+                            frames_transmitted = 0
+                            last_fps_time = time.time()
+                    else:
+                        # Not connected, discard frame
+                        logger.warning("WebSocket not connected, discarding frame")
+                        self.connected = False
+
+                except Exception as e:
+                    logger.error(f"Error transmitting frame: {e}")
+                    self.connected = False
                 
             except Exception as e:
                 logger.error(f"Error in transmission loop: {e}")
@@ -442,7 +502,13 @@ class VideoEncoder:
                 new_bitrate = data.get("bitrate", self.max_bitrate)
                 logger.info(f"Adjusting bitrate to {new_bitrate}kbps")
                 self.stats["current_bitrate"] = new_bitrate
-                # TODO: Update encoder bitrate
+
+                # Update encoder quality based on bitrate
+                # Map bitrate to JPEG quality (higher bitrate = higher quality)
+                # Assuming max_bitrate corresponds to quality 95
+                quality_ratio = min(new_bitrate / self.max_bitrate, 1.0)
+                self.current_quality = int(50 + (quality_ratio * 45))  # Range: 50-95
+                logger.info(f"Adjusted JPEG quality to {self.current_quality}")
             elif msg_type == "ping":
                 # Respond to ping
                 ws.send(json.dumps({"type": "pong", "timestamp": datetime.now().isoformat()}))

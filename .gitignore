@@ -40,6 +40,16 @@ jspm_packages/
 # dotenv environment variables file
 .env
 .env.test
+.env.local
+.env.production
+.env.development
+deployment/digitalocean/.env
+deployment/.env
+
+# Sensitive configuration files
+config/secrets.json
+**/secrets.json
+*.secret
 
 # Build output
 dist/
