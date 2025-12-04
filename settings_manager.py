@@ -30,6 +30,14 @@ class VoiceConfig:
     strategist_voice_id: str = '21m00Tcm4TlvDq8ikWAM'
     coach_voice_id: str = 'AZnzlk1XvdvUeBnXmlld'
     intel_voice_id: str = 'pNInz6obpgDQGcFmaJgB'
+    
+    def __post_init__(self):
+        """Load API keys from environment if not set"""
+        # Check for centralized API keys in environment
+        if not self.openai_api_key:
+            self.openai_api_key = os.getenv('OPENAI_API_KEY', '')
+        if not self.elevenlabs_api_key:
+            self.elevenlabs_api_key = os.getenv('ELEVENLABS_API_KEY', '')
 
 
 @dataclass
@@ -92,6 +100,9 @@ class SettingsManager:
                     self.settings.ptt = PTTConfig(**data['ptt'])
                 if 'voice' in data:
                     self.settings.voice = VoiceConfig(**data['voice'])
+                else:
+                    # Ensure environment variables are checked even if no saved config
+                    self.settings.voice.__post_init__()
                 if 'database' in data:
                     self.settings.database = DatabaseConfig(**data['database'])
                 if 'ui' in data:
