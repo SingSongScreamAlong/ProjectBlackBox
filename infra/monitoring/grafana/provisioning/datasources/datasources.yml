@@ -1,0 +1,36 @@
+# Grafana Datasources Configuration
+
+apiVersion: 1
+
+datasources:
+  # Prometheus datasource
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
+
+  # Loki datasource for logs
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        # Extract correlation_id from logs and make it clickable to related logs
+        - datasourceUid: loki
+          matcherRegex: "correlation_id\":\"([^\"]+)"
+          name: "Correlation ID"
+          url: "/explore?left={\"datasource\":\"Loki\",\"queries\":[{\"expr\":\"{correlation_id=\\\"$${__value.raw}\\\"}\"}]}"
+        # Extract user_id_hash from logs
+        - datasourceUid: loki
+          matcherRegex: "user_id_hash\":\"([^\"]+)"
+          name: "User Hash"
+          url: "/explore?left={\"datasource\":\"Loki\",\"queries\":[{\"expr\":\"{user_id_hash=\\\"$${__value.raw}\\\"}\"}]}"

@@ -1,0 +1,236 @@
+# Prometheus Alert Rules for BlackBox
+# Alerts for system health, API performance, and worker job failures
+
+groups:
+  # API Health Alerts
+  - name: api_health
+    interval: 30s
+    rules:
+      # High 5xx error rate
+      - alert: HighAPIErrorRate
+        expr: |
+          (
+            rate(http_requests_total{status=~"5.."}[5m])
+            /
+            rate(http_requests_total[5m])
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High 5xx error rate on API"
+          description: "API is returning {{ $value | humanizePercentage }} 5xx errors (threshold: 5%)"
+
+      # High latency (P95 > 2 seconds)
+      - alert: HighAPILatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket[5m])
+          ) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API latency detected"
+          description: "P95 latency is {{ $value }}s (threshold: 2s)"
+
+      # API down
+      - alert: APIDown
+        expr: up{job="blackbox-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "BlackBox API is down"
+          description: "API has been unavailable for 1 minute"
+
+  # Worker Health Alerts
+  - name: worker_health
+    interval: 30s
+    rules:
+      # High job failure rate
+      - alert: HighWorkerJobFailureRate
+        expr: |
+          (
+            rate(worker_jobs_failed_total[5m])
+            /
+            rate(worker_jobs_total[5m])
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: warning
+          component: worker
+        annotations:
+          summary: "High worker job failure rate"
+          description: "{{ $value | humanizePercentage }} of jobs are failing (threshold: 10%)"
+
+      # Queue backlog growing
+      - alert: QueueBacklogGrowing
+        expr: |
+          worker_queue_length > 100
+          and
+          rate(worker_queue_length[5m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+          component: worker
+        annotations:
+          summary: "Worker queue backlog growing"
+          description: "Queue length is {{ $value }} and increasing"
+
+      # Worker down
+      - alert: WorkerDown
+        expr: up{job="blackbox-worker"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: worker
+        annotations:
+          summary: "BlackBox worker is down"
+          description: "Worker has been unavailable for 1 minute"
+
+  # Third-party Service Alerts
+  - name: external_services
+    interval: 60s
+    rules:
+      # OpenAI high error rate
+      - alert: OpenAIHighErrorRate
+        expr: |
+          (
+            rate(openai_requests_total{status="error"}[10m])
+            /
+            rate(openai_requests_total[10m])
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: warning
+          component: external
+          provider: openai
+        annotations:
+          summary: "High OpenAI error rate"
+          description: "{{ $value | humanizePercentage }} of OpenAI requests failing"
+
+      # ElevenLabs high error rate
+      - alert: ElevenLabsHighErrorRate
+        expr: |
+          (
+            rate(elevenlabs_requests_total{status="error"}[10m])
+            /
+            rate(elevenlabs_requests_total[10m])
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: warning
+          component: external
+          provider: elevenlabs
+        annotations:
+          summary: "High ElevenLabs error rate"
+          description: "{{ $value | humanizePercentage }} of ElevenLabs requests failing"
+
+      # OpenAI slow response time
+      - alert: OpenAISlowResponse
+        expr: |
+          histogram_quantile(0.95,
+            rate(openai_request_duration_seconds_bucket[5m])
+          ) > 10.0
+        for: 5m
+        labels:
+          severity: warning
+          component: external
+          provider: openai
+        annotations:
+          summary: "OpenAI API responding slowly"
+          description: "P95 latency is {{ $value }}s (threshold: 10s)"
+
+  # System Resource Alerts
+  - name: system_resources
+    interval: 60s
+    rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          (
+            100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          ) > 85
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% (threshold: 85%)"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)
+            /
+            node_memory_MemTotal_bytes
+          ) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% (threshold: 85%)"
+
+      # Low disk space
+      - alert: LowDiskSpace
+        expr: |
+          (
+            (node_filesystem_avail_bytes{mountpoint="/"} * 100)
+            /
+            node_filesystem_size_bytes{mountpoint="/"}
+          ) < 15
+        for: 5m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Low disk space"
+          description: "Only {{ $value }}% disk space remaining (threshold: 15%)"
+
+      # Disk will fill in 24 hours (based on growth rate)
+      - alert: DiskFillingUp
+        expr: |
+          predict_linear(node_filesystem_avail_bytes{mountpoint="/"}[6h], 24*3600) < 0
+        for: 1h
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Disk filling up"
+          description: "Disk is predicted to fill up within 24 hours"
+
+  # Business Metrics Alerts (optional - add when you have revenue)
+  - name: business_metrics
+    interval: 300s  # Check every 5 minutes
+    rules:
+      # Spike in failed payments
+      - alert: FailedPaymentSpike
+        expr: |
+          increase(stripe_payment_failed_total[1h]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: billing
+        annotations:
+          summary: "Spike in failed payments"
+          description: "{{ $value }} failed payments in the last hour"
+
+      # Churn spike
+      - alert: ChurnSpike
+        expr: |
+          increase(stripe_subscription_cancelled_total[24h]) > 10
+        for: 1h
+        labels:
+          severity: warning
+          component: billing
+        annotations:
+          summary: "Unusual churn detected"
+          description: "{{ $value }} cancellations in the last 24 hours"

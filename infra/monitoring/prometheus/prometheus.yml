@@ -1,0 +1,80 @@
+# Prometheus Configuration for BlackBox
+# Scrapes metrics from application and system exporters
+
+global:
+  scrape_interval: 15s  # Scrape every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  external_labels:
+    cluster: 'blackbox-production'
+    environment: 'production'
+
+# Alertmanager configuration (optional - add when needed)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Load alert rules
+rule_files:
+  - 'alerts.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # BlackBox API Server
+  - job_name: 'blackbox-api'
+    static_configs:
+      - targets: ['host.docker.internal:8000']  # Adjust port if different
+        labels:
+          service: 'api'
+          component: 'backend'
+    metrics_path: '/metrics'
+    scrape_interval: 10s  # More frequent for API
+
+  # BlackBox Worker
+  - job_name: 'blackbox-worker'
+    static_configs:
+      - targets: ['host.docker.internal:8001']  # Adjust port if different
+        labels:
+          service: 'worker'
+          component: 'backend'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Node Exporter - System metrics (CPU, RAM, disk, network)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          component: 'infrastructure'
+
+  # cAdvisor - Docker container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'
+          component: 'infrastructure'
+
+  # PostgreSQL Exporter (optional - add if needed)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+  #       labels:
+  #         service: 'postgres'
+  #         component: 'database'
+
+  # Redis Exporter (optional - add if using Redis)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+  #       labels:
+  #         service: 'redis'
+  #         component: 'cache'
