@@ -1,7 +1,7 @@
 """
 Voice Recognition - Push-to-Talk
 Speech-to-text using OpenAI Whisper API
-No wake words - just press button, talk, release
+Supports keyboard keys AND wheel/joystick buttons
 """
 
 import asyncio
@@ -13,6 +13,7 @@ import io
 from openai import OpenAI
 import numpy as np
 from pynput import keyboard
+import pygame
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,17 +22,24 @@ logger = logging.getLogger(__name__)
 class VoiceRecognition:
     """
     Push-to-talk voice recognition
-    Driver presses button, talks, releases - like real race radio
+    Supports keyboard keys OR wheel/joystick buttons
     """
     
-    def __init__(self, api_key: str, ptt_key: str = 'f1'):
+    def __init__(self, api_key: str, ptt_type: str = 'keyboard', ptt_key: str = 'f1', 
+                 joystick_id: int = 0, joystick_button: int = 0):
         """
         Args:
             api_key: OpenAI API key
-            ptt_key: Push-to-talk key (default F1, configurable)
+            ptt_type: 'keyboard' or 'joystick' (for wheel buttons)
+            ptt_key: Keyboard key if using keyboard (default F1)
+            joystick_id: Joystick/wheel device ID (default 0)
+            joystick_button: Button number on wheel (default 0)
         """
         self.client = OpenAI(api_key=api_key)
+        self.ptt_type = ptt_type
         self.ptt_key = ptt_key
+        self.joystick_id = joystick_id
+        self.joystick_button = joystick_button
         self.is_ptt_pressed = False
         self.ptt_callback = None
         
@@ -43,6 +51,19 @@ class VoiceRecognition:
         
         self.audio = pyaudio.PyAudio()
         self.is_listening = False
+        
+        # Joystick support
+        if self.ptt_type == 'joystick':
+            pygame.init()
+            pygame.joystick.init()
+            if pygame.joystick.get_count() > 0:
+                self.joystick = pygame.joystick.Joystick(joystick_id)
+                self.joystick.init()
+                logger.info(f"✅ Wheel detected: {self.joystick.get_name()}")
+                logger.info(f"   Buttons available: {self.joystick.get_numbuttons()}")
+            else:
+                logger.warning("⚠️ No wheel/joystick detected, falling back to keyboard")
+                self.ptt_type = 'keyboard'
     
     def start_listening(self):
         """Start listening for audio"""
@@ -63,15 +84,20 @@ class VoiceRecognition:
         """
         self.ptt_callback = callback
         
+        if self.ptt_type == 'keyboard':
+            self._start_keyboard_listener()
+        else:
+            self._start_joystick_listener()
+    
+    def _start_keyboard_listener(self):
+        """Start keyboard PTT listener"""
         def on_press(key):
             """Handle key press"""
             try:
-                # Check if it's our PTT key
                 if hasattr(key, 'name') and key.name == self.ptt_key:
                     if not self.is_ptt_pressed:
                         self.is_ptt_pressed = True
                         logger.info(f"🎤 PTT pressed ({self.ptt_key})")
-                        # Start recording
                         asyncio.create_task(self._handle_ptt_press())
             except AttributeError:
                 pass
@@ -86,14 +112,41 @@ class VoiceRecognition:
             except AttributeError:
                 pass
         
-        # Start keyboard listener
         self.keyboard_listener = keyboard.Listener(
             on_press=on_press,
             on_release=on_release
         )
         self.keyboard_listener.start()
         
-        logger.info(f"✅ Push-to-talk ready (press {self.ptt_key.upper()} to talk)")
+        logger.info(f"✅ Push-to-talk ready (keyboard: {self.ptt_key.upper()})")
+    
+    def _start_joystick_listener(self):
+        """Start wheel/joystick PTT listener"""
+        async def poll_joystick():
+            """Poll joystick for button presses"""
+            logger.info(f"✅ Push-to-talk ready (wheel button {self.joystick_button})")
+            
+            while self.is_listening:
+                pygame.event.pump()  # Process events
+                
+                # Check button state
+                button_pressed = self.joystick.get_button(self.joystick_button)
+                
+                if button_pressed and not self.is_ptt_pressed:
+                    # Button just pressed
+                    self.is_ptt_pressed = True
+                    logger.info(f"🎤 PTT pressed (wheel button {self.joystick_button})")
+                    asyncio.create_task(self._handle_ptt_press())
+                    
+                elif not button_pressed and self.is_ptt_pressed:
+                    # Button just released
+                    self.is_ptt_pressed = False
+                    logger.info(f"🎤 PTT released (wheel button {self.joystick_button})")
+                
+                await asyncio.sleep(0.01)  # Poll at 100Hz
+        
+        # Start polling task
+        asyncio.create_task(poll_joystick())
     
     async def _handle_ptt_press(self):
         """Handle PTT button press - record while held"""
@@ -115,7 +168,7 @@ class VoiceRecognition:
             try:
                 data = stream.read(self.chunk_size, exception_on_overflow=False)
                 frames.append(data)
-                await asyncio.sleep(0.001)  # Small delay
+                await asyncio.sleep(0.001)
             except Exception as e:
                 logger.error(f"Error recording: {e}")
                 break
@@ -134,39 +187,6 @@ class VoiceRecognition:
             
             if text and self.ptt_callback:
                 await self.ptt_callback(text)
-    
-    async def record_command(self, duration: float = 5.0) -> bytes:
-        """
-        Record audio command
-        
-        Args:
-            duration: Recording duration in seconds
-            
-        Returns:
-            Audio data as bytes
-        """
-        logger.info(f"🎤 Recording for {duration} seconds...")
-        
-        stream = self.audio.open(
-            format=self.format,
-            channels=self.channels,
-            rate=self.sample_rate,
-            input=True,
-            frames_per_buffer=self.chunk_size
-        )
-        
-        frames = []
-        for _ in range(0, int(self.sample_rate / self.chunk_size * duration)):
-            data = stream.read(self.chunk_size)
-            frames.append(data)
-        
-        stream.stop_stream()
-        stream.close()
-        
-        audio_data = b''.join(frames)
-        logger.info("✅ Recording complete")
-        
-        return audio_data
     
     async def transcribe_audio(self, audio_data: bytes, quick: bool = False) -> Optional[str]:
         """
@@ -211,32 +231,82 @@ class VoiceRecognition:
         """Cleanup audio resources"""
         if hasattr(self, 'keyboard_listener'):
             self.keyboard_listener.stop()
-        self.audio.terminate()
+        if hasattr(self, 'joystick'):
+            self.joystick.quit()
+        if hasattr(self, 'audio'):
+            self.audio.terminate()
+    
+    @staticmethod
+    def list_available_wheels():
+        """List all available wheels/joysticks"""
+        pygame.init()
+        pygame.joystick.init()
+        
+        count = pygame.joystick.get_count()
+        print(f"\n🎮 Found {count} device(s):")
+        
+        for i in range(count):
+            joystick = pygame.joystick.Joystick(i)
+            joystick.init()
+            print(f"\n  Device {i}:")
+            print(f"    Name: {joystick.get_name()}")
+            print(f"    Buttons: {joystick.get_numbuttons()}")
+            print(f"    Axes: {joystick.get_numaxes()}")
+            joystick.quit()
+        
+        pygame.quit()
 
 
 # Example usage
 if __name__ == '__main__':
     import os
+    import sys
     
     async def main():
-        # Get API key from environment
+        # List available wheels
+        if len(sys.argv) > 1 and sys.argv[1] == '--list':
+            VoiceRecognition.list_available_wheels()
+            return
+        
+        # Get API key
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
             print("Error: OPENAI_API_KEY not set")
             return
         
-        # Create voice recognition with PTT
-        vr = VoiceRecognition(api_key, ptt_key='f1')
+        # Create voice recognition
+        print("\nPush-to-Talk Configuration:")
+        print("1. Keyboard (F1 key)")
+        print("2. Wheel/Joystick button")
+        choice = input("Select (1 or 2): ").strip()
         
-        # Callback for when driver talks
+        if choice == '2':
+            # List available devices
+            VoiceRecognition.list_available_wheels()
+            
+            device_id = int(input("\nEnter device ID: "))
+            button_num = int(input("Enter button number: "))
+            
+            vr = VoiceRecognition(
+                api_key, 
+                ptt_type='joystick',
+                joystick_id=device_id,
+                joystick_button=button_num
+            )
+        else:
+            vr = VoiceRecognition(api_key, ptt_type='keyboard', ptt_key='f1')
+        
+        # Callback
         async def on_driver_input(text):
-            print(f"Driver said: {text}")
+            print(f"\n🎤 Driver said: {text}\n")
         
-        # Start PTT listener
+        # Start PTT
+        vr.start_listening()
         vr.start_ptt_listener(on_driver_input)
         
-        print("Push-to-talk ready! Press F1 to talk, release to send.")
-        print("Press Ctrl+C to exit")
+        print("\n✅ Push-to-talk ready!")
+        print("Press your configured button to talk, release to send.")
+        print("Press Ctrl+C to exit\n")
         
         # Keep running
         try:

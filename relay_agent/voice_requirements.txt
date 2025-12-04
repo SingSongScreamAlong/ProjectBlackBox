@@ -11,7 +11,8 @@ pyaudio>=0.2.13
 wave
 
 # Push-to-talk button detection
-pynput>=1.7.6
+pynput>=1.7.6  # Keyboard
+pygame>=2.5.0  # Wheel/joystick buttons
 
 # Async
 asyncio
