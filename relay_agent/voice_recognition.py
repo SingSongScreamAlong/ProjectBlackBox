@@ -1,6 +1,7 @@
 """
-Voice Recognition
+Voice Recognition - Push-to-Talk
 Speech-to-text using OpenAI Whisper API
+No wake words - just press button, talk, release
 """
 
 import asyncio
@@ -11,6 +12,7 @@ import wave
 import io
 from openai import OpenAI
 import numpy as np
+from pynput import keyboard
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,12 +20,20 @@ logger = logging.getLogger(__name__)
 
 class VoiceRecognition:
     """
-    Convert driver speech to text using Whisper API
+    Push-to-talk voice recognition
+    Driver presses button, talks, releases - like real race radio
     """
     
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, ptt_key: str = 'f1'):
+        """
+        Args:
+            api_key: OpenAI API key
+            ptt_key: Push-to-talk key (default F1, configurable)
+        """
         self.client = OpenAI(api_key=api_key)
-        self.wake_words = ['hey team', 'engineer', 'strategist', 'coach', 'intel']
+        self.ptt_key = ptt_key
+        self.is_ptt_pressed = False
+        self.ptt_callback = None
         
         # Audio settings
         self.sample_rate = 16000
@@ -44,14 +54,50 @@ class VoiceRecognition:
         self.is_listening = False
         logger.info("🎤 Voice recognition stopped")
     
-    async def listen_for_wake_word(self, callback: Callable):
+    def start_ptt_listener(self, callback: Callable):
         """
-        Listen for wake word continuously
+        Start listening for push-to-talk button
         
         Args:
-            callback: Function to call when wake word detected
+            callback: Function to call when PTT is pressed
         """
-        logger.info("Listening for wake words...")
+        self.ptt_callback = callback
+        
+        def on_press(key):
+            """Handle key press"""
+            try:
+                # Check if it's our PTT key
+                if hasattr(key, 'name') and key.name == self.ptt_key:
+                    if not self.is_ptt_pressed:
+                        self.is_ptt_pressed = True
+                        logger.info(f"🎤 PTT pressed ({self.ptt_key})")
+                        # Start recording
+                        asyncio.create_task(self._handle_ptt_press())
+            except AttributeError:
+                pass
+        
+        def on_release(key):
+            """Handle key release"""
+            try:
+                if hasattr(key, 'name') and key.name == self.ptt_key:
+                    if self.is_ptt_pressed:
+                        self.is_ptt_pressed = False
+                        logger.info(f"🎤 PTT released ({self.ptt_key})")
+            except AttributeError:
+                pass
+        
+        # Start keyboard listener
+        self.keyboard_listener = keyboard.Listener(
+            on_press=on_press,
+            on_release=on_release
+        )
+        self.keyboard_listener.start()
+        
+        logger.info(f"✅ Push-to-talk ready (press {self.ptt_key.upper()} to talk)")
+    
+    async def _handle_ptt_press(self):
+        """Handle PTT button press - record while held"""
+        frames = []
         
         stream = self.audio.open(
             format=self.format,
@@ -61,34 +107,33 @@ class VoiceRecognition:
             frames_per_buffer=self.chunk_size
         )
         
-        while self.is_listening:
+        # Record while button is held (max 10 seconds)
+        max_duration = 10.0
+        start_time = asyncio.get_event_loop().time()
+        
+        while self.is_ptt_pressed and (asyncio.get_event_loop().time() - start_time) < max_duration:
             try:
-                # Record 2 seconds of audio
-                frames = []
-                for _ in range(0, int(self.sample_rate / self.chunk_size * 2)):
-                    data = stream.read(self.chunk_size, exception_on_overflow=False)
-                    frames.append(data)
-                
-                # Convert to audio file
-                audio_data = b''.join(frames)
-                
-                # Quick transcription (using faster model)
-                text = await self.transcribe_audio(audio_data, quick=True)
-                
-                if text:
-                    text_lower = text.lower()
-                    # Check for wake words
-                    if any(wake_word in text_lower for wake_word in self.wake_words):
-                        logger.info(f"🎤 Wake word detected: {text}")
-                        await callback(text)
-                
-                await asyncio.sleep(0.1)
-                
+                data = stream.read(self.chunk_size, exception_on_overflow=False)
+                frames.append(data)
+                await asyncio.sleep(0.001)  # Small delay
             except Exception as e:
-                logger.error(f"Error in wake word detection: {e}")
+                logger.error(f"Error recording: {e}")
+                break
         
         stream.stop_stream()
         stream.close()
+        
+        # Process recorded audio
+        if frames:
+            audio_data = b''.join(frames)
+            duration = len(frames) * self.chunk_size / self.sample_rate
+            logger.info(f"📝 Recorded {duration:.1f}s of audio")
+            
+            # Transcribe
+            text = await self.transcribe_audio(audio_data)
+            
+            if text and self.ptt_callback:
+                await self.ptt_callback(text)
     
     async def record_command(self, duration: float = 5.0) -> bytes:
         """
@@ -164,6 +209,8 @@ class VoiceRecognition:
     
     def cleanup(self):
         """Cleanup audio resources"""
+        if hasattr(self, 'keyboard_listener'):
+            self.keyboard_listener.stop()
         self.audio.terminate()
 
 
@@ -178,17 +225,25 @@ if __name__ == '__main__':
             print("Error: OPENAI_API_KEY not set")
             return
         
-        # Create voice recognition
-        vr = VoiceRecognition(api_key)
+        # Create voice recognition with PTT
+        vr = VoiceRecognition(api_key, ptt_key='f1')
         
-        # Test recording and transcription
-        print("Recording in 3 seconds...")
-        await asyncio.sleep(3)
+        # Callback for when driver talks
+        async def on_driver_input(text):
+            print(f"Driver said: {text}")
         
-        audio = await vr.record_command(duration=3.0)
-        text = await vr.transcribe_audio(audio)
+        # Start PTT listener
+        vr.start_ptt_listener(on_driver_input)
         
-        print(f"You said: {text}")
+        print("Push-to-talk ready! Press F1 to talk, release to send.")
+        print("Press Ctrl+C to exit")
+        
+        # Keep running
+        try:
+            while True:
+                await asyncio.sleep(1)
+        except KeyboardInterrupt:
+            print("\nExiting...")
         
         vr.cleanup()
     

@@ -49,42 +49,35 @@ class AudioPipeline:
         self.is_running = False
         self.current_context = {}
     
-    async def start(self):
-        """Start audio pipeline"""
+    async def start(self, ptt_key: str = 'f1'):
+        """
+        Start audio pipeline with push-to-talk
+        
+        Args:
+            ptt_key: Key to use for PTT (default F1)
+        """
         logger.info("🎙️ Starting audio pipeline...")
         self.is_running = True
         
-        # Start listening for wake words
-        self.recognition.start_listening()
+        # Start PTT listener
+        self.recognition.start_ptt_listener(self.on_ptt_input)
         
-        # Start wake word detection loop
-        asyncio.create_task(self.recognition.listen_for_wake_word(self.on_wake_word))
-        
-        logger.info("✅ Audio pipeline ready - say 'Hey team' to activate")
+        logger.info(f"✅ Audio pipeline ready - press {ptt_key.upper()} to talk")
     
     async def stop(self):
         """Stop audio pipeline"""
         logger.info("Stopping audio pipeline...")
         self.is_running = False
-        self.recognition.stop_listening()
     
-    async def on_wake_word(self, text: str):
+    async def on_ptt_input(self, text: str):
         """
-        Called when wake word is detected
+        Called when driver uses push-to-talk
         
         Args:
-            text: Transcribed text containing wake word
+            text: Transcribed driver input
         """
-        logger.info(f"🎤 Wake word detected: {text}")
-        
-        # Record full command
-        audio = await self.recognition.record_command(duration=5.0)
-        
-        # Transcribe
-        command_text = await self.recognition.transcribe_audio(audio)
-        
-        if command_text:
-            await self.process_command(command_text)
+        logger.info(f"🎤 Driver: {text}")
+        await self.process_command(text)
     
     async def process_command(self, text: str):
         """
