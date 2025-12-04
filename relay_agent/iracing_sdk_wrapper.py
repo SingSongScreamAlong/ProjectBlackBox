@@ -348,9 +348,55 @@ class iRacingSDKWrapper:
         """Register callback for session changes"""
         self.session_callbacks.append(callback)
     
+    def check_connection(self) -> bool:
+        """
+        Check if connection is still alive
+        
+        Returns:
+            True if connected
+        """
+        if not self.connected:
+            return False
+            
+        # Check if iRacing is still running and initialized
+        if not self.ir.is_initialized:
+            self.connected = False
+            logger.warning("⚠️ Connection to iRacing lost")
+            return False
+            
+        return True
+
+    def reconnect(self, max_attempts: int = 5) -> bool:
+        """
+        Attempt to reconnect to iRacing
+        
+        Args:
+            max_attempts: Maximum number of reconnection attempts
+            
+        Returns:
+            True if reconnected
+        """
+        logger.info("🔄 Attempting to reconnect to iRacing...")
+        
+        for attempt in range(max_attempts):
+            logger.info(f"Reconnection attempt {attempt + 1}/{max_attempts}...")
+            
+            if self.connect(timeout=5):
+                logger.info("✅ Reconnected successfully")
+                return True
+                
+            # Exponential backoff
+            wait_time = 2 ** attempt
+            logger.info(f"Waiting {wait_time}s before next attempt...")
+            time.sleep(wait_time)
+            
+        logger.error("❌ Failed to reconnect after multiple attempts")
+        return False
+
     async def stream_telemetry(self, hz: int = 60):
         """
         Stream telemetry at specified frequency
+        Handles connection drops and automatic reconnection
         
         Args:
             hz: Frequency in Hz (default 60)
@@ -358,22 +404,32 @@ class iRacingSDKWrapper:
         interval = 1.0 / hz
         logger.info(f"Starting telemetry stream at {hz}Hz")
         
-        while self.is_connected():
+        while True:
+            # Check connection
+            if not self.check_connection():
+                logger.warning("Connection lost. Attempting to reconnect...")
+                if not self.reconnect():
+                    logger.error("Unable to restore connection. Stopping stream.")
+                    break
+            
             start = time.time()
             
-            # Get telemetry
-            telemetry = self.get_telemetry()
-            
-            if telemetry:
-                # Call all registered callbacks
-                for callback in self.telemetry_callbacks:
-                    try:
-                        if asyncio.iscoroutinefunction(callback):
-                            await callback(telemetry)
-                        else:
-                            callback(telemetry)
-                    except Exception as e:
-                        logger.error(f"Error in telemetry callback: {e}")
+            try:
+                # Get telemetry
+                telemetry = self.get_telemetry()
+                
+                if telemetry:
+                    # Call all registered callbacks
+                    for callback in self.telemetry_callbacks:
+                        try:
+                            if asyncio.iscoroutinefunction(callback):
+                                await callback(telemetry)
+                            else:
+                                callback(telemetry)
+                        except Exception as e:
+                            logger.error(f"Error in telemetry callback: {e}")
+            except Exception as e:
+                logger.error(f"Error in telemetry loop: {e}")
             
             # Maintain frequency
             elapsed = time.time() - start

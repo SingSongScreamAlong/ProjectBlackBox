@@ -21,9 +21,21 @@ from audio_pipeline import AudioPipeline
 from database.manager import DatabaseManager
 from settings_manager import SettingsManager
 
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Configure logging
+log_dir = Path.home() / '.projectblackbox' / 'logs'
+log_dir.mkdir(parents=True, exist_ok=True)
+log_file = log_dir / 'blackbox.log'
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger(__name__)
 
