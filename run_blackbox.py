@@ -1,14 +1,14 @@
 """
-Main Integration Script
-Connects all components: iRacing, telemetry, database, API, voice
+Main Integration Script - Updated with Settings Manager
+Connects all components with in-program configuration
 """
 
 import asyncio
 import logging
 import os
 import sys
-from typing import Optional
 import signal
+from pathlib import Path
 
 # Add paths
 sys.path.append('./relay_agent')
@@ -19,6 +19,7 @@ from iracing_sdk_wrapper import iRacingSDKWrapper
 from telemetry_streamer import TelemetryStreamer, SessionMonitor
 from audio_pipeline import AudioPipeline
 from database.manager import DatabaseManager
+from settings_manager import SettingsManager
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,43 +31,69 @@ logger = logging.getLogger(__name__)
 class ProjectBlackBox:
     """
     Main integration class
-    Connects all components and manages the complete system
+    Uses settings manager for all configuration
     """
     
     def __init__(self):
-        # Configuration
-        self.database_url = os.getenv('DATABASE_URL', 'postgresql://blackbox:blackbox@localhost:5432/blackbox')
-        self.api_url = os.getenv('API_URL', 'http://localhost:8000')
-        self.ws_url = os.getenv('WS_URL', 'ws://localhost:8000/ws/telemetry')
+        # Load settings
+        self.settings_manager = SettingsManager()
+        self.settings = self.settings_manager.settings
         
-        # API keys
-        self.openai_key = os.getenv('OPENAI_API_KEY')
-        self.elevenlabs_key = os.getenv('ELEVENLABS_API_KEY')
+        # Check if configured
+        if not self._is_configured():
+            logger.error("❌ ProjectBlackBox is not configured!")
+            logger.error("Run: python settings_manager.py")
+            sys.exit(1)
         
         # Components
-        self.sdk: Optional[iRacingSDKWrapper] = None
-        self.streamer: Optional[TelemetryStreamer] = None
-        self.monitor: Optional[SessionMonitor] = None
-        self.audio: Optional[AudioPipeline] = None
-        self.db: Optional[DatabaseManager] = None
+        self.sdk = None
+        self.streamer = None
+        self.monitor = None
+        self.audio = None
+        self.db = None
         
         self.running = False
         self.current_session_id = None
     
+    def _is_configured(self) -> bool:
+        """Check if minimum configuration is done"""
+        # Check voice API keys
+        if not self.settings.voice.openai_api_key:
+            logger.error("OpenAI API key not configured")
+            return False
+        if not self.settings.voice.elevenlabs_api_key:
+            logger.error("ElevenLabs API key not configured")
+            return False
+        
+        # Check PTT is configured
+        if self.settings.ptt.type == 'joystick' and not self.settings.ptt.joystick_name:
+            logger.warning("⚠️ Joystick PTT configured but no device name saved")
+        
+        return True
+    
     async def initialize(self):
-        """Initialize all components"""
+        """Initialize all components using settings"""
         logger.info("=" * 70)
         logger.info("🏁 ProjectBlackBox - Complete Digital Race Team")
         logger.info("=" * 70)
         
+        # Show configuration
+        logger.info("\n📋 Configuration:")
+        logger.info(f"   PTT: {self.settings.ptt.type}")
+        if self.settings.ptt.type == 'keyboard':
+            logger.info(f"   Key: {self.settings.ptt.keyboard_key.upper()}")
+        else:
+            logger.info(f"   Device: {self.settings.ptt.joystick_name}")
+            logger.info(f"   Button: {self.settings.ptt.joystick_button}")
+        
         # Initialize database
-        logger.info("📊 Connecting to database...")
-        self.db = DatabaseManager(self.database_url)
+        logger.info("\n📊 Connecting to database...")
+        self.db = DatabaseManager(self.settings.database.url)
         self.db.create_tables()
         logger.info("✅ Database connected")
         
         # Initialize iRacing SDK
-        logger.info("🎮 Connecting to iRacing...")
+        logger.info("\n🎮 Connecting to iRacing...")
         self.sdk = iRacingSDKWrapper()
         
         if not self.sdk.connect(timeout=30):
@@ -76,38 +103,41 @@ class ProjectBlackBox:
         
         logger.info("✅ iRacing connected")
         
-        # Initialize telemetry streamer
+        # Create session in database
         session_info = self.sdk.get_session_info()
         if session_info:
-            # Create session in database
             self.current_session_id = self.db.create_session({
                 'driver_id': session_info.driver_id,
                 'session_type': session_info.session_type,
                 'track_name': session_info.track_name,
                 'car_name': session_info.car_name,
-                'track_temp': 25.0,  # Would get from session_info
+                'track_temp': 25.0,
                 'air_temp': 20.0
             })
             logger.info(f"✅ Session created: {self.current_session_id}")
         
         # Create streamer
-        ws_url = f"{self.ws_url}/{self.current_session_id}"
+        ws_url = f"ws://localhost:8000/ws/telemetry/{self.current_session_id}"
         self.streamer = TelemetryStreamer(self.sdk, ws_url)
         
         # Create session monitor
         self.monitor = SessionMonitor(self.sdk)
         self.monitor.register_callback('lap_complete', self.on_lap_complete)
         
-        # Initialize audio pipeline (if API keys available)
-        if self.openai_key and self.elevenlabs_key:
-            logger.info("🎙️ Initializing voice interface...")
-            self.audio = AudioPipeline(self.openai_key, self.elevenlabs_key)
-            await self.audio.start()
-            logger.info("✅ Voice interface ready")
-        else:
-            logger.warning("⚠️ Voice interface disabled (API keys not set)")
+        # Initialize audio pipeline with settings
+        logger.info("\n🎙️ Initializing voice interface...")
+        self.audio = AudioPipeline(
+            self.settings.voice.openai_api_key,
+            self.settings.voice.elevenlabs_api_key,
+            ptt_type=self.settings.ptt.type,
+            ptt_key=self.settings.ptt.keyboard_key,
+            joystick_id=self.settings.ptt.joystick_id,
+            joystick_button=self.settings.ptt.joystick_button
+        )
+        await self.audio.start()
+        logger.info("✅ Voice interface ready")
         
-        logger.info("=" * 70)
+        logger.info("\n" + "=" * 70)
         logger.info("✅ ProjectBlackBox ready!")
         logger.info("=" * 70)
         
@@ -122,7 +152,7 @@ class ProjectBlackBox:
         lap_telemetry = self.streamer.get_buffered_telemetry(lap=lap_number)
         
         if lap_telemetry:
-            # Calculate lap time (simplified)
+            # Calculate lap time
             lap_time = lap_telemetry[-1].session_time - lap_telemetry[0].session_time
             
             # Store lap in database
@@ -134,9 +164,6 @@ class ProjectBlackBox:
             })
             
             logger.info(f"✅ Lap {lap_number} stored: {lap_time:.3f}s")
-            
-            # Run analysis (corner-by-corner, incidents, etc.)
-            # TODO: Integrate analysis systems
             
             # Voice update
             if self.audio:
@@ -164,7 +191,7 @@ class ProjectBlackBox:
                     if telemetry:
                         self.audio.update_context({
                             'current_lap': telemetry.lap,
-                            'position': 5,  # Would get from positions
+                            'position': 5,
                             'tire_age': telemetry.lap,
                             'fuel_remaining': telemetry.fuel_level
                         })
@@ -182,19 +209,15 @@ class ProjectBlackBox:
         
         self.running = False
         
-        # Stop streaming
         if self.streamer:
             self.streamer.stop_streaming()
         
-        # Stop audio
         if self.audio:
             await self.audio.stop()
         
-        # End session in database
         if self.current_session_id:
             self.db.end_session(self.current_session_id)
         
-        # Disconnect from iRacing
         if self.sdk:
             self.sdk.disconnect()
         
@@ -203,6 +226,19 @@ class ProjectBlackBox:
 
 async def main():
     """Main entry point"""
+    # Check if settings exist
+    settings_file = Path.home() / '.projectblackbox' / 'settings.json'
+    
+    if not settings_file.exists():
+        print("\n" + "=" * 70)
+        print("🏁 Welcome to ProjectBlackBox!")
+        print("=" * 70)
+        print("\nFirst time setup required.")
+        print("\nRun: python settings_manager.py")
+        print("\nThen run this script again.")
+        print("=" * 70)
+        return
+    
     # Create and initialize
     blackbox = ProjectBlackBox()
     

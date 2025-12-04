@@ -27,9 +27,19 @@ class AudioPipeline:
     
     def __init__(self, 
                  openai_api_key: str,
-                 elevenlabs_api_key: str):
+                 elevenlabs_api_key: str,
+                 ptt_type: str = 'keyboard',
+                 ptt_key: str = 'f1',
+                 joystick_id: int = 0,
+                 joystick_button: int = 0):
         # Voice I/O
-        self.recognition = VoiceRecognition(openai_api_key)
+        self.recognition = VoiceRecognition(
+            openai_api_key,
+            ptt_type=ptt_type,
+            ptt_key=ptt_key,
+            joystick_id=joystick_id,
+            joystick_button=joystick_button
+        )
         self.synthesis = VoiceSynthesis(elevenlabs_api_key)
         
         # Race team
