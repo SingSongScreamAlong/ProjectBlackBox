@@ -1,0 +1,23 @@
+{
+  "operational_costs": {
+    "per_user_per_month": 14.16,
+    "infrastructure_base": 37.01,
+    "infrastructure_scaled": 49.01
+  },
+  "recommended_pricing": {
+    "individual": 14.99,
+    "pro": 29.99,
+    "team": 99.99,
+    "league": 299.99
+  },
+  "profit_margins": {
+    "individual": "3%",
+    "pro": "106%",
+    "team_per_driver": "38%"
+  },
+  "break_even": {
+    "subscribers": 15,
+    "monthly_revenue": 224.85,
+    "timeframe": "Month 1"
+  }
+}
