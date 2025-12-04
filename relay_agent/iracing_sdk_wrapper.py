@@ -77,9 +77,15 @@ class TelemetrySnapshot:
     wind_vel: float
     wind_dir: float
     
-    # Session info
+    # Session flags
     session_state: str
     session_flags: str
+
+    # Spotter Data
+    car_left_right: int # Bitfield
+    car_idx_lap_dist_pct: List[float]
+    car_idx_track_surface: List[int]
+    car_idx_on_pit_road: List[bool]
 
 
 @dataclass
@@ -235,7 +241,13 @@ class iRacingSDKWrapper:
                 
                 # Session info
                 session_state=self.ir['SessionState'],
-                session_flags=str(self.ir['SessionFlags'])
+                session_flags=str(self.ir['SessionFlags']),
+
+                # Spotter Data
+                car_left_right=self.ir['CarLeftRight'],
+                car_idx_lap_dist_pct=self.ir['CarIdxLapDistPct'],
+                car_idx_track_surface=self.ir['CarIdxTrackSurface'],
+                car_idx_on_pit_road=self.ir['CarIdxOnPitRoad']
             )
             
             return snapshot
