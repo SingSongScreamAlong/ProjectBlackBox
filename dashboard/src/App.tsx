@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import './App.css';
 import './styles/dashboard.css';
 import Dashboard from './components/Dashboard/Dashboard';
+import ProfessionalDashboard from './components/ProfessionalDashboard/ProfessionalDashboard';
 import ComponentValidator from './components/validation/ComponentValidator';
 import RelayAgentPage from './components/RelayAgentPage';
 import { multiDriverService } from './services/MultiDriverService';
@@ -34,6 +35,9 @@ function App() {
               <Link to="/">Dashboard</Link>
             </li>
             <li>
+              <Link to="/professional">Professional View</Link>
+            </li>
+            <li>
               <Link to="/validator">Component Validator</Link>
             </li>
             <li>
@@ -41,9 +45,10 @@ function App() {
             </li>
           </ul>
         </nav>
-        
+
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/professional" element={<ProfessionalDashboard />} />
           <Route path="/validator" element={<ComponentValidator />} />
           <Route path="/relay-agent" element={<RelayAgentPage />} />
         </Routes>

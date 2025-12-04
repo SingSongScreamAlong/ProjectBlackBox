@@ -18,3 +18,4 @@ export { default as TrackMapGenerator } from './TrackMap/TrackMapGenerator';
 export type { TrackPoint, DriverMapPosition } from './TrackMap/TrackMapGenerator';
 
 export { default as RacingDashboard } from './RacingDashboard/RacingDashboard';
+export { default as ProfessionalDashboard } from './ProfessionalDashboard/ProfessionalDashboard';
