@@ -89,33 +89,70 @@ class AudioPipeline:
         logger.info(f"🎤 Driver: {text}")
         await self.process_command(text)
     
+    async def _retry_operation(self, operation, *args, max_retries=3, **kwargs):
+        """
+        Retry an async operation with exponential backoff
+        """
+        for attempt in range(max_retries):
+            try:
+                return await operation(*args, **kwargs)
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"Operation failed after {max_retries} attempts: {e}")
+                    raise e
+                
+                wait_time = 2 ** attempt
+                logger.warning(f"Operation failed: {e}. Retrying in {wait_time}s...")
+                await asyncio.sleep(wait_time)
+
     async def process_command(self, text: str):
         """
-        Process driver voice command
+        Process driver voice command with retry logic
         
         Args:
             text: Driver's voice command
         """
         logger.info(f"📝 Processing command: {text}")
         
-        # Get response from team
-        response = self.team.process_driver_voice_input(text, self.current_context)
-        
-        logger.info(f"💬 {response.team_member}: {response.response_text}")
-        
-        # Generate and play speech
-        await self.synthesis.speak(response.response_text, response.team_member.lower())
+        try:
+            # Get response from team (local operation, no retry needed usually)
+            response = self.team.process_driver_voice_input(text, self.current_context)
+            
+            logger.info(f"💬 {response.team_member}: {response.response_text}")
+            
+            # Generate and play speech (API call, needs retry)
+            await self._retry_operation(
+                self.synthesis.speak, 
+                response.response_text, 
+                response.team_member.lower()
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to process command: {e}")
+            # Try to speak error message
+            try:
+                await self.synthesis.speak("I'm having trouble connecting. Please repeat.", "engineer")
+            except:
+                pass
     
     async def send_proactive_update(self, message: str, team_member: str = 'engineer'):
         """
-        Team sends proactive update to driver
+        Team sends proactive update to driver with retry logic
         
         Args:
             message: Update message
             team_member: Who's sending the update
         """
         logger.info(f"📢 Proactive update from {team_member}: {message}")
-        await self.synthesis.speak(message, team_member)
+        
+        try:
+            await self._retry_operation(
+                self.synthesis.speak,
+                message,
+                team_member
+            )
+        except Exception as e:
+            logger.error(f"Failed to send proactive update: {e}")
     
     def update_context(self, context: dict):
         """
