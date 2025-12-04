@@ -18,6 +18,8 @@ sys.path.append('./api')
 from iracing_sdk_wrapper import iRacingSDKWrapper
 from telemetry_streamer import TelemetryStreamer, SessionMonitor
 from audio_pipeline import AudioPipeline
+from spotter_engine import SpotterEngine
+from opponent_tracker import OpponentTracker
 from database.manager import DatabaseManager
 from settings_manager import SettingsManager
 
@@ -62,6 +64,8 @@ class ProjectBlackBox:
         self.streamer = None
         self.monitor = None
         self.audio = None
+        self.spotter = None
+        self.profiler = None
         self.db = None
         
         self.running = False
@@ -149,6 +153,16 @@ class ProjectBlackBox:
         await self.audio.start()
         logger.info("✅ Voice interface ready")
         
+        # Initialize Spotter
+        logger.info("\n👀 Initializing Elite Spotter...")
+        self.spotter = SpotterEngine()
+        logger.info("✅ Spotter ready")
+        
+        # Initialize Profiler
+        logger.info("\n🧠 Initializing Opponent Profiler...")
+        self.profiler = OpponentTracker()
+        logger.info("✅ Profiler ready")
+        
         logger.info("\n" + "=" * 70)
         logger.info("✅ ProjectBlackBox ready!")
         logger.info("=" * 70)
@@ -197,18 +211,34 @@ class ProjectBlackBox:
         # Main loop
         try:
             while self.running and self.sdk.is_connected():
-                # Update audio pipeline context
-                if self.audio:
-                    telemetry = self.sdk.get_telemetry()
-                    if telemetry:
+                # Get current telemetry
+                telemetry = self.sdk.get_telemetry()
+                
+                if telemetry:
+                    # Update audio pipeline context
+                    if self.audio:
                         self.audio.update_context({
                             'current_lap': telemetry.lap,
                             'position': 5,
                             'tire_age': telemetry.lap,
                             'fuel_remaining': telemetry.fuel_level
                         })
+                        
+                    # Run Spotter
+                    if self.spotter and self.audio:
+                        alerts = self.spotter.update(telemetry, self.sdk.last_session_info)
+                        for alert in alerts:
+                            logger.info(f"📢 SPOTTER: {alert}")
+                            await self.audio.send_proactive_update(alert, 'spotter')
+                            
+                    # Run Profiler
+                    if self.profiler and self.audio:
+                        alerts = self.profiler.update(telemetry, self.sdk.last_session_info)
+                        for alert in alerts:
+                            logger.info(f"🧠 PROFILER: {alert}")
+                            await self.audio.send_proactive_update(alert, 'engineer')
                 
-                await asyncio.sleep(1)
+                await asyncio.sleep(0.05) # Run at ~20Hz for spotter logic
                 
         except KeyboardInterrupt:
             logger.info("Interrupted by user")

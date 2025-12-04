@@ -40,3 +40,36 @@ services:
       - OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
       - ELEVENLABS_API_KEY=sk_f92aab2a18dd30b8c5258739d6ff85fc95f4bce6fa1e5fc0
     restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DATABASE_URL=postgresql://blackbox:blackbox@timescaledb:5432/blackbox
+      - OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
+    depends_on:
+      - redis
+      - timescaledb
+    restart: unless-stopped
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=blackbox
+      - POSTGRES_PASSWORD=blackbox
+      - POSTGRES_DB=blackbox
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    restart: unless-stopped

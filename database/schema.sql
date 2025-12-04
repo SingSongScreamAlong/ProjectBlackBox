@@ -555,4 +555,16 @@ SELECT
     STDDEV(l.lap_time) as consistency
 FROM sessions s
 LEFT JOIN laps l ON s.session_id = l.session_id AND l.is_valid = TRUE
-GROUP BY s.driver_id, s.track_name, s.car_name;
+-- ============================================================================
+-- RACE REPORTS (Automated Debriefs)
+-- ============================================================================
+
+CREATE TABLE race_reports (
+    report_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    report_data JSONB NOT NULL, -- The full JSON report
+    pdf_path VARCHAR(500), -- Path to generated PDF
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_reports_session ON race_reports(session_id);

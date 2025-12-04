@@ -11,11 +11,24 @@ REM Check if Docker is installed
 docker --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo ❌ Docker is not installed!
-    echo Please install Docker Desktop from: https://www.docker.com/products/docker-desktop
     echo.
-    echo After installation, restart this script.
+    echo 🔄 Attempting to install Docker Desktop via winget...
+    winget install Docker.DockerDesktop
+    if %errorlevel% neq 0 (
+        echo.
+        echo ❌ Automatic installation failed.
+        echo Please install Docker Desktop manually from: https://www.docker.com/products/docker-desktop
+        echo.
+        echo After installation, restart this script.
+        pause
+        exit /b 1
+    )
+    echo.
+    echo ✅ Docker Desktop installed!
+    echo ⚠️  You may need to restart your computer to complete the installation.
+    echo After restart, run this script again.
     pause
-    exit /b 1
+    exit /b 0
 )
 
 REM Check if Docker Compose is available
@@ -75,15 +88,17 @@ echo [2] Stop BlackBox system
 echo [3] View system status
 echo [4] View logs
 echo [5] Reset system (WARNING: This will delete all data)
+echo [6] Create Desktop Shortcut
 echo.
 
-set /p choice="Enter your choice (1-5): "
+set /p choice="Enter your choice (1-6): "
 
 if "%choice%"=="1" goto start_system
 if "%choice%"=="2" goto stop_system
 if "%choice%"=="3" goto system_status
 if "%choice%"=="4" goto view_logs
 if "%choice%"=="5" goto reset_system
+if "%choice%"=="6" goto create_shortcut
 
 echo ❌ Invalid choice. Please run the script again.
 pause
@@ -244,6 +259,25 @@ REM Remove Docker volumes
 docker volume rm blackbox_postgres_data blackbox_redis_data 2>nul
 
 echo ✅ System reset complete
+echo.
+pause
+goto end
+
+:create_shortcut
+echo.
+echo 🔗 Creating Desktop Shortcut...
+set SCRIPT="%TEMP%\CreateShortcut.vbs"
+echo Set oWS = WScript.CreateObject("WScript.Shell") > %SCRIPT%
+echo sLinkFile = "%USERPROFILE%\Desktop\ProjectBlackBox.lnk" >> %SCRIPT%
+echo Set oLink = oWS.CreateShortcut(sLinkFile) >> %SCRIPT%
+echo oLink.TargetPath = "%~dp0setup_windows.bat" >> %SCRIPT%
+echo oLink.WorkingDirectory = "%~dp0" >> %SCRIPT%
+echo oLink.Description = "Start ProjectBlackBox" >> %SCRIPT%
+echo oLink.IconLocation = "%~dp0dashboard\public\favicon.ico" >> %SCRIPT%
+echo oLink.Save >> %SCRIPT%
+cscript /nologo %SCRIPT%
+del %SCRIPT%
+echo ✅ Shortcut created on Desktop!
 echo.
 pause
 goto end
