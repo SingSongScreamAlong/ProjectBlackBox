@@ -27,8 +27,8 @@ describe('Rate Limiting Middleware', () => {
         it('should include rate limit headers', async () => {
             const response = await request(app).get('/api/test');
 
-            expect(response.headers).toHaveProperty('x-ratelimit-limit');
-            expect(response.headers).toHaveProperty('x-ratelimit-remaining');
+            expect(response.headers).toHaveProperty('ratelimit-limit');
+            expect(response.headers).toHaveProperty('ratelimit-remaining');
         });
     });
 
