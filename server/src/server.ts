@@ -15,6 +15,10 @@ import voiceRoutes, { setupVoiceWebSocket } from './voice-routes.js';
 import strategyRoutes from './strategy-routes.js';
 import { apiLimiter, telemetryLimiter, authLimiter } from './middleware/rate-limit.js';
 import { sanitizeInputs } from './middleware/sql-injection-guard.js';
+import { config, isProduction } from './config/environment.js';
+import { createHealthCheckRouter } from './middleware/health-check.js';
+import { corsMiddleware, logCorsConfiguration } from './middleware/cors-config.js';
+import { securityHeaders, customSecurityHeaders, logSecurityConfiguration } from './middleware/security-headers.js';
 
 // Basic types aligned with dashboard expectations
 export interface TelemetryTire {
@@ -66,7 +70,8 @@ const app = express();
 const server = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: '*',
+    origin: config.CORS_ORIGINS,
+    credentials: true
   },
 });
 
@@ -89,10 +94,11 @@ server.on('upgrade', (request, socket, head) => {
 // Setup voice WebSocket handlers
 setupVoiceWebSocket(wss);
 
-app.use(cors());
+// Security middleware - apply early in the chain
+app.use(securityHeaders); // Helmet.js security headers
+app.use(customSecurityHeaders); // Additional custom headers
+app.use(corsMiddleware); // CORS configuration
 app.use(express.json({ limit: '2mb' }));
-
-// Security middleware - apply globally
 app.use(sanitizeInputs); // SQL injection protection
 
 // Authentication routes (public) - with brute force protection
@@ -116,11 +122,8 @@ app.use('/api/voice', voiceRoutes);
 // Race strategy routes (authenticated) - Fuel, tire, pit stop calculations
 app.use('/api/strategy', strategyRoutes);
 
-// Health check (public)
-app.get('/health', async (_req, res) => {
-  const dbOk = await ping();
-  res.json({ status: 'ok', time: Date.now(), db: dbOk ? 'up' : 'down' });
-});
+// Health check endpoints (public) - /health, /health/ready, /health/metrics
+app.use(createHealthCheckRouter(pool));
 
 // List sessions (for simple picker/testing) - requires authentication
 app.get('/sessions', apiLimiter, authenticateToken, async (_req, res) => {
@@ -172,9 +175,9 @@ app.post('/sessions/:id/telemetry', telemetryLimiter, authenticateToken, async (
   // batch insert
   const values: any[] = [];
   const cols = [
-    'session_id','driver_id','ts','pos_x','pos_y','pos_z','speed','throttle','brake','gear','rpm','lap','sector',
-    'tire_fl_temp','tire_fl_wear','tire_fl_pressure','tire_fr_temp','tire_fr_wear','tire_fr_pressure','tire_rl_temp','tire_rl_wear','tire_rl_pressure','tire_rr_temp','tire_rr_wear','tire_rr_pressure',
-    'g_lat','g_long','g_vert','track_position','race_position','gap_ahead','gap_behind'
+    'session_id', 'driver_id', 'ts', 'pos_x', 'pos_y', 'pos_z', 'speed', 'throttle', 'brake', 'gear', 'rpm', 'lap', 'sector',
+    'tire_fl_temp', 'tire_fl_wear', 'tire_fl_pressure', 'tire_fr_temp', 'tire_fr_wear', 'tire_fr_pressure', 'tire_rl_temp', 'tire_rl_wear', 'tire_rl_pressure', 'tire_rr_temp', 'tire_rr_wear', 'tire_rr_pressure',
+    'g_lat', 'g_long', 'g_vert', 'track_position', 'race_position', 'gap_ahead', 'gap_behind'
   ];
   const rowsSql: string[] = [];
   let idx = 1;
@@ -252,8 +255,8 @@ app.get('/sessions/:id/telemetry', telemetryLimiter, authenticateToken, async (r
     brake: r.brake ?? undefined,
     tires: {
       frontLeft: { temp: r.tire_fl_temp ?? 0, wear: r.tire_fl_wear ?? 0, pressure: r.tire_fl_pressure ?? 0 },
-      frontRight:{ temp: r.tire_fr_temp ?? 0, wear: r.tire_fr_wear ?? 0, pressure: r.tire_fr_pressure ?? 0 },
-      rearLeft:  { temp: r.tire_rl_temp ?? 0, wear: r.tire_rl_wear ?? 0, pressure: r.tire_rl_pressure ?? 0 },
+      frontRight: { temp: r.tire_fr_temp ?? 0, wear: r.tire_fr_wear ?? 0, pressure: r.tire_fr_pressure ?? 0 },
+      rearLeft: { temp: r.tire_rl_temp ?? 0, wear: r.tire_rl_wear ?? 0, pressure: r.tire_rl_pressure ?? 0 },
       rearRight: { temp: r.tire_rr_temp ?? 0, wear: r.tire_rr_wear ?? 0, pressure: r.tire_rr_pressure ?? 0 },
     },
     position: { x: r.pos_x ?? 0, y: r.pos_y ?? 0, z: r.pos_z ?? 0 },
@@ -270,8 +273,25 @@ app.get('/sessions/:id/telemetry', telemetryLimiter, authenticateToken, async (r
   return res.json({ count: data.length, data });
 });
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
-server.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Server listening on http://localhost:${PORT}`);
+// Start server
+server.listen(config.PORT, () => {
+  console.log('='.repeat(60));
+  console.log('🚀 BlackBox Server Started');
+  console.log('='.repeat(60));
+  console.log(`Environment: ${config.NODE_ENV}`);
+  console.log(`Server URL: ${config.SERVER_URL}`);
+  console.log(`Port: ${config.PORT}`);
+  console.log('');
+
+  // Log security configuration
+  logCorsConfiguration();
+  console.log('');
+  logSecurityConfiguration();
+
+  console.log('');
+  console.log('Health Checks:');
+  console.log(`  Liveness:  ${config.SERVER_URL}/health`);
+  console.log(`  Readiness: ${config.SERVER_URL}/health/ready`);
+  console.log(`  Metrics:   ${config.SERVER_URL}/health/metrics`);
+  console.log('='.repeat(60));
 });
