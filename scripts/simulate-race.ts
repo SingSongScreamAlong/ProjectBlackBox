@@ -5,7 +5,7 @@
  */
 import { generateMockSession } from '../tests/load/mock-telemetry-generator';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = process.env.API_URL || process.env.BACKEND_URL || 'http://localhost:3000';
 const SIMULATION_INTERVAL_MS = 100; // 100ms = 10Hz updates
 
 // Test credentials (must match seed data or be created)

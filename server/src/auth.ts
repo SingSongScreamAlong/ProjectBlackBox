@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
+import { config } from './config/environment.js';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -19,7 +20,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret') as any;
+    const decoded = jwt.verify(token, config.JWT_SECRET) as any;
     req.user = {
       id: decoded.userId,
       email: decoded.email,
@@ -56,5 +57,5 @@ export const generateToken = (userId: string, email: string, role: string = 'use
     exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
   };
 
-  return jwt.sign(payload, process.env.JWT_SECRET || 'default-secret');
+  return jwt.sign(payload, config.JWT_SECRET);
 };

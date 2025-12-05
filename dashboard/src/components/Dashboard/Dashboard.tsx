@@ -18,6 +18,7 @@ import {
   SessionInfo
 } from '../../services/WebSocketService';
 
+import { BACKEND_URL } from '../../config/environment';
 import { DashboardMode } from '../Header/Header';
 
 const Dashboard: React.FC = () => {
@@ -65,7 +66,7 @@ const Dashboard: React.FC = () => {
     const joinLatestSession = async () => {
       if (!token) return;
       try {
-        const res = await fetch('http://localhost:3000/sessions', {
+        const res = await fetch(`${BACKEND_URL}/sessions`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -149,7 +150,7 @@ const Dashboard: React.FC = () => {
     const unsubscribeSessionInfo = wsService.on('session_info', handleSessionUpdate).unsubscribe;
 
     // Connect to WebSocket server on backend port
-    wsService.connect('http://localhost:3000');
+    wsService.connect(BACKEND_URL);
 
     // Clean up
     return () => {
