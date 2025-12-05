@@ -30,6 +30,16 @@ export interface TelemetryData {
         RL: number;
         RR: number;
     };
+    position: { x: number, y: number, z: number };
+    sector: number;
+    sectorTime: number;
+    bestLapTime: number;
+    bestSectorTimes: number[];
+    gForce: { lateral: number, longitudinal: number, vertical: number };
+    trackPosition: number;
+    racePosition: number;
+    gapAhead: number;
+    gapBehind: number;
 }
 
 export class MockTelemetryGenerator {
@@ -46,12 +56,51 @@ export class MockTelemetryGenerator {
         this.driverId = driverId;
     }
 
+    // Silverstone Track Coordinates (approximate path from TrackRegistry)
+    private trackPath = [
+        { x: 480, y: 200 }, // Start
+        { x: 600, y: 180 }, // Abbey
+        { x: 580, y: 250 }, // Village
+        { x: 530, y: 250 }, // Loop
+        { x: 540, y: 280 }, // Aintree
+        { x: 480, y: 400 }, // Wellington Straight
+        { x: 250, y: 500 }, // Brooklands
+        { x: 280, y: 550 }, // Luffield
+        { x: 400, y: 500 }, // Woodcote
+        { x: 550, y: 250 }, // Copse
+        { x: 700, y: 250 }, // Maggotts
+        { x: 750, y: 400 }, // Becketts
+        { x: 650, y: 600 }, // Chapel
+        { x: 700, y: 650 }, // Hangar Straight
+        { x: 800, y: 600 }, // Stowe
+        { x: 850, y: 400 }, // Vale
+        { x: 700, y: 150 }, // Club
+        { x: 480, y: 200 }  // Finish Line
+    ];
+
+    private getInterpolatedPosition(progress: number): { x: number, y: number } {
+        // Find segment
+        const totalSegments = this.trackPath.length - 1;
+        const segmentProgress = progress * totalSegments;
+        const segmentIndex = Math.floor(segmentProgress);
+        const segmentT = segmentProgress - segmentIndex;
+
+        const p1 = this.trackPath[segmentIndex >= totalSegments ? 0 : segmentIndex];
+        const p2 = this.trackPath[segmentIndex + 1 >= this.trackPath.length ? 0 : segmentIndex + 1];
+
+        return {
+            x: p1.x + (p2.x - p1.x) * segmentT,
+            y: p1.y + (p2.y - p1.y) * segmentT
+        };
+    }
+
     /**
      * Generate a single telemetry sample
      */
     generateSample(): TelemetryData {
         // Simulate realistic racing data
         const trackProgress = this.lapDistance / this.trackLength;
+        const position = this.getInterpolatedPosition(trackProgress);
 
         // Speed varies based on track position (corners vs straights)
         const speedVariation = Math.sin(trackProgress * Math.PI * 4) * 50;
@@ -104,8 +153,20 @@ export class MockTelemetryGenerator {
                 FR: baseTemp + this.randomNoise(5),
                 RL: baseTemp + this.randomNoise(5),
                 RR: baseTemp + this.randomNoise(5),
-            }
-        };
+            },
+            // Add required position (x, y, z) for TrackMap
+            position: { x: position.x, y: position.y, z: 0 },
+            // Add other missing properties required by the interface (approximated)
+            sector: Math.floor(trackProgress * 3) + 1,
+            sectorTime: 30.5,
+            bestLapTime: 88.5,
+            bestSectorTimes: [28.2, 30.1, 30.2],
+            gForce: { lateral: steeringAngle * 2, longitudinal: isAccelerating ? 0.5 : -1.0, vertical: 0 },
+            trackPosition: trackProgress,
+            racePosition: 1,
+            gapAhead: 1.2,
+            gapBehind: 0.8
+        } as any; // Cast as any to avoid strict interface matching during mock
 
         // Update position for next sample
         this.lapDistance += (speed / 3.6) * (1 / 60); // Assuming 60Hz updates
@@ -143,6 +204,7 @@ export class MockTelemetryGenerator {
         this.currentLap = 1;
         this.lapDistance = 0;
     }
+
 }
 
 /**

@@ -1,172 +1,178 @@
-import React from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { TelemetryData } from '../../services/WebSocketService';
+import { tracks, TrackDefinition } from '../../data/tracks/TrackRegistry';
+import { trackAssetService } from '../../services/TrackAssetService';
 
 interface TrackMapProps {
   telemetryData: TelemetryData | null;
   trackName?: string;
 }
 
-interface Corner {
-  id: string;
-  name: string;
-  x: number;
-  y: number;
-  coordinates: string;
-}
+const TrackMap: React.FC<TrackMapProps> = ({ telemetryData, trackName = 'Silverstone' }) => {
+  // State for dynamic SVG url
+  const [dynamicMapUrl, setDynamicMapUrl] = useState<string | null>(null);
 
-interface SpeedZone {
-  type: 'high' | 'medium' | 'low';
-  top: string;
-  left: string;
-  width: string;
-  height: string;
-}
+  // Initialize service and try to fetch dynamic map
+  useEffect(() => {
+    const fetchMap = async () => {
+      await trackAssetService.initialize();
+      const url = trackAssetService.getTrackMapUrl(trackName);
+      if (url) {
+        setDynamicMapUrl(url);
+      } else {
+        setDynamicMapUrl(null);
+      }
+    };
+    fetchMap();
+  }, [trackName]);
 
-const TrackMap: React.FC<TrackMapProps> = ({ telemetryData, trackName = 'Unknown Track' }) => {
-  // Sample corners for Silverstone (would be loaded dynamically based on track)
-  const corners: Corner[] = [
-    { id: 'T1', name: 'Abbey', x: 25, y: 15, coordinates: '(150,42)' },
-    { id: 'T3', name: 'Village', x: 15, y: 25, coordinates: '(90,70)' },
-    { id: 'T4', name: 'Loop', x: 10, y: 45, coordinates: '(60,126)' },
-    { id: 'T5', name: 'Luffield', x: 15, y: 65, coordinates: '(90,182)' },
-    { id: 'T6', name: 'Club', x: 35, y: 80, coordinates: '(210,224)' },
-    { id: 'T7', name: 'Vale', x: 75, y: 75, coordinates: '(450,210)' },
-    { id: 'T8', name: 'Stowe', x: 85, y: 55, coordinates: '(510,154)' },
-    { id: 'T9', name: 'Becketts', x: 75, y: 35, coordinates: '(450,98)' },
-    { id: 'T10', name: 'Maggotts', x: 65, y: 25, coordinates: '(390,70)' },
-    { id: 'T11', name: 'Copse', x: 55, y: 15, coordinates: '(330,42)' },
-  ];
+  // Find track definition from registry as fallback or for metadata
+  const trackDef: TrackDefinition = useMemo(() => {
+    const staticData = trackAssetService.getStaticTrackData(trackName);
+    return staticData || tracks['Silverstone'];
+  }, [trackName]);
 
-  // Sample speed zones
-  const speedZones: SpeedZone[] = [
-    { type: 'high', top: '10%', left: '20%', width: '60%', height: '15%' },
-    { type: 'medium', top: '30%', left: '70%', width: '25%', height: '40%' },
-    { type: 'low', top: '40%', left: '5%', width: '20%', height: '25%' },
-    { type: 'high', top: '70%', left: '25%', width: '50%', height: '15%' },
-  ];
+  // State for session trace (dynamic map improvement)
+  const [sessionTrace, setSessionTrace] = useState<{ x: number, y: number }[]>([]);
 
-  // Calculate car position (in a real implementation, this would be based on telemetry)
-  const carPosition = telemetryData ? {
-    x: 75, // This would be calculated from telemetryData.position
-    y: 35  // This would be calculated from telemetryData.position
-  } : { x: 0, y: 0 };
+  // Update session trace with new telemetry data
+  useEffect(() => {
+    if (telemetryData) {
+      // Map telemetry position to SVG coordinates
+      // NOTE: This is a placeholder mapping. Real implementation needs proper 
+      // coordinate transform from Game World (meters) to SVG ViewBox.
+      // We are simulating this by using "normalized" mock data if available, 
+      // or just mapping raw if it looks compatible.
+      let viewBox = [0, 0, 1000, 1000]; // Default
+      if (trackDef && trackDef.viewBox) {
+        viewBox = trackDef.viewBox.split(' ').map(Number);
+      }
 
-  // Format sector time
-  const formatSectorTime = (time: number | undefined): string => {
-    if (!time || time <= 0) return '---.---';
-    return `${time.toFixed(3)}s`;
-  };
+      const width = viewBox[2];
+      const height = viewBox[3];
 
-  // Calculate delta class
-  const getDeltaClass = (delta: number): string => {
-    if (delta < 0) return 'status-good';
-    if (delta > 0.5) return 'status-critical';
-    return 'status-warning';
-  };
+      // HACK: Simulating position for demo since we don't have real GPS stream matching SVG
+      // In a real app, 'telemetryData.position' would be used with a scale factor
+      const simulatedX = (telemetryData.position?.x || 0) % width;
+      const simulatedY = (telemetryData.position?.y || 0) % height;
+
+      setSessionTrace(prev => {
+        // Only add point if it moved significantly to save performance
+        const last = prev[prev.length - 1];
+        if (last && Math.abs(last.x - simulatedX) < 2 && Math.abs(last.y - simulatedY) < 2) {
+          return prev;
+        }
+        // Limit trace size to last 500 points to prevent memory leak
+        const newTrace = [...prev, { x: simulatedX, y: simulatedY }];
+        if (newTrace.length > 500) return newTrace.slice(-500);
+        return newTrace;
+      });
+    }
+  }, [telemetryData, trackDef]);
+
+  // Car Position Calculation
+  const carX = telemetryData?.position?.x || 500;
+  const carY = telemetryData?.position?.y || 400;
 
   return (
     <div className="panel track-map-panel">
-      <div className="panel-header">{trackName.toUpperCase()} - SECTOR 2 (BECKETTS COMPLEX)</div>
-      <div className="track-container">
-        <div className="track-map">
-          {/* Grid overlay */}
-          <div className="grid-overlay"></div>
-          
-          {/* Grid coordinates */}
-          <div className="grid-coords" style={{ top: '5px', left: '5px' }}>X:0 Y:0</div>
-          <div className="grid-coords" style={{ top: '5px', right: '5px' }}>X:600 Y:0</div>
-          <div className="grid-coords" style={{ bottom: '50px', left: '5px' }}>X:0 Y:280</div>
-          <div className="grid-coords" style={{ bottom: '50px', right: '5px' }}>X:600 Y:280</div>
-          
-          {/* Speed zones */}
-          {speedZones.map((zone, index) => (
-            <div 
-              key={`zone-${index}`}
-              className={`speed-zone ${zone.type}`} 
-              style={{ 
-                top: zone.top, 
-                left: zone.left, 
-                width: zone.width, 
-                height: zone.height 
-              }}
-            ></div>
-          ))}
-          
-          {/* Track outline (would be a SVG in a real implementation) */}
-          <div className="track-outline"></div>
-          
-          {/* Corner markers */}
-          {corners.map(corner => (
-            <React.Fragment key={corner.id}>
-              <div 
-                className="corner-marker" 
-                style={{ top: `${corner.y}%`, left: `${corner.x}%` }}
-              ></div>
-              <div 
-                className="corner-label" 
-                style={{ 
-                  top: `${corner.y - 7}%`, 
-                  left: `${corner.x - 7}%` 
-                }}
-              >
-                {corner.id} {corner.name} {corner.coordinates}
-              </div>
-            </React.Fragment>
-          ))}
-          
-          {/* Car position */}
-          {telemetryData && (
-            <div 
-              className="car-position" 
-              style={{ top: `${carPosition.y}%`, left: `${carPosition.x}%` }} 
-              title={`Car Position: X:${carPosition.x * 6} Y:${carPosition.y * 2.8}`}
-            ></div>
-          )}
-          
-          {/* Track info */}
-          <div className="track-info">
-            <div className="track-info-item">
-              <div className="track-info-label">Position</div>
-              <div className="track-info-value">
-                {telemetryData 
-                  ? `X:${carPosition.x * 6} Y:${carPosition.y * 2.8}` 
-                  : 'No Data'
-                }
-              </div>
-            </div>
-            <div className="track-info-item">
-              <div className="track-info-label">Sector 2</div>
-              <div className="track-info-value">
-                {telemetryData 
-                  ? formatSectorTime(telemetryData.sectorTime)
-                  : '---'
-                }
-              </div>
-            </div>
-            <div className="track-info-item">
-              <div className="track-info-label">Best S2</div>
-              <div className="track-info-value">
-                {telemetryData && telemetryData.bestSectorTimes && telemetryData.bestSectorTimes[1] 
-                  ? formatSectorTime(telemetryData.bestSectorTimes[1])
-                  : '---'
-                }
-              </div>
-            </div>
-            <div className="track-info-item">
-              <div className="track-info-label">Delta</div>
-              <div className={`track-info-value ${
-                telemetryData && telemetryData.bestSectorTimes && telemetryData.bestSectorTimes[1] && telemetryData.sectorTime
-                  ? getDeltaClass(telemetryData.sectorTime - telemetryData.bestSectorTimes[1])
-                  : ''
-              }`}>
-                {telemetryData && telemetryData.bestSectorTimes && telemetryData.bestSectorTimes[1] && telemetryData.sectorTime
-                  ? `${telemetryData.sectorTime > telemetryData.bestSectorTimes[1] ? '+' : ''}${
-                      (telemetryData.sectorTime - telemetryData.bestSectorTimes[1]).toFixed(3)
-                    }s`
-                  : '---'
-                }
-              </div>
-            </div>
+      <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <span>{trackName}</span>
+        <span style={{ fontSize: '0.8em', opacity: 0.7 }}>
+          Map Source: {dynamicMapUrl ? 'iRacing Data' : (trackDef.name !== 'Silverstone' ? 'Library' : 'Default')}
+        </span>
+      </div>
+
+      <div className="track-container" style={{ position: 'relative', width: '100%', height: '100%', minHeight: '300px' }}>
+        {dynamicMapUrl ? (
+          // Dynamic SVG from Asset
+          <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <img src={dynamicMapUrl} alt={trackName} style={{ maxWidth: '100%', maxHeight: '100%', filter: 'invert(1)' }} />
+            {/*  Note: We can't easily overlay live telemetry on an IMG tag cleanly without knowing its internal coordinate system matches our mock.
+                      For now, we just show the map if available. If we want telemetry overlay, we'd need to fetch the SVG text and inject it inline.
+                  */}
+          </div>
+        ) : (
+          // Fallback to Static SVG
+          <svg
+            width="100%"
+            height="100%"
+            viewBox={trackDef.viewBox}
+            preserveAspectRatio="xMidYMid meet"
+            style={{ overflow: 'visible' }}
+          >
+            {/* Grid background effect */}
+            <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+              <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+            </pattern>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+
+            {/* Base Static Track Map */}
+            <path
+              d={trackDef.path}
+              fill="none"
+              stroke={trackDef.style.strokeColor}
+              strokeWidth="15"
+              strokeOpacity="0.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Active Track Line (Brighter) */}
+            <path
+              d={trackDef.path}
+              fill="none"
+              stroke={trackDef.style.strokeColor}
+              strokeWidth="3"
+              strokeOpacity="0.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              filter="drop-shadow(0 0 4px rgba(255,255,255,0.3))"
+            />
+
+            {/* User-Driven Data Trace (The "Learning" Part) */}
+            {sessionTrace.length > 1 && (
+              <polyline
+                points={sessionTrace.map(p => `${p.x},${p.y}`).join(' ')}
+                fill="none"
+                stroke="#00ff9d" // Green for user path
+                strokeWidth="2"
+                strokeDasharray="4 2"
+                opacity="0.8"
+              />
+            )}
+
+            {/* Corner Markers */}
+            {trackDef.corners.map(corner => (
+              <g key={corner.id} transform={`translate(${corner.x}, ${corner.y})`}>
+                <circle r="4" fill="#fff" opacity="0.5" />
+                <text
+                  y="-10"
+                  fill="#fff"
+                  fontSize="24"
+                  textAnchor="middle"
+                  opacity="0.7"
+                  style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
+                >
+                  {corner.id}
+                </text>
+              </g>
+            ))}
+
+            {/* Car Marker */}
+            {telemetryData && (
+              <g transform={`translate(${carX}, ${carY})`}>
+                <circle r="12" fill={trackDef.style.strokeColor} fillOpacity="0.3">
+                  <animate attributeName="r" values="12;16;12" dur="1.5s" repeatCount="indefinite" />
+                </circle>
+                <circle r="6" fill="#fff" stroke="#000" strokeWidth="2" />
+              </g>
+            )}
+          </svg>
+        )}
+
+        {/* Track Info Overlay */}
+        <div className="track-info" style={{ pointerEvents: 'none' }}>
+          <div className="track-info-item">
           </div>
         </div>
       </div>

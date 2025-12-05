@@ -17,6 +17,9 @@
   --grid-line-color: rgba(0, 212, 255, 0.1);
   --glass-border: 1px solid rgba(255, 255, 255, 0.1);
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  
+  /* Focus Mode Transitions */
+  --transition-speed: 0.3s;
 }
 
 body {
@@ -50,6 +53,21 @@ body {
   padding: 12px;
   height: calc(100vh - 60px);
   overflow: hidden;
+  transition: all var(--transition-speed) ease;
+}
+
+/* Layout Variations */
+.mode-focus .dashboard-grid {
+  grid-template-columns: 1fr;
+  padding: 24px;
+}
+
+.mode-engineer .dashboard-grid {
+  grid-template-columns: 1fr 2fr;
+}
+
+.mode-strategy .dashboard-grid {
+  grid-template-columns: 1fr 2fr;
 }
 
 .dashboard-left,
@@ -61,6 +79,30 @@ body {
   overflow-y: auto;
   height: 100%;
   padding-bottom: 12px;
+  transition: width var(--transition-speed) ease;
+}
+
+.dashboard-right.wide, 
+.dashboard-center.wide {
+  grid-column: span 2;
+}
+
+.dashboard-column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 16px;
+}
+
+.dashboard-row {
+  display: flex;
+  flex-direction: row;
+  height: 50%;
+  gap: 16px;
+}
+
+.dashboard-row.secondary {
+  height: 40%;
 }
 
 /* Panel Styles */
@@ -72,6 +114,12 @@ body {
   box-shadow: var(--glass-shadow);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s ease-in-out;
+}
+
+.panel:hover {
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: 0 8px 40px 0 rgba(0, 0, 0, 0.5);
 }
 
 .panel-header {
@@ -113,6 +161,38 @@ body {
   gap: 16px;
 }
 
+/* Mode Switcher Buttons */
+.mode-switcher {
+  display: flex;
+  background: var(--bg-primary);
+  padding: 4px;
+  border-radius: 8px;
+  gap: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.mode-button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-button:hover {
+  color: var(--text-primary);
+}
+
+.mode-button.active {
+  background: var(--bg-tertiary);
+  color: var(--accent-color);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
 .header-logo {
   font-size: 20px;
   font-weight: 800;
@@ -143,6 +223,12 @@ body {
 .header-stat-value {
   font-size: 14px;
   font-weight: 600;
+}
+
+.stat-sub {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 0.9em;
 }
 
 .connection-status {
@@ -179,7 +265,7 @@ body {
 .telemetry-item {
   background-color: var(--bg-tertiary);
   border-radius: 4px;
-  padding: 8px;
+  padding: 12px 8px; /* Slightly more padding */
   display: flex;
   flex-direction: column;
 }
@@ -190,9 +276,12 @@ body {
   margin-bottom: 4px;
 }
 
+/* IMPROVED Typography: Bigger numbers */
 .telemetry-value {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 20px; /* Increased from 16px */
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.5px;
 }
 
 .telemetry-unit {
@@ -201,6 +290,14 @@ body {
   margin-left: 4px;
 }
 
+/* Large Telemetry Items (Gear, Speed) */
+.telemetry-item.large-value .telemetry-value {
+  font-size: 32px;
+  color: var(--accent-color);
+}
+
+/* Rest of the file unchanged... */
+/* Keeping existing Tire, Track Map, AI, Video, Comp Analysis styles */
 .tire-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

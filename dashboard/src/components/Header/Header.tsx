@@ -12,78 +12,65 @@ interface HeaderSessionInfo {
   weather: string;
 }
 
+// Define available Dashboard Modes
+export type DashboardMode = 'OVERVIEW' | 'FOCUS' | 'ENGINEER' | 'STRATEGY';
+
 interface HeaderProps {
   connected: boolean;
   sessionInfo: HeaderSessionInfo;
   onMultiDriverClick?: () => void;
+  currentMode: DashboardMode;
+  onModeChange: (mode: DashboardMode) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ connected, sessionInfo, onMultiDriverClick }) => {
+const Header: React.FC<HeaderProps> = ({
+  connected,
+  sessionInfo,
+  onMultiDriverClick,
+  currentMode,
+  onModeChange
+}) => {
   return (
     <div className="dashboard-header">
       <div className="header-left">
         <div className="header-logo">
           BLACK<span>BOX</span> RACING
         </div>
-        
+
         <div className="connection-status">
           <div className={`status-indicator ${connected ? 'connected' : ''}`}></div>
-          {connected ? 'Connected' : 'Disconnected'}
+          {connected ? 'LIVE' : 'OFFLINE'}
         </div>
       </div>
-      
+
       <div className="header-center">
-        <div className="header-session-info">
-          <div className="header-stat">
-            <div className="header-stat-label">Track</div>
-            <div className="header-stat-value">{sessionInfo.trackName}</div>
-          </div>
-          
-          <div className="header-stat">
-            <div className="header-stat-label">Session</div>
-            <div className="header-stat-value">
-              {sessionInfo.sessionType}
-            </div>
-          </div>
-          
-          <div className="header-stat">
-            <div className="header-stat-label">Driver</div>
-            <div className="header-stat-value">{sessionInfo.driverName}</div>
-          </div>
-          
-          <div className="header-stat">
-            <div className="header-stat-label">Car</div>
-            <div className="header-stat-value">{sessionInfo.carName}</div>
-          </div>
-          
+        {/* Mode Switcher */}
+        <div className="mode-switcher">
+          {(['OVERVIEW', 'FOCUS', 'ENGINEER', 'STRATEGY'] as DashboardMode[]).map((mode) => (
+            <button
+              key={mode}
+              className={`mode-button ${currentMode === mode ? 'active' : ''}`}
+              onClick={() => onModeChange(mode)}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="header-right">
+        <div className="header-session-info compact">
           <div className="header-stat">
             <div className="header-stat-label">Lap</div>
             <div className="header-stat-value">
-              {sessionInfo.lapCount}/{sessionInfo.totalLaps}
-            </div>
-          </div>
-          
-          <div className="header-stat">
-            <div className="header-stat-label">Weather</div>
-            <div className="header-stat-value">
-              {sessionInfo.weather}
+              {sessionInfo.lapCount} <span className="stat-sub">/ {sessionInfo.totalLaps}</span>
             </div>
           </div>
         </div>
-      </div>
-      
-      <div className="header-right">
-        <div className="header-stat">
-          <div className="header-stat-label">Time</div>
-          <div className="header-stat-value" id="current-time">
-            {new Date().toLocaleTimeString()}
-          </div>
-        </div>
-        
+
         {onMultiDriverClick && (
           <button className="multi-driver-button" onClick={onMultiDriverClick}>
             <span className="icon">👥</span>
-            Multi-Driver
           </button>
         )}
       </div>

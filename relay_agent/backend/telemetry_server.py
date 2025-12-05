@@ -242,13 +242,12 @@ class TelemetryServer:
         except Exception as e:
             logger.error(f"Error starting HTTP server: {e}")
     
-    async def handle_websocket(self, websocket, path) -> None:
+    async def handle_websocket(self, websocket) -> None:
         """
         Handle WebSocket connections.
         
         Args:
             websocket: WebSocket connection
-            path: Connection path
         """
         client_id = str(uuid.uuid4())
         client = {

@@ -13,6 +13,7 @@ import trackMapRoutes from './track-map-routes.js';
 import trackCalibrationRoutes from './track-calibration-routes.js';
 import voiceRoutes, { setupVoiceWebSocket } from './voice-routes.js';
 import strategyRoutes from './strategy-routes.js';
+import trainingRoutes from './training-routes.js';
 import { apiLimiter, telemetryLimiter, authLimiter } from './middleware/rate-limit.js';
 import { sanitizeInputs } from './middleware/sql-injection-guard.js';
 import { config, isProduction } from './config/environment.js';
@@ -121,6 +122,9 @@ app.use('/api/voice', voiceRoutes);
 
 // Race strategy routes (authenticated) - Fuel, tire, pit stop calculations
 app.use('/api/strategy', strategyRoutes);
+
+// Training system routes (authenticated) - Goals, badges, progress
+app.use('/api/training', trainingRoutes);
 
 // Health check endpoints (public) - /health, /health/ready, /health/metrics
 app.use(createHealthCheckRouter(pool));

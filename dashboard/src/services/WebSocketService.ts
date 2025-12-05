@@ -227,11 +227,11 @@ class WebSocketService {
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
   private reconnectDelay: number = 2000; // ms
-  
+
   // Throttling configuration
   public telemetryThrottleMs: number = 100; // Default throttle rate for high-frequency events
   public throttledCallbacks: Record<string, Record<string, any>> = {}; // Store throttled callbacks
-  
+
   // Callback storage for different event types
   private connectCallbacks: Array<EventCallback<void>> = [];
   private disconnectCallbacks: Array<EventCallback<void>> = [];
@@ -244,7 +244,7 @@ class WebSocketService {
   private validationSummaryCallbacks: Array<EventCallback<any>> = [];
   private trackPositionCallbacks: Array<EventCallback<any>> = [];
   private videoDataCallbacks: Array<EventCallback<any>> = [];
-  
+
   // Multi-driver event callbacks
   private driverUpdateCallbacks: Array<EventCallback<DriverUpdateEvent>> = [];
   private driverListCallbacks: Array<EventCallback<DriverListEvent>> = [];
@@ -254,26 +254,26 @@ class WebSocketService {
   private teamMessageCallbacks: Array<EventCallback<TeamMessageEvent>> = [];
   private requestComparisonCallbacks: Array<EventCallback<RequestComparisonEvent>> = [];
   private comparisonResultCallbacks: Array<EventCallback<ComparisonResultEvent>> = [];
-  
+
   // Custom event callbacks
   private customEventCallbacks: Record<string, Array<EventCallback<any>>> = {};
-  
+
   // Connection methods
   connect(url: string = 'http://localhost:3001', type: ConnectionType = ConnectionType.SOCKET_IO): void {
     this.url = url;
     this.connectionType = type;
     this.reconnectAttempts = 0;
-    
+
     if (type === ConnectionType.SOCKET_IO) {
       this.connectSocketIO(url);
     } else {
       this.connectNativeWebSocket(url);
     }
   }
-  
+
   private connectSocketIO(url: string): void {
     console.log(`Connecting to Socket.IO server at ${url}`);
-    
+
     try {
       this.socket = io(url, {
         reconnection: true,
@@ -281,57 +281,57 @@ class WebSocketService {
         reconnectionDelay: this.reconnectDelay,
         transports: ['websocket']
       });
-      
+
       this.socket.on('connect', () => {
         console.log('Socket.IO connected');
         this.isConnected = true;
         this.triggerCallbacks(this.connectCallbacks);
       });
-      
+
       this.socket.on('disconnect', () => {
         console.log('Socket.IO disconnected');
         this.isConnected = false;
         this.triggerCallbacks(this.disconnectCallbacks);
       });
-      
+
       this.socket.on('error', (error) => {
         console.error('Socket.IO error:', error);
       });
-      
+
       // Set up event handlers for all supported event types
       this.setupSocketIOEventHandlers();
     } catch (error) {
       console.error('Error connecting to Socket.IO server:', error);
     }
   }
-  
+
   private connectNativeWebSocket(url: string): void {
     console.log(`Connecting to native WebSocket server at ${url}`);
-    
+
     try {
       // Ensure the URL uses the WebSocket protocol
       const wsUrl = url.replace(/^http/, 'ws');
       this.nativeWs = new WebSocket(wsUrl);
-      
+
       this.nativeWs.onopen = () => {
         console.log('Native WebSocket connected');
         this.isConnected = true;
         this.triggerCallbacks(this.connectCallbacks);
       };
-      
+
       this.nativeWs.onclose = () => {
         console.log('Native WebSocket disconnected');
         this.isConnected = false;
         this.triggerCallbacks(this.disconnectCallbacks);
-        
+
         // Attempt to reconnect if needed
         this.attemptReconnect();
       };
-      
+
       this.nativeWs.onerror = (error) => {
         console.error('Native WebSocket error:', error);
       };
-      
+
       this.nativeWs.onmessage = (event) => {
         this.handleNativeWebSocketMessage(event);
       };
@@ -339,12 +339,12 @@ class WebSocketService {
       console.error('Error connecting to native WebSocket server:', error);
     }
   }
-  
+
   private setupSocketIOEventHandlers(): void {
     if (!this.socket) return;
-    
+
     // Set up handlers for all event types
-    this.socket.on('telemetry', (data) => this.handleSocketIOMessage('telemetry', data));
+    this.socket.on('telemetry_update', (data) => this.handleSocketIOMessage('telemetry', data));
     this.socket.on('session_info', (data) => this.handleSocketIOMessage('session_info', data));
     this.socket.on('coaching', (data) => this.handleSocketIOMessage('coaching', data));
     this.socket.on('skill_analysis', (data) => this.handleSocketIOMessage('skill_analysis', data));
@@ -353,7 +353,7 @@ class WebSocketService {
     this.socket.on('validation_summary', (data) => this.handleSocketIOMessage('validation_summary', data));
     this.socket.on('track_position', (data) => this.handleSocketIOMessage('track_position', data));
     this.socket.on('video_data', (data) => this.handleSocketIOMessage('video_data', data));
-    
+
     // Multi-driver events
     this.socket.on('driver_update', (data) => this.handleSocketIOMessage('driver_update', data));
     this.socket.on('driver_list', (data) => this.handleSocketIOMessage('driver_list', data));
@@ -364,7 +364,7 @@ class WebSocketService {
     this.socket.on('request_comparison', (data) => this.handleSocketIOMessage('request_comparison', data));
     this.socket.on('comparison_result', (data) => this.handleSocketIOMessage('comparison_result', data));
   }
-  
+
   private handleSocketIOMessage(eventType: string, data: any): void {
     try {
       // For certain message types (video_data, telemetry, config), bypass strict validation
@@ -373,10 +373,10 @@ class WebSocketService {
         this.triggerEvent(eventType as keyof EventMap, data);
         return;
       }
-      
+
       // For other messages, validate the data structure
       const validationResult = websocketMessageValidator.validateIncomingMessage(eventType, data);
-      
+
       if (validationResult[0]) { // success is first element in tuple
         this.triggerEvent(eventType as keyof EventMap, data);
       } else {
@@ -388,26 +388,26 @@ class WebSocketService {
       console.error('Message data:', data);
     }
   }
-  
+
   private handleNativeWebSocketMessage(event: MessageEvent): void {
     try {
       const message = JSON.parse(event.data);
       const { type, data } = message;
-      
+
       if (!type) {
         console.warn('Received WebSocket message without type:', message);
         return;
       }
-      
+
       // For certain message types (video_data, telemetry, config), bypass strict validation
       if (['video_data', 'telemetry', 'config'].includes(type)) {
         this.triggerEvent(type as keyof EventMap, data);
         return;
       }
-      
+
       // For other messages, validate the data structure
       const validationResult = websocketMessageValidator.validateIncomingMessage(type, data);
-      
+
       if (validationResult[0]) { // success is first element in tuple
         this.triggerEvent(type as keyof EventMap, data);
       } else {
@@ -419,7 +419,7 @@ class WebSocketService {
       console.error('Raw message:', event.data);
     }
   }
-  
+
   // Helper method to trigger callbacks for an event type
   private triggerCallbacks<T>(callbacks: Array<EventCallback<T>>, data?: T): void {
     callbacks.forEach(callback => {
@@ -430,7 +430,7 @@ class WebSocketService {
       }
     });
   }
-  
+
   // Trigger an event based on its type
   private triggerEvent<K extends keyof EventMap>(eventType: K, data: EventMap[K]): void {
     switch (eventType) {
@@ -523,26 +523,26 @@ class WebSocketService {
         break;
     }
   }
-  
+
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.warn(`Maximum reconnection attempts (${this.maxReconnectAttempts}) reached. Giving up.`);
       return;
     }
-    
+
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1);
-    
+
     console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-    
+
     setTimeout(() => {
       if (this.isConnected) return;
-      
+
       console.log(`Reconnecting to ${this.url}...`);
       this.connect(this.url, this.connectionType);
     }, delay);
   }
-  
+
   disconnect(): void {
     if (this.connectionType === ConnectionType.SOCKET_IO && this.socket) {
       this.socket.disconnect();
@@ -551,28 +551,28 @@ class WebSocketService {
       this.nativeWs.close();
       this.nativeWs = null;
     }
-    
+
     this.isConnected = false;
   }
-  
+
   isConnectedToServer(): boolean {
     return this.isConnected;
   }
-  
+
   getConnectionType(): ConnectionType {
     return this.connectionType;
   }
-  
+
   getUrl(): string {
     return this.url;
   }
-  
+
   // Generic event registration with proper typing
   on<K extends keyof EventMap>(event: K, callback: EventCallback<EventMap[K]>): { unsubscribe: () => void } {
     // For high-frequency events that need throttling
     // const needsThrottling = event === 'telemetry' || event === 'competitor_data';
     // Throttling is handled in specific event handlers
-    
+
     switch (event) {
       case 'connect':
         this.connectCallbacks.push(callback as EventCallback<void>);
@@ -590,12 +590,12 @@ class WebSocketService {
         };
       case 'telemetry':
         this.telemetryCallbacks.push(callback as EventCallback<TelemetryData>);
-        
+
         // Create and store throttled version of the callback
         if (!this.throttledCallbacks['telemetry']) {
           this.throttledCallbacks['telemetry'] = {};
         }
-        
+
         // Use callback's toString as a unique key - ensure it's consistent with test expectations
         const telemetryCallbackKey = callback.toString();
         const telemetryThrottledCallback = throttle(
@@ -603,16 +603,16 @@ class WebSocketService {
           this.telemetryThrottleMs
         );
         this.throttledCallbacks['telemetry'][telemetryCallbackKey] = telemetryThrottledCallback;
-        
+
         return {
           unsubscribe: () => {
             this.telemetryCallbacks = this.telemetryCallbacks.filter(cb => cb !== callback as EventCallback<TelemetryData>);
-            
+
             // Clean up throttled callback
             if (this.throttledCallbacks['telemetry']) {
               // Delete all throttled callbacks for this event type
               delete this.throttledCallbacks['telemetry'][telemetryCallbackKey];
-              
+
               // If this was the last throttled callback, clean up the object
               if (Object.keys(this.throttledCallbacks['telemetry']).length === 0) {
                 delete this.throttledCallbacks['telemetry'];
@@ -643,12 +643,12 @@ class WebSocketService {
         };
       case 'competitor_data':
         this.competitorDataCallbacks.push(callback as EventCallback<CompetitorData[]>);
-        
+
         // Create and store throttled version of the callback
         if (!this.throttledCallbacks['competitor_data']) {
           this.throttledCallbacks['competitor_data'] = {};
         }
-        
+
         // Use callback's toString as a unique key - ensure it's consistent with test expectations
         const competitorDataCallbackKey = callback.toString();
         const competitorDataThrottledCallback = throttle(
@@ -656,16 +656,16 @@ class WebSocketService {
           this.telemetryThrottleMs
         );
         this.throttledCallbacks['competitor_data'][competitorDataCallbackKey] = competitorDataThrottledCallback;
-        
+
         return {
           unsubscribe: () => {
             this.competitorDataCallbacks = this.competitorDataCallbacks.filter(cb => cb !== callback as EventCallback<CompetitorData[]>);
-            
+
             // Clean up throttled callback
             if (this.throttledCallbacks['competitor_data']) {
               // Delete all throttled callbacks for this event type
               delete this.throttledCallbacks['competitor_data'][competitorDataCallbackKey];
-              
+
               // If this was the last throttled callback, clean up the object
               if (Object.keys(this.throttledCallbacks['competitor_data']).length === 0) {
                 delete this.throttledCallbacks['competitor_data'];
@@ -772,87 +772,87 @@ class WebSocketService {
         };
     }
   }
-  
+
   // Convenience methods for common event types
   onConnect(callback: EventCallback<void>): { unsubscribe: () => void } {
     return this.on('connect', callback);
   }
-  
+
   onDisconnect(callback: EventCallback<void>): { unsubscribe: () => void } {
     return this.on('disconnect', callback);
   }
-  
+
   onTelemetry(callback: EventCallback<TelemetryData>): { unsubscribe: () => void } {
     return this.on('telemetry', callback);
   }
-  
+
   onSessionInfo(callback: EventCallback<SessionInfo>): { unsubscribe: () => void } {
     return this.on('session_info', callback);
   }
-  
+
   onCoaching(callback: EventCallback<CoachingInsight[]>): { unsubscribe: () => void } {
     return this.on('coaching', callback);
   }
-  
+
   onSkillAnalysis(callback: EventCallback<DriverSkillAnalysis>): { unsubscribe: () => void } {
     return this.on('skill_analysis', callback);
   }
-  
+
   onCompetitorData(callback: EventCallback<CompetitorData[]>): { unsubscribe: () => void } {
     return this.on('competitor_data', callback);
   }
-  
+
   onStrategyData(callback: EventCallback<StrategyData>): { unsubscribe: () => void } {
     return this.on('strategy_data', callback);
   }
-  
+
   onValidationSummary(callback: EventCallback<any>): { unsubscribe: () => void } {
     return this.on('validation_summary', callback);
   }
-  
+
   onTrackPosition(callback: EventCallback<any>): { unsubscribe: () => void } {
     return this.on('track_position', callback);
   }
-  
+
   onVideoData(callback: EventCallback<any>): { unsubscribe: () => void } {
     return this.on('video_data', callback);
   }
-  
+
   // Multi-driver event handlers
   onDriverUpdate(callback: EventCallback<DriverUpdateEvent>): { unsubscribe: () => void } {
     return this.on('driver_update', callback);
   }
-  
+
   onDriverList(callback: EventCallback<DriverListEvent>): { unsubscribe: () => void } {
     return this.on('driver_list', callback);
   }
-  
+
   onHandoffRequest(callback: EventCallback<HandoffRequestEvent>): { unsubscribe: () => void } {
     return this.on('handoff_request', callback);
   }
-  
+
   onHandoffResponse(callback: EventCallback<HandoffResponseEvent>): { unsubscribe: () => void } {
     return this.on('handoff_response', callback);
   }
-  
+
   onSwitchDriver(callback: EventCallback<SwitchDriverEvent>): { unsubscribe: () => void } {
     return this.on('switch_driver', callback);
   }
-  
+
   onTeamMessage(callback: EventCallback<TeamMessageEvent>): { unsubscribe: () => void } {
     return this.on('team_message', callback);
   }
-  
+
   onRequestComparison(callback: EventCallback<RequestComparisonEvent>): { unsubscribe: () => void } {
     return this.on('request_comparison', callback);
   }
-  
+
   onComparisonResult(callback: EventCallback<ComparisonResultEvent>): { unsubscribe: () => void } {
     return this.on('comparison_result', callback);
   }
-  
+
   // Message sending methods
-  
+
   /**
    * Send a message to the connected WebSocket server
    * @param eventType The type of event to send
@@ -864,7 +864,7 @@ class WebSocketService {
       console.warn('Cannot send message: Not connected to server');
       return false;
     }
-    
+
     try {
       // Validate outgoing message if it's not a special type
       if (!['video_data', 'telemetry', 'config'].includes(eventType as string)) {
@@ -875,7 +875,7 @@ class WebSocketService {
           return false;
         }
       }
-      
+
       if (this.connectionType === ConnectionType.SOCKET_IO && this.socket) {
         this.socket.emit(eventType as string, data);
         return true;
@@ -888,10 +888,10 @@ class WebSocketService {
       console.error(`Error sending ${eventType} message:`, error);
       console.error('Message data:', data);
     }
-    
+
     return false;
   }
-  
+
   /**
    * Request driver list from the server
    * @returns True if the request was sent successfully, false otherwise
@@ -907,7 +907,7 @@ class WebSocketService {
   requestValidation(component: string): boolean {
     return this.sendMessage('request_validation', { component });
   }
-  
+
   /**
    * Request driver comparison data from the server
    * @param driverAId ID of the first driver to compare
@@ -918,7 +918,7 @@ class WebSocketService {
     const comparisonId = uuidv4();
     return this.sendMessage('request_comparison', { driverAId, driverBId, comparisonId } as RequestComparisonEvent);
   }
-  
+
   /**
    * Send a team message to all connected clients
    * @param content Message content
@@ -938,17 +938,17 @@ class WebSocketService {
       read: false,
       timestamp: Date.now()
     };
-    
+
     // Normalize the timestamp to ensure both formats are populated
     const normalizedMessage = TeamMessageUtils.normalizeTimestamp(teamMessage);
-    
+
     const message = {
       message: normalizedMessage
     } as TeamMessageEvent;
-    
+
     return this.sendMessage('team_message', message);
   }
-  
+
   /**
    * Request a driver handoff
    * @param fromDriverId ID of the current driver
@@ -967,10 +967,10 @@ class WebSocketService {
         status: 'pending'
       }
     } as HandoffRequestEvent;
-    
+
     return this.sendMessage('handoff_request', handoffRequest);
   }
-  
+
   /**
    * Respond to a handoff request
    * @param handoffId ID of the handoff request
@@ -982,10 +982,10 @@ class WebSocketService {
       handoffId,
       status
     } as HandoffResponseEvent;
-    
+
     return this.sendMessage('handoff_response', handoffResponse);
   }
-  
+
   /**
    * Request to switch the active driver
    * @param driverId ID of the driver to switch to
@@ -993,6 +993,17 @@ class WebSocketService {
    */
   switchDriver(driverId: string): boolean {
     return this.sendMessage('switch_driver', { driverId } as SwitchDriverEvent);
+  }
+
+  /**
+   * Join a specific session room
+   * @param sessionId ID of the session to join
+   * @returns True if the message was sent successfully
+   */
+  joinSession(sessionId: string): boolean {
+    // The server expects just the string ID for 'join_session' event
+    // We cast to any because EventMap doesn't strictly define join_session payload
+    return this.sendMessage('join_session', sessionId as any);
   }
 
   /**
