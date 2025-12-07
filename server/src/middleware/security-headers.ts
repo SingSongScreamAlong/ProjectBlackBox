@@ -6,7 +6,7 @@
 
 import helmet from 'helmet';
 import { Request, Response, NextFunction } from 'express';
-import { isProduction } from '../config/environment';
+import { isProduction } from '../config/environment.js';
 
 /**
  * Get Helmet configuration based on environment

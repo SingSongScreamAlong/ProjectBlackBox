@@ -5,6 +5,18 @@
  * This ensures type safety and provides sensible defaults for development.
  */
 
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env from project root first, then server-specific
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootEnv = path.resolve(__dirname, '../../../.env');
+const serverEnv = path.resolve(__dirname, '../../.env');
+
+dotenv.config({ path: rootEnv });
+dotenv.config({ path: serverEnv, override: true });
+
 export interface EnvironmentConfig {
   // Server Configuration
   NODE_ENV: 'development' | 'production' | 'test';

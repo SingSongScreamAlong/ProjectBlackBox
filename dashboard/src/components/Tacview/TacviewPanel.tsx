@@ -38,17 +38,17 @@ const TacviewPanel: React.FC = () => {
       if (savedLive != null) setLive(savedLive === '1');
       const savedSession = localStorage.getItem('tacview.selectedSessionId');
       if (savedSession) setSelectedSessionId(savedSession);
-    } catch {}
+    } catch { }
   }, []);
 
   // Persist changes
   React.useEffect(() => {
-    try { localStorage.setItem('tacview.live', live ? '1' : '0'); } catch {}
+    try { localStorage.setItem('tacview.live', live ? '1' : '0'); } catch { }
   }, [live]);
   React.useEffect(() => {
     try {
       if (selectedSessionId) localStorage.setItem('tacview.selectedSessionId', selectedSessionId);
-    } catch {}
+    } catch { }
   }, [selectedSessionId]);
 
   const handleExport = () => {
@@ -79,7 +79,7 @@ const TacviewPanel: React.FC = () => {
       if (!samplesByDriver) return;
       const rows: string[] = [];
       const header = [
-        'driverId','tsMs','x','y','z','speed','throttle','brake','gear','rpm','lap','sector'
+        'driverId', 'tsMs', 'x', 'y', 'z', 'speed', 'throttle', 'brake', 'gear', 'rpm', 'lap', 'sector'
       ];
       rows.push(header.join(','));
       for (const [driverId, list] of Object.entries(samplesByDriver)) {
@@ -138,7 +138,7 @@ const TacviewPanel: React.FC = () => {
       // clean up if turning off live
       try {
         socketRef.current?.disconnect();
-      } catch {}
+      } catch { }
       socketRef.current = null;
       setConnecting(false);
       setRetryCount(0);
@@ -228,7 +228,7 @@ const TacviewPanel: React.FC = () => {
         sock.off('connect_error');
         sock.emit('leave_session', selectedSessionId);
         sock.disconnect();
-      } catch {}
+      } catch { }
       socketRef.current = null;
       setConnecting(false);
     };
@@ -402,7 +402,12 @@ const TacviewPanel: React.FC = () => {
         gear: 4,
         throttle: 0.9,
         brake: 0,
+        clutch: 0,
         steering: 0.1,
+        fuel: {
+          level: 45,
+          usagePerHour: 2.5
+        },
         tires: {
           frontLeft: { temp: 85, wear: 0.1, pressure: 27 },
           frontRight: { temp: 86, wear: 0.12, pressure: 27 },
@@ -415,12 +420,31 @@ const TacviewPanel: React.FC = () => {
         lapTime: 75.3,
         sectorTime: 25.1,
         bestLapTime: 74.8,
+        deltaToBestLap: 0.5,
         bestSectorTimes: [24.9, 25.0, 24.9],
         gForce: { lateral: 1.1, longitudinal: 0.8, vertical: 0.2 },
         trackPosition: 0.45,
         racePosition: 5,
         gapAhead: 0.3,
         gapBehind: 0.5,
+        flags: 0,
+        drsStatus: 0,
+        carSettings: {
+          brakeBias: 54.5,
+          abs: 5,
+          tractionControl: 5,
+          tractionControl2: 5,
+          fuelMixture: 1
+        },
+        energy: {
+          batteryPct: 0.95,
+          deployPct: 0.1,
+          deployMode: 1
+        },
+        weather: {
+          windSpeed: 2.5,
+          windDirection: 0.5
+        },
         timestamp: now,
       });
     } catch (e: any) {
@@ -459,7 +483,7 @@ const TacviewPanel: React.FC = () => {
           className={`tacview-live-badge ${connecting ? 'state-connecting' : (!live ? 'state-off' : (nextRetryInMs > 0 ? 'state-retrying' : 'state-connected'))}`}
           title={connecting ? 'Connecting to live telemetry' : (!live ? 'Live is off' : (nextRetryInMs > 0 ? 'Reconnecting soon' : 'Live connected'))}
         >
-          {connecting ? 'Connecting' : (!live ? 'Live Off' : (nextRetryInMs > 0 ? `Retrying in ${Math.ceil(nextRetryInMs/1000)}s` : 'Live'))}
+          {connecting ? 'Connecting' : (!live ? 'Live Off' : (nextRetryInMs > 0 ? `Retrying in ${Math.ceil(nextRetryInMs / 1000)}s` : 'Live'))}
         </span>
         <button className="tacview-btn secondary" disabled={busy} onClick={() => setLive(v => !v)}>
           {connecting ? 'Live: Connecting…' : (live ? 'Live: On' : 'Live: Off')}
@@ -480,54 +504,54 @@ const TacviewPanel: React.FC = () => {
           <div className="tacview-banner warning" role="status" aria-live="polite">
             Live connection lost. Retrying in {Math.ceil(nextRetryInMs / 1000)}s (attempt {retryCount}).
             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-              <button className="tacview-btn secondary" onClick={() => { cancelRetry(); setConnecting(true); try { socketRef.current?.connect(); } catch {} }}>Retry Now</button>
+              <button className="tacview-btn secondary" onClick={() => { cancelRetry(); setConnecting(true); try { socketRef.current?.connect(); } catch { } }}>Retry Now</button>
               <button className="tacview-btn secondary" onClick={() => { cancelRetry(); setLive(false); }}>Cancel</button>
             </div>
           </div>
         )}
         {showPicker && sessions && (
-        <div className="tacview-modal" role="dialog" aria-modal="true" aria-label="Pick a Session" onKeyDown={(e) => {
-          if (!sessions?.length) return;
-          if (e.key === 'ArrowDown') { e.preventDefault(); setPickerFocusIdx((i) => Math.min(i + 1, sessions.length - 1)); }
-          if (e.key === 'ArrowUp') { e.preventDefault(); setPickerFocusIdx((i) => Math.max(i - 1, 0)); }
-          if (e.key === 'Enter') { e.preventDefault(); const s = sessions[pickerFocusIdx]; if (s) { setSelectedSessionId(s.id); setShowPicker(false); } }
-          if (e.key === 'Escape') { e.preventDefault(); setShowPicker(false); }
-          if (e.key === 'Tab' && modalContentRef.current) {
-            // simple focus trap inside modal
-            const focusables = modalContentRef.current.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-            if (focusables.length) {
-              const first = focusables[0];
-              const last = focusables[focusables.length - 1];
-              const active = document.activeElement as HTMLElement | null;
-              if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
-              if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+          <div className="tacview-modal" role="dialog" aria-modal="true" aria-label="Pick a Session" onKeyDown={(e) => {
+            if (!sessions?.length) return;
+            if (e.key === 'ArrowDown') { e.preventDefault(); setPickerFocusIdx((i) => Math.min(i + 1, sessions.length - 1)); }
+            if (e.key === 'ArrowUp') { e.preventDefault(); setPickerFocusIdx((i) => Math.max(i - 1, 0)); }
+            if (e.key === 'Enter') { e.preventDefault(); const s = sessions[pickerFocusIdx]; if (s) { setSelectedSessionId(s.id); setShowPicker(false); } }
+            if (e.key === 'Escape') { e.preventDefault(); setShowPicker(false); }
+            if (e.key === 'Tab' && modalContentRef.current) {
+              // simple focus trap inside modal
+              const focusables = modalContentRef.current.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+              if (focusables.length) {
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+                const active = document.activeElement as HTMLElement | null;
+                if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+                if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+              }
             }
-          }
-        }}>
-          <div ref={modalContentRef} className="tacview-modal-content" tabIndex={0}>
-            <h3>Pick a Session</h3>
-            <div className="tacview-session-list" role="listbox" aria-activedescendant={sessions[pickerFocusIdx]?.id}>
-              {sessions.map((s, idx) => (
-                <button
-                  id={s.id}
-                  key={s.id}
-                  role="option"
-                  aria-selected={pickerFocusIdx === idx}
-                  className={`tacview-session-item ${pickerFocusIdx === idx ? 'selected' : ''}`}
-                  onMouseEnter={() => setPickerFocusIdx(idx)}
-                  onClick={() => { setSelectedSessionId(s.id); setShowPicker(false); }}
-                >
-                  <div className="title">{s.name || s.id}</div>
-                  <div className="meta">{new Date(s.createdAt).toLocaleString()}</div>
-                </button>
-              ))}
-            </div>
-            <div className="tacview-modal-actions">
-              <button className="tacview-btn" onClick={() => setShowPicker(false)}>Close</button>
+          }}>
+            <div ref={modalContentRef} className="tacview-modal-content" tabIndex={0}>
+              <h3>Pick a Session</h3>
+              <div className="tacview-session-list" role="listbox" aria-activedescendant={sessions[pickerFocusIdx]?.id}>
+                {sessions.map((s, idx) => (
+                  <button
+                    id={s.id}
+                    key={s.id}
+                    role="option"
+                    aria-selected={pickerFocusIdx === idx}
+                    className={`tacview-session-item ${pickerFocusIdx === idx ? 'selected' : ''}`}
+                    onMouseEnter={() => setPickerFocusIdx(idx)}
+                    onClick={() => { setSelectedSessionId(s.id); setShowPicker(false); }}
+                  >
+                    <div className="title">{s.name || s.id}</div>
+                    <div className="meta">{new Date(s.createdAt).toLocaleString()}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="tacview-modal-actions">
+                <button className="tacview-btn" onClick={() => setShowPicker(false)}>Close</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
         {live && !connecting && nextRetryInMs > 0 && (
           <div className="tacview-banner warning" role="status" aria-live="polite">
             Live connection lost. Reconnecting in {Math.ceil(nextRetryInMs / 1000)}s (attempt {retryCount}).

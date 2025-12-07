@@ -5,7 +5,7 @@
  */
 
 import cors, { CorsOptions } from 'cors';
-import { config, isProduction } from '../config/environment';
+import { config, isProduction } from '../config/environment.js';
 
 /**
  * Get CORS configuration based on environment

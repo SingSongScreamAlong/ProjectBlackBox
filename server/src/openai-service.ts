@@ -14,17 +14,25 @@ export interface CoachingAnalysis {
 }
 
 export class OpenAIService {
-  private client: OpenAI;
+  private client: OpenAI | null = null;
+  private enabled: boolean = false;
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY environment variable is required');
+      console.warn('⚠️  OPENAI_API_KEY not configured - AI coaching disabled');
+      return;
     }
 
     this.client = new OpenAI({
       apiKey: apiKey,
     });
+    this.enabled = true;
+    console.log('✅ OpenAI service initialized');
+  }
+
+  isEnabled(): boolean {
+    return this.enabled;
   }
 
   async analyzeTelemetryData(
@@ -59,6 +67,10 @@ Please provide:
 - Key insights from the data patterns
 
 Be specific and focus on actionable insights.`;
+
+    if (!this.client) {
+      throw new Error('OpenAI service not configured');
+    }
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -169,6 +181,10 @@ Insights: ${a.analysis.keyInsights.join(', ')}`
 ${analysesSummary}
 
 Please structure the report professionally with clear sections and actionable insights.`;
+
+    if (!this.client) {
+      throw new Error('OpenAI service not configured');
+    }
 
     try {
       const completion = await this.client.chat.completions.create({

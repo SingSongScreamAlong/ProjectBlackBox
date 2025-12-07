@@ -68,13 +68,20 @@ interface Session {
 // DB-backed; in-memory stores removed
 
 const app = express();
+
+// EARLY BYPASS: Simple ping endpoint before any middleware to verify server responsiveness
+app.get('/ping', (req, res) => {
+  res.json({ status: 'ok', timestamp: Date.now() });
+});
 const server = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: config.CORS_ORIGINS,
-    credentials: true
+    origin: ["http://localhost:3001", "http://127.0.0.1:3001", "http://localhost:3000", "http://127.0.0.1:3000"],
+    credentials: true,
   },
 });
+
+
 
 // WebSocket server for voice communication
 const wss = new WebSocketServer({ noServer: true });
@@ -298,4 +305,11 @@ server.listen(config.PORT, () => {
   console.log(`  Readiness: ${config.SERVER_URL}/health/ready`);
   console.log(`  Metrics:   ${config.SERVER_URL}/health/metrics`);
   console.log('='.repeat(60));
+
+  // Diagnostic: Check if event loop is alive
+  let heartbeat = 0;
+  setInterval(() => {
+    heartbeat++;
+    console.log(`[HEARTBEAT] Event loop alive, tick ${heartbeat}`);
+  }, 5000);
 });

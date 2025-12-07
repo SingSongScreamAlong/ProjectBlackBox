@@ -158,7 +158,7 @@ const LandingPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                    Advanced telemetry analysis and AI-powered coaching for the modern sim racer.
+                    Advanced telemetry analysis and real-time coaching for the modern sim racer.
                     Uncover tenths of a second you didn't know you had.
                 </Subtitle>
 

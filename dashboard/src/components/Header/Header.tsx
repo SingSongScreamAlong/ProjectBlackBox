@@ -12,13 +12,18 @@ interface HeaderSessionInfo {
   weather: string;
 }
 
-// Define available Dashboard Modes
-export type DashboardMode = 'OVERVIEW' | 'FOCUS' | 'ENGINEER' | 'STRATEGY';
+// Define available Dashboard Modes - 4 distinct modes with unique functionality
+export type DashboardMode = 'RACE' | 'TRACK' | 'STRATEGY' | 'ANALYSIS';
 
 interface HeaderProps {
   connected: boolean;
   sessionInfo: HeaderSessionInfo;
   onMultiDriverClick?: () => void;
+  onExportClick?: () => void;
+  onSettingsClick?: () => void;
+  onHistoryClick?: () => void;
+  onShortcutsClick?: () => void;
+  onChatClick?: () => void;
   currentMode: DashboardMode;
   onModeChange: (mode: DashboardMode) => void;
 }
@@ -27,34 +32,70 @@ const Header: React.FC<HeaderProps> = ({
   connected,
   sessionInfo,
   onMultiDriverClick,
+  onExportClick,
+  onSettingsClick,
+  onHistoryClick,
+  onShortcutsClick,
+  onChatClick,
   currentMode,
   onModeChange
 }) => {
   return (
     <div className="dashboard-header">
       <div className="header-left">
-        <div className="header-logo">
-          BLACK<span>BOX</span> RACING
-        </div>
-
         <div className="connection-status">
           <div className={`status-indicator ${connected ? 'connected' : ''}`}></div>
           {connected ? 'LIVE' : 'OFFLINE'}
         </div>
+
+        {/* Mode Switcher - 4 Distinct Modes */}
+        <div className="mode-switcher">
+          {([
+            { id: 'RACE', label: '🏎️ RACE', desc: 'Live telemetry' },
+            { id: 'TRACK', label: '🗺️ TRACK', desc: 'Track & positions' },
+            { id: 'STRATEGY', label: '📊 STRATEGY', desc: 'Pit planner' },
+            { id: 'ANALYSIS', label: '📈 ANALYSIS', desc: 'Session review' }
+          ] as { id: DashboardMode; label: string; desc: string }[]).map((mode) => (
+            <button
+              key={mode.id}
+              className={`mode-button ${currentMode === mode.id ? 'active' : ''}`}
+              onClick={() => onModeChange(mode.id)}
+              title={mode.desc}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="header-center">
-        {/* Mode Switcher */}
-        <div className="mode-switcher">
-          {(['OVERVIEW', 'FOCUS', 'ENGINEER', 'STRATEGY'] as DashboardMode[]).map((mode) => (
-            <button
-              key={mode}
-              className={`mode-button ${currentMode === mode ? 'active' : ''}`}
-              onClick={() => onModeChange(mode)}
-            >
-              {mode}
+        <div className="header-logo">
+          <span className="logo-tagline">OK, Box Box</span>
+          <span className="logo-main">Project: <span>BlackBox</span></span>
+        </div>
+        
+        {/* Quick Action Buttons */}
+        <div className="header-quick-actions">
+          {onChatClick && (
+            <button className="quick-action-btn" onClick={onChatClick} title="Team Chat (C)">
+              💬
             </button>
-          ))}
+          )}
+          {onHistoryClick && (
+            <button className="quick-action-btn" onClick={onHistoryClick} title="Session History">
+              📂
+            </button>
+          )}
+          {onSettingsClick && (
+            <button className="quick-action-btn" onClick={onSettingsClick} title="Settings (S)">
+              ⚙️
+            </button>
+          )}
+          {onShortcutsClick && (
+            <button className="quick-action-btn" onClick={onShortcutsClick} title="Keyboard Shortcuts">
+              ⌨️
+            </button>
+          )}
         </div>
       </div>
 
@@ -67,6 +108,12 @@ const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
         </div>
+
+        {onExportClick && (
+          <button className="export-button" onClick={onExportClick} title="Export Session Data">
+            <span className="icon">📥</span>
+          </button>
+        )}
 
         {onMultiDriverClick && (
           <button className="multi-driver-button" onClick={onMultiDriverClick}>

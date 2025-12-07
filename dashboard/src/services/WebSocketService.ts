@@ -14,7 +14,12 @@ export interface TelemetryData {
   gear: number;
   throttle: number;
   brake: number;
+  clutch: number;
   steering: number;
+  fuel: {
+    level: number;
+    usagePerHour: number;
+  };
   tires: {
     frontLeft: { temp: number; wear: number; pressure: number };
     frontRight: { temp: number; wear: number; pressure: number };
@@ -27,12 +32,32 @@ export interface TelemetryData {
   lapTime: number;
   sectorTime: number;
   bestLapTime: number;
+  deltaToBestLap: number;
   bestSectorTimes: number[];
   gForce: { lateral: number; longitudinal: number; vertical: number };
   trackPosition: number;
   racePosition: number;
   gapAhead: number;
   gapBehind: number;
+  // Advanced Telemetry (Phase 2)
+  flags: number; // Session flags bitmask
+  drsStatus: number; // DRS status
+  carSettings: {
+    brakeBias: number;
+    abs: number;
+    tractionControl: number;
+    tractionControl2: number;
+    fuelMixture: number;
+  };
+  energy: {
+    batteryPct: number;
+    deployPct: number;
+    deployMode: number;
+  };
+  weather: {
+    windSpeed: number;
+    windDirection: number;
+  };
   timestamp: number;
 }
 
@@ -259,7 +284,7 @@ class WebSocketService {
   private customEventCallbacks: Record<string, Array<EventCallback<any>>> = {};
 
   // Connection methods
-  connect(url: string = 'http://localhost:3001', type: ConnectionType = ConnectionType.SOCKET_IO): void {
+  connect(url: string = 'http://localhost:3000', type: ConnectionType = ConnectionType.SOCKET_IO): void {
     this.url = url;
     this.connectionType = type;
     this.reconnectAttempts = 0;
@@ -279,7 +304,7 @@ class WebSocketService {
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: this.reconnectDelay,
-        transports: ['websocket']
+        transports: ['polling', 'websocket']
       });
 
       this.socket.on('connect', () => {

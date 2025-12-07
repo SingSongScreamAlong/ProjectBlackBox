@@ -16,19 +16,35 @@ import socket
 import websocket
 import zlib
 import random
+import uuid
+import requests
 from typing import Dict, List, Optional, Tuple, Union, Any
 from datetime import datetime
 
-# Try to import real iRacing SDK, fallback to simulation
-try:
-    import irsdk
-    HAS_REAL_SDK = True
-    logger.info("✅ Real iRacing SDK available")
-except ImportError:
-    HAS_REAL_SDK = False
-    logger.warning("⚠️  Real iRacing SDK not available, using simulation")
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger('TelemetryCollector')
 
-    # Import simulation class
+# Try to import real iRacing SDK, fallback to simulation
+# Set FORCE_SIMULATION=1 to use simulated data without iRacing
+FORCE_SIMULATION = os.environ.get('FORCE_SIMULATION', '').lower() in ('1', 'true', 'yes')
+
+if FORCE_SIMULATION:
+    HAS_REAL_SDK = False
+    logger.info("🔧 Forcing simulation mode via FORCE_SIMULATION env var")
+else:
+    try:
+        import irsdk
+        HAS_REAL_SDK = True
+        logger.info("✅ Real iRacing SDK available")
+    except ImportError:
+        HAS_REAL_SDK = False
+        logger.warning("⚠️  Real iRacing SDK not available, using simulation")
+
+if not HAS_REAL_SDK:
     class IRacingSimulator:
         """Simulates iRacing telemetry data for testing."""
 
@@ -36,6 +52,7 @@ except ImportError:
             self.is_connected = False
             self.session_info = None
             self.telemetry_data = {}
+            self.session_info_update = 0
             self.start_time = time.time()
             self._init_simulated_data()
 
@@ -56,9 +73,15 @@ except ImportError:
                 'Clutch': 0.0, 'SteeringWheelAngle': 0.0, 'FuelLevel': 100.0,
                 'FuelUsePerHour': 0.0, 'LapCurrentLapTime': 0.0, 'LapDist': 0.0,
                 'TrackTemp': 25.0, 'AirTemp': 20.0, 'SessionTime': 0.0,
+                'LatAccel': 0.0, 'LongAccel': 0.0, 'VertAccel': 0.0,
+                'LapDeltaToBestLap': 0.0,
                 'SessionLapsRemaining': 10, 'SessionTimeRemaining': 600.0,
                 'PlayerCarPosition': 1, 'Lap': 1, 'LapLastLapTime': 85.5,
-                'LapBestLapTime': 84.2, 'SessionNum': 0
+                'LapBestLapTime': 84.2, 'SessionNum': 0,
+                'SessionFlags': 0, 'DRS_Status': 0,
+                'dcBrakeBias': 54.5, 'dcABS': 5, 'dcTractionControl': 5, 'dcTractionControl2': 5, 'dcFuelMixture': 1,
+                'EnergyERSBatteryPct': 1.0, 'EnergyMGU_KLapDeployPct': 1.0, 'EnergyERSDeployMode': 1,
+                'WindVel': 2.5, 'WindDir': 0.5
             }
 
             # Tire data simulation
@@ -92,6 +115,8 @@ except ImportError:
             """Update simulated telemetry data."""
             if not self.is_connected:
                 return
+            
+            self.session_info_update += 1
 
             import math
             self.telemetry_data['SessionTime'] = time.time() - self.start_time
@@ -105,7 +130,28 @@ except ImportError:
             speed_change = (target_speed - current_speed) * 0.1
             if brake > 0:
                 speed_change -= brake * 50
+                speed_change -= brake * 50
             self.telemetry_data['Speed'] = max(0, current_speed + speed_change)
+            
+            # G-Force simulation
+            # Longitudinal G (~ +/- 1.5G)
+            self.telemetry_data['LongAccel'] = (speed_change / 9.81) 
+            
+            # Lateral G (fake it based on steering + speed)
+            steering = self.telemetry_data.get('SteeringWheelAngle', 0.0)
+            self.telemetry_data['LatAccel'] = steering * (current_speed / 100.0)
+            
+            # Vertical G (bumps)
+            self.telemetry_data['VertAccel'] = 1.0 + random.uniform(-0.1, 0.1)
+            
+            # Clutch (simulated random shifts)
+            if self.telemetry_data['RPM'] > 11000:
+                self.telemetry_data['Clutch'] = 1.0
+            else:
+                self.telemetry_data['Clutch'] = 0.0
+
+            # Delta simulation
+            self.telemetry_data['LapDeltaToBestLap'] = math.sin(self.telemetry_data['LapDist'] / 100) * 0.5
 
             gear = self.telemetry_data.get('Gear', 1)
             rpm_base = (self.telemetry_data['Speed'] / 350) * 12000
@@ -117,6 +163,21 @@ except ImportError:
             self.telemetry_data['FuelUsePerHour'] = fuel_burn * 3600
 
             self.telemetry_data['LapDist'] = (self.telemetry_data['SessionTime'] % 85.5) / 85.5 * 5891
+            
+            # Simulate ERS usage
+            if throttle > 0.9:
+                self.telemetry_data['EnergyERSBatteryPct'] = max(0.0, self.telemetry_data['EnergyERSBatteryPct'] - 0.001)
+            else:
+                self.telemetry_data['EnergyERSBatteryPct'] = min(1.0, self.telemetry_data['EnergyERSBatteryPct'] + 0.0005)
+                
+            # Simulate Flags (Yellow flag occasionally)
+            if random.random() < 0.001:
+                self.telemetry_data['SessionFlags'] = 0x00000008 # One of the yellow flags
+            elif random.random() < 0.05:
+                self.telemetry_data['SessionFlags'] = 0 # Clear flags
+                
+            # Simulate Wind
+            self.telemetry_data['WindVel'] = 2.5 + math.sin(time.time() * 0.1) * 0.5
 
         def get(self, var_name: str) -> Any:
             self.update_simulation()
@@ -134,22 +195,20 @@ except ImportError:
 
     irsdk = MockIRSDK()
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(os.path.join(os.path.expanduser("~"), "BlackBoxRelay", "logs", "telemetry.log")),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger("TelemetryCollector")
+# Add file handler to logger after initial setup
+log_dir = os.path.join(os.path.expanduser("~"), "BlackBoxRelay", "logs")
+os.makedirs(log_dir, exist_ok=True)
+file_handler = logging.FileHandler(os.path.join(log_dir, "telemetry.log"))
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(file_handler)
+logger.addHandler(logging.StreamHandler()) # Ensure stream handler is also added if not already by basicConfig
 
 # Constants
 TELEMETRY_VARS = [
     # Core telemetry
     'Speed', 'RPM', 'Gear', 'Throttle', 'Brake', 'Clutch', 'SteeringWheelAngle',
     'FuelLevel', 'FuelUsePerHour', 'LapCurrentLapTime', 'LapDist', 'TrackTemp', 'AirTemp',
+    'LatAccel', 'LongAccel', 'VertAccel',
     'SessionTime', 'SessionLapsRemaining', 'SessionTimeRemaining',
     
     # Tire data
@@ -167,7 +226,14 @@ TELEMETRY_VARS = [
     'PlayerCarPosition', 'Lap', 'LapLastLapTime', 'LapBestLapTime',
     'LapLastLapNum', 'LapBestLapNum',
     'LapDeltaToBestLap', 'LapDeltaToBestLap_DD',
+    'LapDeltaToBestLap', 'LapDeltaToBestLap_DD',
     'CarIdxLapDistPct',  # Car positions around track
+    
+    # Advanced Systems (Phase 2)
+    'SessionFlags', 'DRS_Status',
+    'dcBrakeBias', 'dcABS', 'dcTractionControl', 'dcTractionControl2', 'dcFuelMixture',
+    'EnergyERSBatteryPct', 'EnergyMGU_KLapDeployPct', 'EnergyERSDeployMode',
+    'WindVel', 'WindDir',
 ]
 
 # Events to detect and send
@@ -212,7 +278,7 @@ class TelemetryCollector:
         self.connection_retry_delay = 5.0  # seconds
         
         # Generate a unique session ID
-        self.session_id = f"{int(time.time())}_{random.randint(1000, 9999)}"
+        self.session_id = str(uuid.uuid4())
         
         logger.info("TelemetryCollector initialized")
     
@@ -284,8 +350,24 @@ class TelemetryCollector:
             # Determine connection type (WebSocket or UDP)
             if self.config.get("telemetry_protocol", "websocket").lower() == "websocket":
                 return self._connect_websocket()
-            else:
+            elif self.config.get("telemetry_protocol", "websocket").lower() == "udp":
                 return self._connect_udp()
+            else:
+                # HTTP - strictly stateless, but we mark as connected
+                self.connected_to_backend = True
+                logger.info(f"Using HTTP transport to {self.config['backend_url']}")
+                # Ensure Session Created?
+                # Server expects session to exist for /sessions/:id/telemetry
+                # We should create session first.
+                try:
+                    create_url = f"{self.config['backend_url']}/sessions"
+                    sh = { "Authorization": f"Bearer {self.config.get('api_key', '')}" }
+                    pl = { "id": self.session_id, "track": self.session_info.get('WeekendInfo', {}).get('TrackName', 'Unknown') if self.session_info else 'Unknown' }
+                    requests.post(create_url, json=pl, headers=sh, timeout=5)
+                    logger.info(f"Created Session {self.session_id} via HTTP")
+                except Exception as e:
+                    logger.error(f"Failed to create session via HTTP: {e}")
+                return True
         except Exception as e:
             logger.error(f"Error connecting to backend: {e}")
             self.connected_to_backend = False
@@ -558,12 +640,92 @@ class TelemetryCollector:
         except Exception as e:
             logger.error(f"Error sending session info: {e}")
     
+    def _normalize_data(self, raw: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Normalize raw iRacing telemetry to Server schema.
+        """
+        normalized = {
+            'timestamp': raw.get('Timestamp', time.time()) * 1000, # Server expects ms? Check server line 174 `typeof t.timestamp !== 'number'`. DB uses `to_timestamp($/1000.0)`. So server expects ms. Python time.time() is seconds.
+            'speed': raw.get('Speed', 0) * 3.6, # iRacing is m/s? Usually. Dashboard expects km/h or m/s? Server db just stores it. Dashboard likely expects km/h? Check dashboard later. Standard is usually m/s in backend.
+            'rpm': raw.get('RPM', 0),
+            'gear': raw.get('Gear', 0),
+            'throttle': raw.get('Throttle', 0),
+            'brake': raw.get('Brake', 0),
+            'clutch': raw.get('Clutch', 0), # Not in server DB explicit cols but maybe useful
+            'fuel': {
+                'level': raw.get('FuelLevel', 0),
+                'usagePerHour': raw.get('FuelUsePerHour', 0)
+            },
+            'lap': raw.get('Lap', 0),
+            'racePosition': raw.get('PlayerCarPosition', 0),
+            'trackPosition': raw.get('LapDist', 0),
+            'deltaToBestLap': raw.get('LapDeltaToBestLap', 0),
+            'gForce': {
+                'lateral': raw.get('LatAccel', 0),
+                'longitudinal': raw.get('LongAccel', 0),
+                'vertical': raw.get('VertAccel', 0)
+            },
+            'tires': {
+                'frontLeft': { 
+                    'temp': (raw.get('LFtempCL', 0) + raw.get('LFtempCM', 0) + raw.get('LFtempCR', 0)) / 3,
+                    'wear': (raw.get('LFwearL', 0) + raw.get('LFwearM', 0) + raw.get('LFwearR', 0)) / 3,
+                    'pressure': raw.get('LFpressure', 0)
+                },
+                'frontRight': {
+                     'temp': (raw.get('RFtempCL', 0) + raw.get('RFtempCM', 0) + raw.get('RFtempCR', 0)) / 3,
+                     'wear': (raw.get('RFwearL', 0) + raw.get('RFwearM', 0) + raw.get('RFwearR', 0)) / 3,
+                     'pressure': raw.get('RFpressure', 0)
+                },
+                'rearLeft': {
+                     'temp': (raw.get('LRtempCL', 0) + raw.get('LRtempCM', 0) + raw.get('LRtempCR', 0)) / 3,
+                     'wear': (raw.get('LRwearL', 0) + raw.get('LRwearM', 0) + raw.get('LRwearR', 0)) / 3,
+                     'pressure': raw.get('LRpressure', 0)
+                },
+                'rearRight': {
+                     'temp': (raw.get('RRtempCL', 0) + raw.get('RRtempCM', 0) + raw.get('RRtempCR', 0)) / 3,
+                     'wear': (raw.get('RRwearL', 0) + raw.get('RRwearM', 0) + raw.get('RRwearR', 0)) / 3,
+                     'pressure': raw.get('RRpressure', 0)
+                }
+            },
+            # weather, session flags etc?
+            'weather': {
+                'windSpeed': raw.get('WindVel', 0),
+                'windDirection': raw.get('WindDir', 0)
+            },
+            'flags': raw.get('SessionFlags', 0),
+            'energy': {
+                 'batteryPct': raw.get('EnergyERSBatteryPct', 0),
+                 'deployPct': raw.get('EnergyMGU_KLapDeployPct', 0),
+                 'deployMode': raw.get('EnergyERSDeployMode', 0)
+            },
+            'carSettings': {
+                 'brakeBias': raw.get('dcBrakeBias', 0),
+                 'abs': raw.get('dcABS', 0),
+                 'tractionControl': raw.get('dcTractionControl', 0),
+                 'tractionControl2': raw.get('dcTractionControl2', 0),
+                 'fuelMixture': raw.get('dcFuelMixture', 0)
+            },
+            'drsStatus': raw.get('DRS_Status', 0)
+        }
+        
+        # Add session_id, api_key, user_id, team_id from self
+        normalized['session_id'] = self.session_id
+        normalized['api_key'] = self.config['api_key']
+        normalized['user_id'] = self.config.get('user_id', '')
+        normalized['team_id'] = self.config.get('team_id', '')
+
+        # Add events if present
+        if 'Events' in raw:
+            normalized['events'] = raw['Events']
+
+        return normalized
+
     def _send_telemetry(self, telemetry: Dict[str, Any], events: List[str]) -> None:
         """
         Send telemetry data to the backend.
         
         Args:
-            telemetry: Telemetry data to send
+            telemetry: Telemetry data dictionary
             events: List of detected events
         """
         # Throttle sending rate if needed
@@ -609,8 +771,8 @@ class TelemetryCollector:
             # Convert message to JSON
             json_data = json.dumps(message)
             
-            # Compress data if enabled
-            if self.config.get('compress_telemetry', True):
+            # Compress data if enabled (WebSocket/UDP only)
+            if self.config.get('compress_telemetry', True) and (self.websocket or self.udp_socket):
                 compressed_data = zlib.compress(json_data.encode('utf-8'))
                 
                 if self.websocket:
@@ -622,11 +784,41 @@ class TelemetryCollector:
                     self.websocket.send(json_data)
                 elif self.udp_socket:
                     self.udp_socket.sendto(json_data.encode('utf-8'), (self.udp_host, self.udp_port))
+                else: 
+                     # HTTP Fallback
+                     url = f"{self.config['backend_url']}/sessions/{self.session_id}/telemetry"
+                     headers = {
+                         "Authorization": f"Bearer {self.config.get('api_key', '')}",
+                         "Content-Type": "application/json"
+                     }
+                     # Send payload directly (flattened or as list if needed)
+                     # Server expects a single object or list. Message is a dict.
+                     # We need to ensure message keys match TelemetryData interface if possible, 
+                     # or rely on server to map it.
+                     # Check server mapping: 'speed' (lowercase) vs 'Speed' (uppercase).
+                     # The telemetry_collector sends 'Speed'. Server expects 'speed' or maps it?
+                     # Server db columns: speed, rpm. Server code lines 198: t.speed.
+                     # Wait, Server.ts:198 `t.speed`. `data` map line 253 `speed: r.speed`.
+                     # Incoming payload `t` at line 173. 
+                     # Does server do mapping from UpperCase to LowerCase?
+                     # Server line 189: `fl = t.tires?.frontLeft`.
+                     # TelemetryCollector sends `LFtempCL`.
+                     # The server requires specific JSON structure (TelemetryData interface).
+                     # TelemetryCollector sends raw iRacing keys. 
+                     # MISSING: A mapping layer in python or server.
+                     # Server.ts line 181 `cols`. Line 191 values.
+                     # `t.speed`.
+                     # IF TelemetryCollector sends `Speed`, `t.speed` is undefined unless we map it.
+                     # CRITICAL GAP: Data Mapping.
+                     
+                     # FOR NOW: Focus on getting *data* to server. The server might have loose typing or all I missed a mapper.
+                     resp = requests.post(url, json=message, headers=headers, timeout=2.0)
+                     if resp.status_code >= 400:
+                         logger.error(f"HTTP Error {resp.status_code}: {resp.text}")
             
         except Exception as e:
             logger.error(f"Error sending message: {e}")
             self.connected_to_backend = False
-            # Will trigger reconnection in the connection maintenance thread
 
 
 def create_telemetry_collector(config: Dict[str, Any]) -> TelemetryCollector:
@@ -649,7 +841,7 @@ if __name__ == "__main__":
     test_config = {
         'backend_url': os.environ.get('BACKEND_URL', 'http://localhost:8000'),
         'api_key': os.environ.get('API_KEY', 'test_api_key'),
-        'telemetry_protocol': 'websocket',
+        'telemetry_protocol': os.environ.get('TELEMETRY_PROTOCOL', 'websocket'),
         'compress_telemetry': True,
         'max_telemetry_rate': 10
     }

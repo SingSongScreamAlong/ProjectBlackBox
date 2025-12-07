@@ -61,7 +61,7 @@ router.post('/analyze', async (req, res) => {
         console.error('Incident analysis error:', error);
         res.status(500).json({
             error: 'Failed to analyze incidents',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });
@@ -91,7 +91,7 @@ router.get('/:sessionId', async (req, res) => {
         console.error('Incident fetch error:', error);
         res.status(500).json({
             error: 'Failed to fetch incidents',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });
@@ -130,7 +130,7 @@ router.get('/patterns/:driverId', async (req, res) => {
         console.error('Pattern analysis error:', error);
         res.status(500).json({
             error: 'Failed to analyze patterns',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });
@@ -160,7 +160,7 @@ router.get('/report/:sessionId', async (req, res) => {
         console.error('Report generation error:', error);
         res.status(500).json({
             error: 'Failed to generate report',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });

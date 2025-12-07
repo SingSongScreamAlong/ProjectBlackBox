@@ -3,12 +3,24 @@ import { Pool } from 'pg';
 
 const connectionString = process.env.PG_CONNECTION_STRING || process.env.DATABASE_URL || 'postgres://localhost:5432/blackbox_telemetry';
 
+// Debug: Log connection string (mask password)
+console.log('[DB] Connection string:', connectionString.replace(/:[^:@]+@/, ':***@'));
+
 export const pool = new Pool({
   connectionString,
   // Fail fast if DB is unreachable instead of hanging
   connectionTimeoutMillis: Number(process.env.PG_CONN_TIMEOUT_MS ?? 5000),
   idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS ?? 30000),
   max: Number(process.env.PG_POOL_MAX ?? 10),
+});
+
+// Handle pool errors to prevent silent hangs
+pool.on('error', (err) => {
+  console.error('[DB] Pool error:', err.message);
+});
+
+pool.on('connect', () => {
+  console.log('[DB] New client connected to pool');
 });
 
 export async function ping(): Promise<boolean> {

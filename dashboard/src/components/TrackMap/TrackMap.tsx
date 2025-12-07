@@ -70,9 +70,18 @@ const TrackMap: React.FC<TrackMapProps> = ({ telemetryData, trackName = 'Silvers
     }
   }, [telemetryData, trackDef]);
 
-  // Car Position Calculation
-  const carX = telemetryData?.position?.x || 500;
-  const carY = telemetryData?.position?.y || 400;
+  // Car Position Calculation - Use trackPosition (0-1) to interpolate along the track path
+  // For now, use a simple circular interpolation as fallback
+  const trackProgress = telemetryData?.trackPosition || 0;
+  const viewBoxParts = trackDef.viewBox.split(' ').map(Number);
+  const centerX = viewBoxParts[2] / 2;
+  const centerY = viewBoxParts[3] / 2;
+  const radius = Math.min(centerX, centerY) * 0.6;
+  
+  // Calculate position along track (simplified circular path)
+  const angle = trackProgress * Math.PI * 2 - Math.PI / 2;
+  const carX = telemetryData ? centerX + Math.cos(angle) * radius : centerX;
+  const carY = telemetryData ? centerY + Math.sin(angle) * radius : centerY;
 
   return (
     <div className="panel track-map-panel">

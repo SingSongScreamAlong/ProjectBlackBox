@@ -1,4 +1,4 @@
-import { ElevenLabsClient } from 'elevenlabs';
+import { ElevenLabsClient } from 'elevenlabs/wrapper';
 import { Readable } from 'stream';
 
 export interface VoiceMessage {
@@ -21,37 +21,55 @@ export interface TranscriptionResult {
   duration: number;
 }
 
-// Helper function to convert stream to buffer
-async function streamToBuffer(stream: Readable): Promise<Buffer> {
+// Helper function to convert stream/async iterable to buffer
+async function streamToBuffer(stream: Readable | AsyncIterable<Uint8Array>): Promise<Buffer> {
   const chunks: Buffer[] = [];
+  
+  if (Symbol.asyncIterator in stream) {
+    // Handle async iterable
+    for await (const chunk of stream as AsyncIterable<Uint8Array>) {
+      chunks.push(Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
+  }
+  
+  // Handle readable stream
   return new Promise((resolve, reject) => {
-    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-    stream.on('error', reject);
-    stream.on('end', () => resolve(Buffer.concat(chunks)));
+    (stream as Readable).on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    (stream as Readable).on('error', reject);
+    (stream as Readable).on('end', () => resolve(Buffer.concat(chunks)));
   });
 }
 
 export class ElevenLabsService {
-  private client: ElevenLabsClient;
-  private defaultVoiceId: string;
-  private defaultModel: string;
+  private client: ElevenLabsClient | null = null;
+  private defaultVoiceId: string = '21m00Tcm4TlvDq8ikWAM'; // Rachel voice
+  private defaultModel: string = 'eleven_monolingual_v1';
+  private enabled: boolean = false;
 
   constructor() {
     const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) {
-      throw new Error('ELEVENLABS_API_KEY environment variable is required');
+      console.warn('⚠️  ELEVENLABS_API_KEY not configured - voice synthesis disabled');
+      return;
     }
 
     this.client = new ElevenLabsClient({
       apiKey: apiKey,
     });
+    this.enabled = true;
+    console.log('✅ ElevenLabs service initialized');
+  }
 
-    // Default voice and model - can be made configurable
-    this.defaultVoiceId = '21m00Tcm4TlvDq8ikWAM'; // Rachel voice
-    this.defaultModel = 'eleven_monolingual_v1';
+  isEnabled(): boolean {
+    return this.enabled;
   }
 
   async generateSpeech(message: VoiceMessage): Promise<AudioResponse> {
+    if (!this.client) {
+      throw new Error('ElevenLabs service not configured');
+    }
+
     try {
       const voiceId = message.voiceId || this.defaultVoiceId;
       const model = message.model || this.defaultModel;
@@ -155,6 +173,10 @@ export class ElevenLabsService {
   }
 
   async getAvailableVoices(): Promise<any[]> {
+    if (!this.client) {
+      return [];
+    }
+
     try {
       const voices = await this.client.voices.getAll();
       return voices.voices || [];
@@ -193,6 +215,10 @@ export class ElevenLabsService {
       default:
         // Medium urgency - use default settings
         break;
+    }
+
+    if (!this.client) {
+      throw new Error('ElevenLabs service not configured');
     }
 
     try {

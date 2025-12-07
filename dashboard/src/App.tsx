@@ -42,11 +42,16 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       <nav className="app-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <ul>
           <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/validator">Validator</Link></li>
-          <li><Link to="/relay-agent">Relay</Link></li>
-          <li><Link to="/track-map">Track Map</Link></li>
-          <li><Link to="/training">Training</Link></li>
-          <li><Link to="/voice-engineer">Voice Engineer</Link></li>
+          {/* Dev-only navigation items */}
+          {process.env.NODE_ENV === 'development' && (
+            <>
+              <li><Link to="/validator">Validator</Link></li>
+              <li><Link to="/relay-agent">Relay</Link></li>
+              <li><Link to="/track-map">Track Map</Link></li>
+              <li><Link to="/training">Training</Link></li>
+              <li><Link to="/voice-engineer">Voice Engineer</Link></li>
+            </>
+          )}
         </ul>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingRight: '2rem' }}>
           <span style={{ color: '#888', fontSize: '0.9rem' }}>{user?.name}</span>

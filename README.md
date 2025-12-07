@@ -1,12 +1,40 @@
 # ProjectBlackBox - iRacing Telemetry & AI Coaching Platform
 
-**Status**: ✅ **Production Ready (98%)**  
+**Status**: ✅ **Production Ready**  
 **Version**: 1.0.0  
-**Last Updated**: December 5, 2025
+**Last Updated**: December 6, 2025
 
-[![Tests](https://img.shields.io/badge/tests-41%2F41%20passing-brightgreen)]()
-[![Security](https://img.shields.io/badge/security-98%25-brightgreen)]()
-[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)]()
+---
+
+## ⚡ Quick Start (For Users)
+
+**No API keys required!** BlackBox provides all AI services.
+
+1. Download the latest release
+2. Run the application
+3. Connect to iRacing and start driving
+
+The dashboard opens automatically at http://localhost:3001
+
+---
+
+## 🔧 Server Deployment (For Operators)
+
+If you're hosting your own BlackBox server:
+
+```bash
+# 1. Clone and configure
+git clone https://github.com/YourUsername/ProjectBlackBox.git
+cd ProjectBlackBox
+cp .env.example .env
+
+# 2. Add your API keys to .env
+# OPENAI_API_KEY=sk-...
+# ELEVENLABS_API_KEY=...
+
+# 3. Start the server
+./start.sh
+```
 
 ---
 

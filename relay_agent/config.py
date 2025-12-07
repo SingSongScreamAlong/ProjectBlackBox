@@ -6,11 +6,18 @@ Provides type-safe configuration with sensible defaults for development.
 """
 
 import os
+from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from root .env file first, then local
+root_env = Path(__file__).parent.parent / '.env'
+local_env = Path(__file__).parent / '.env'
+
+if root_env.exists():
+    load_dotenv(root_env)
+if local_env.exists():
+    load_dotenv(local_env, override=True)  # Local overrides root
 
 
 class Config:

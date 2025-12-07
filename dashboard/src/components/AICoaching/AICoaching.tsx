@@ -75,7 +75,7 @@ const AICoaching: React.FC<AICoachingProps> = ({ insights, skillAnalysis }) => {
 
   return (
     <div className="panel ai-panel">
-      <div className="panel-header">AI COACH - ACTIONABLE INSIGHTS</div>
+      <div className="panel-header">COACH - ACTIONABLE INSIGHTS</div>
       <div className="panel-content">
         <div className="ai-suggestions">
           {displayInsights.map((insight, index) => (

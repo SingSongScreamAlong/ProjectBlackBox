@@ -65,7 +65,7 @@ router.post('/corner-by-corner', async (req, res) => {
         console.error('Corner analysis error:', error);
         res.status(500).json({
             error: 'Failed to analyze corner performance',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });
@@ -95,7 +95,7 @@ router.get('/corner/:sessionId/:lapNumber', async (req, res) => {
         console.error('Corner fetch error:', error);
         res.status(500).json({
             error: 'Failed to fetch corner analysis',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });
@@ -130,7 +130,7 @@ router.get('/priority-corners/:sessionId', async (req, res) => {
         console.error('Priority corners error:', error);
         res.status(500).json({
             error: 'Failed to get priority corners',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });

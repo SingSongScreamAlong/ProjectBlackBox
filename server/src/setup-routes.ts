@@ -56,7 +56,7 @@ router.post('/track-change', async (req, res) => {
         console.error('Setup tracking error:', error);
         res.status(500).json({
             error: 'Failed to track setup change',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });
@@ -116,7 +116,7 @@ router.post('/analyze-change', async (req, res) => {
         console.error('Setup analysis error:', error);
         res.status(500).json({
             error: 'Failed to analyze setup change',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });
@@ -166,7 +166,7 @@ router.post('/recommend', async (req, res) => {
         console.error('Setup recommendation error:', error);
         res.status(500).json({
             error: 'Failed to generate recommendations',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });
@@ -204,7 +204,7 @@ router.get('/history/:sessionId', async (req, res) => {
         console.error('Setup history error:', error);
         res.status(500).json({
             error: 'Failed to fetch setup history',
-            details: error.message
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });
