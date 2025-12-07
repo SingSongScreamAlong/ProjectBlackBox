@@ -58,3 +58,6 @@ Desktop.ini
 .vscode/
 *.swp
 *.swo
+
+# Load test results (too large for git)
+tests/load/results/
