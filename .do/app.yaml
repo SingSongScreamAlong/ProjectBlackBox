@@ -28,6 +28,10 @@ services:
       http_path: /health
       initial_delay_seconds: 30
       period_seconds: 30
+    routes:
+      - path: /api
+      - path: /health
+      - path: /socket.io
     envs:
       - key: DATABASE_URL
         scope: RUN_TIME
@@ -58,6 +62,8 @@ services:
     http_port: 80
     instance_count: 1
     instance_size_slug: basic-xxs
+    routes:
+      - path: /
     envs:
       - key: REACT_APP_API_URL
         scope: BUILD_TIME
