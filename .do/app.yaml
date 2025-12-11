@@ -20,11 +20,10 @@ services:
       repo: SingSongScreamAlong/ProjectBlackBox
       branch: main
       deploy_on_push: true
-    dockerfile_path: Dockerfile
-    docker_target: server
+    dockerfile_path: Dockerfile.server
     http_port: 3000
     instance_count: 1
-    instance_size_slug: basic-xxs  # $5/mo - upgrade as needed
+    instance_size_slug: basic-xxs
     health_check:
       http_path: /health
       initial_delay_seconds: 30
@@ -41,7 +40,7 @@ services:
         type: SECRET
       - key: CORS_ORIGINS
         scope: RUN_TIME
-        value: ${APP_URL},${dashboard.PUBLIC_URL}
+        value: "*"
       - key: OPENAI_API_KEY
         scope: RUN_TIME
         type: SECRET
@@ -55,23 +54,22 @@ services:
       repo: SingSongScreamAlong/ProjectBlackBox
       branch: main
       deploy_on_push: true
-    dockerfile_path: Dockerfile
-    docker_target: dashboard
+    dockerfile_path: Dockerfile.dashboard
     http_port: 80
     instance_count: 1
     instance_size_slug: basic-xxs
     envs:
       - key: REACT_APP_API_URL
         scope: BUILD_TIME
-        value: ${api.PUBLIC_URL}
+        value: "${api.PUBLIC_URL}"
       - key: REACT_APP_WS_URL
         scope: BUILD_TIME
-        value: ${api.PUBLIC_URL}
+        value: "${api.PUBLIC_URL}"
 
 # Managed Database
 databases:
   - name: blackbox-db
     engine: PG
     version: "15"
-    size: db-s-dev-database  # $7/mo - smallest
+    size: db-s-dev-database
     num_nodes: 1
