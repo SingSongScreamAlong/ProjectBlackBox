@@ -1,31 +1,6 @@
-# iRacing SDK
-pyirsdk>=1.0.0
-
-# WebSocket communication
+# BlackBox Relay Agent Dependencies
+pyirsdk>=1.4.0
+python-socketio[client]>=5.10.0
 websocket-client>=1.6.0
-websockets>=11.0.0
-
-# HTTP requests
-requests>=2.28.0
-
-# Data processing
-numpy>=1.21.0
-
-# Video encoding and image processing
-opencv-python>=4.7.0
-Pillow>=9.5.0
-
-# System monitoring
-psutil>=5.9.0
-
-# Configuration and logging
+pyyaml>=6.0
 python-dotenv>=1.0.0
-
-# Additional utilities
-PyYAML>=6.0
-
-# Voice I/O
-PyAudio>=0.2.13
-
-# AI and speech processing
-openai>=1.10.0

@@ -1,144 +1,72 @@
 """
-Centralized Configuration for Relay Agent
-
-All environment variables should be accessed through this module.
-Provides type-safe configuration with sensible defaults for development.
+BlackBox Relay Agent - Configuration
+(Based on ControlBox Relay)
 """
-
 import os
 from pathlib import Path
-from typing import Optional
 from dotenv import load_dotenv
 
-# Load environment variables from root .env file first, then local
+# Load environment variables from root .env
 root_env = Path(__file__).parent.parent / '.env'
 local_env = Path(__file__).parent / '.env'
 
 if root_env.exists():
     load_dotenv(root_env)
 if local_env.exists():
-    load_dotenv(local_env, override=True)  # Local overrides root
+    load_dotenv(local_env, override=True)
 
+# BlackBox Server Connection (local or cloud)
+CLOUD_URL = os.getenv('BLACKBOX_SERVER_URL', os.getenv('CONTROLBOX_CLOUD_URL', 'http://localhost:3000'))
 
-class Config:
-    """Centralized configuration class"""
-    
-    def __init__(self):
-        self._validate_production()
-    
-    # Server Configuration
-    @property
-    def NODE_ENV(self) -> str:
-        return os.getenv('NODE_ENV', 'development')
-    
-    @property
-    def is_production(self) -> bool:
-        return self.NODE_ENV == 'production'
-    
-    @property
-    def is_development(self) -> bool:
-        return self.NODE_ENV == 'development'
-    
-    # Backend Services
-    @property
-    def BACKEND_URL(self) -> str:
-        return os.getenv('BACKEND_URL', 'http://localhost:3000')
-    
-    @property
-    def SERVER_URL(self) -> str:
-        return os.getenv('SERVER_URL', 'http://localhost:3000')
-    
-    @property
-    def RELAY_AGENT_PORT(self) -> int:
-        return int(os.getenv('RELAY_AGENT_PORT', '8765'))
-    
-    @property
-    def RELAY_AGENT_HOST(self) -> str:
-        return os.getenv('RELAY_AGENT_HOST', '0.0.0.0')
-    
-    # API Keys
-    @property
-    def API_KEY(self) -> Optional[str]:
-        return os.getenv('API_KEY')
-    
-    @property
-    def SERVICE_TOKEN(self) -> Optional[str]:
-        return os.getenv('SERVICE_TOKEN')
-    
-    @property
-    def OPENAI_API_KEY(self) -> Optional[str]:
-        return os.getenv('OPENAI_API_KEY')
-    
-    @property
-    def ELEVENLABS_API_KEY(self) -> Optional[str]:
-        return os.getenv('ELEVENLABS_API_KEY')
-    
-    # Video Configuration
-    @property
-    def VIDEO_BITRATE(self) -> int:
-        return int(os.getenv('VIDEO_BITRATE', '2500'))  # kbps
-    
-    @property
-    def VIDEO_FPS(self) -> int:
-        return int(os.getenv('VIDEO_FPS', '30'))
-    
-    @property
-    def VIDEO_RESOLUTION(self) -> tuple:
-        width = int(os.getenv('VIDEO_WIDTH', '1280'))
-        height = int(os.getenv('VIDEO_HEIGHT', '720'))
-        return (width, height)
-    
-    # Telemetry Configuration
-    @property
-    def TELEMETRY_BATCH_SIZE(self) -> int:
-        return int(os.getenv('TELEMETRY_BATCH_SIZE', '10'))
-    
-    @property
-    def TELEMETRY_SEND_INTERVAL(self) -> float:
-        return float(os.getenv('TELEMETRY_SEND_INTERVAL', '1.0'))  # seconds
-    
-    # Feature Flags
-    @property
-    def ENABLE_VIDEO_STREAMING(self) -> bool:
-        return os.getenv('ENABLE_VIDEO_STREAMING', 'true').lower() != 'false'
-    
-    @property
-    def ENABLE_TELEMETRY_RELAY(self) -> bool:
-        return os.getenv('ENABLE_TELEMETRY_RELAY', 'true').lower() != 'false'
-    
-    # Logging
-    @property
-    def LOG_LEVEL(self) -> str:
-        default = 'INFO' if self.is_production else 'DEBUG'
-        return os.getenv('LOG_LEVEL', default).upper()
-    
-    def _validate_production(self):
-        """Validate required environment variables in production"""
-        if not self.is_production:
-            return
-        
-        required = ['BACKEND_URL', 'API_KEY']
-        missing = [key for key in required if not os.getenv(key)]
-        
-        if missing:
-            raise ValueError(f"Missing required environment variables in production: {', '.join(missing)}")
+# Relay Identification
+RELAY_ID = os.getenv('RELAY_ID', 'blackbox-relay-1')
+RELAY_VERSION = '1.0.0'
 
+# Polling Configuration
+POLL_RATE_HZ = int(os.getenv('POLL_RATE_HZ', '10'))  # Telemetry updates per second
+POLL_INTERVAL = 1.0 / POLL_RATE_HZ
 
-# Export singleton instance
-config = Config()
+# Incident Detection Thresholds
+INCIDENT_THRESHOLD = int(os.getenv('INCIDENT_THRESHOLD', '1'))  # Min incident count change to report
+POSITION_JUMP_THRESHOLD = float(os.getenv('POSITION_JUMP_THRESHOLD', '0.05'))  # 5% track position jump
 
+# Logging
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+LOG_TELEMETRY = os.getenv('LOG_TELEMETRY', 'false').lower() == 'true'
 
-# Helper functions
-def get_backend_url() -> str:
-    """Get backend URL"""
-    return config.BACKEND_URL
+# Session Types
+SESSION_TYPES = {
+    'Practice': 'practice',
+    'Lone Qualify': 'qualifying',
+    'Open Qualify': 'qualifying',
+    'Qualify': 'qualifying',
+    'Race': 'race',
+    'Warmup': 'warmup',
+    'Time Trial': 'practice'
+}
 
-
-def get_api_key() -> Optional[str]:
-    """Get API key for backend authentication"""
-    return config.API_KEY
-
-
-def is_production() -> bool:
-    """Check if running in production"""
-    return config.is_production
+# Flag State Mapping (iRacing SessionFlags to ControlBox)
+FLAG_STATES = {
+    'green': 'green',
+    'checkered': 'checkered',
+    'white': 'white',
+    'yellow': 'yellow',
+    'yellowWaving': 'yellow',
+    'caution': 'caution',
+    'cautionWaving': 'caution',
+    'red': 'red',
+    'blue': 'green',  # Blue flag doesn't change race state
+    'debris': 'green',
+    'crossed': 'green',
+    'black': 'green',
+    'disqualify': 'green',
+    'repair': 'green',
+    'startHidden': 'green',
+    'startReady': 'green',
+    'startSet': 'green',
+    'startGo': 'green',
+    'oneLapToGreen': 'restart',
+    'greenHeld': 'green',
+    'randomWaving': 'localYellow',
+    'furled': 'green'
+}
