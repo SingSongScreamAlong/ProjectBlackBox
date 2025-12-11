@@ -20,8 +20,9 @@ services:
       repo: SingSongScreamAlong/ProjectBlackBox
       branch: main
       deploy_on_push: true
-    dockerfile_path: Dockerfile.server
-    http_port: 8080
+    source_dir: /server
+    dockerfile_path: Dockerfile
+    http_port: 4000
     instance_count: 1
     instance_size_slug: basic-xxs
     health_check:
@@ -58,7 +59,8 @@ services:
       repo: SingSongScreamAlong/ProjectBlackBox
       branch: main
       deploy_on_push: true
-    dockerfile_path: Dockerfile.dashboard
+    source_dir: /dashboard
+    dockerfile_path: Dockerfile
     http_port: 80
     instance_count: 1
     instance_size_slug: basic-xxs
