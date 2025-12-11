@@ -2,6 +2,7 @@
 # BlackBox Racing - Server Dockerfile
 # =====================================================================
 
+# Stage 1: Build
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -19,27 +20,29 @@ COPY server/src ./src
 # Build server
 RUN npm run build
 
-# Production stage
+# Stage 2: Production
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy built server
-COPY --from=builder /app/dist ./dist
+# Copy package files for production install
 COPY --from=builder /app/package*.json ./
 
+# Copy built server
+COPY --from=builder /app/dist ./dist
+
 # Install production dependencies only
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Set runtime environment
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=8080
 
-EXPOSE 3000
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Start server
 CMD ["node", "dist/server.js"]

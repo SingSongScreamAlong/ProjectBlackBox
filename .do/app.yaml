@@ -21,7 +21,7 @@ services:
       branch: main
       deploy_on_push: true
     dockerfile_path: Dockerfile.server
-    http_port: 3000
+    http_port: 8080
     instance_count: 1
     instance_size_slug: basic-xxs
     health_check:
