@@ -104,8 +104,8 @@ router.get('/badges', authenticateToken, async (req: any, res) => {
     try {
         const result = await pool.query(
             `SELECT b.*, db.earned_at 
-             FROM badges b 
-             JOIN driver_badges db ON b.id = db.badge_id 
+             FROM training_badges b 
+             JOIN training_driver_badges db ON b.id = db.badge_id 
              WHERE db.driver_id = $1`,
             [driverId]
         );

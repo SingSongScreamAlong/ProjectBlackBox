@@ -14,6 +14,9 @@ import trackCalibrationRoutes from './track-calibration-routes.js';
 import voiceRoutes, { setupVoiceWebSocket } from './voice-routes.js';
 import strategyRoutes from './strategy-routes.js';
 import trainingRoutes from './training-routes.js';
+import reportRoutes from './report-routes.js';
+import analysisRoutes from './analysis-routes.js';
+import GamificationService from './services/GamificationService.js';
 import { apiLimiter, telemetryLimiter, authLimiter } from './middleware/rate-limit.js';
 import { sanitizeInputs } from './middleware/sql-injection-guard.js';
 import { config, isProduction } from './config/environment.js';
@@ -133,6 +136,12 @@ app.use('/api/strategy', strategyRoutes);
 // Training system routes (authenticated) - Goals, badges, progress
 app.use('/api/training', trainingRoutes);
 
+// Session report routes (authenticated) - Post-session analysis
+app.use('/api/reports', reportRoutes);
+
+// Analysis routes (authenticated) - Corners, laps, comparison
+app.use('/api/analysis', analysisRoutes);
+
 // Health check endpoints (public) - /health, /health/ready, /health/metrics
 app.use(createHealthCheckRouter(pool));
 
@@ -151,6 +160,15 @@ io.on('connection', (socket) => {
 
   socket.on('leave_session', (sessionId: string) => {
     socket.leave(`session:${sessionId}`);
+  });
+
+  // Relay video frames
+  socket.on('video_frame', (data: { sessionId: string; image: string }) => {
+    // Broadcast to the specific session room, excluding sender if needed
+    // Bridge to 'video_data' event which Dashboard expects
+    if (data && data.sessionId && data.image) {
+      socket.to(`session:${data.sessionId}`).emit('video_data', data.image);
+    }
   });
 });
 
@@ -225,6 +243,12 @@ app.post('/sessions/:id/telemetry', telemetryLimiter, authenticateToken, async (
 
   // Broadcast latest items to session room
   io.to(`session:${id}`).emit('telemetry_update', list);
+
+  // Process Gamification (Async, don't block response)
+  GamificationService.processBatch(id, list).catch(err => {
+    console.error('[Gamification] Error processing batch:', err);
+  });
+
   return res.status(202).json({ appended: list.length });
 });
 

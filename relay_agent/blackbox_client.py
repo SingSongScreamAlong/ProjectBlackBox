@@ -12,7 +12,7 @@ import config
 logger = logging.getLogger(__name__)
 
 
-class ControlBoxClient:
+class BlackBoxClient:
     """
     Socket.IO client for communicating with BlackBox Server
     """
@@ -71,7 +71,7 @@ class ControlBoxClient:
     
     def connect(self) -> bool:
         """
-        Connect to ControlBox Cloud
+        Connect to BlackBox Cloud
         Returns True if connected successfully
         """
         if self.connected:
@@ -91,7 +91,7 @@ class ControlBoxClient:
             return False
     
     def disconnect(self):
-        """Disconnect from ControlBox Cloud"""
+        """Disconnect from BlackBox Cloud"""
         if self.sio.connected:
             self.sio.disconnect()
         self.connected = False
@@ -103,7 +103,7 @@ class ControlBoxClient:
     
     def emit(self, event: str, data: Dict[str, Any]):
         """
-        Emit an event to ControlBox Cloud
+        Emit an event to BlackBox Cloud
         """
         if not self.is_connected():
             logger.warning(f"Cannot emit {event}: not connected")
@@ -138,6 +138,21 @@ class ControlBoxClient:
         """Send driver join/leave update"""
         return self.emit('driver_update', update)
     
+    def send_video_frame(self, frame_data: str):
+        """
+        Send base64 encoded video frame
+        Optimize: fire and forget, don't wait for ack to keep latency low
+        """
+        # We use a specific event for video that the server expects
+        if self.connected and self.session_id:
+            payload = {
+                'sessionId': self.session_id,
+                'image': frame_data
+            }
+            self.sio.emit('video_frame', payload)
+            return True
+        return False
+
     def wait(self, seconds: float = 0.1):
         """
         Wait while processing events

@@ -1,17 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import TrainingService, { TrainingGoal, Badge } from '../../services/TrainingService';
 import './TrainingDashboard.css';
-
-interface Goal {
-  id: string;
-  title: string;
-  description: string;
-  category: 'speed' | 'consistency' | 'technique' | 'racecraft';
-  priority: 'high' | 'medium' | 'low';
-  progress: number;
-  target: number;
-  deadline: string;
-  xpReward: number;
-}
 
 interface Skill {
   name: string;
@@ -20,79 +9,42 @@ interface Skill {
   change: string;
 }
 
-interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  tier: 'gold' | 'silver' | 'bronze';
-  unlocked: boolean;
-}
+// Stats & Skills are still mocked for MVP
+const skills: Skill[] = [
+  { name: 'Braking', level: 78, trend: 'up', change: '+3%' },
+  { name: 'Corner Entry', level: 82, trend: 'up', change: '+5%' },
+  { name: 'Throttle Control', level: 85, trend: 'stable', change: '0%' },
+  { name: 'Tire Management', level: 65, trend: 'up', change: '+8%' },
+  { name: 'Fuel Efficiency', level: 71, trend: 'down', change: '-2%' },
+  { name: 'Racecraft', level: 74, trend: 'up', change: '+4%' },
+];
 
 const TrainingDashboard: React.FC = () => {
-  // Sample data
-  const goals: Goal[] = [
-    {
-      id: '1',
-      title: 'Lap Time Mastery',
-      description: 'Achieve a sub-1:28 lap time at Silverstone',
-      category: 'speed',
-      priority: 'high',
-      progress: 72,
-      target: 100,
-      deadline: '3 days',
-      xpReward: 500,
-    },
-    {
-      id: '2',
-      title: 'Consistency King',
-      description: 'Complete 10 laps within 0.5s of each other',
-      category: 'consistency',
-      priority: 'medium',
-      progress: 45,
-      target: 100,
-      deadline: '1 week',
-      xpReward: 350,
-    },
-    {
-      id: '3',
-      title: 'Trail Braking Pro',
-      description: 'Master trail braking through Copse corner',
-      category: 'technique',
-      priority: 'high',
-      progress: 88,
-      target: 100,
-      deadline: '2 days',
-      xpReward: 400,
-    },
-    {
-      id: '4',
-      title: 'Clean Racer',
-      description: 'Complete 5 races with zero incidents',
-      category: 'racecraft',
-      priority: 'low',
-      progress: 60,
-      target: 100,
-      deadline: '2 weeks',
-      xpReward: 600,
-    },
-  ];
+  const [goals, setGoals] = useState<TrainingGoal[]>([]);
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const skills: Skill[] = [
-    { name: 'Braking', level: 78, trend: 'up', change: '+3%' },
-    { name: 'Corner Entry', level: 82, trend: 'up', change: '+5%' },
-    { name: 'Throttle Control', level: 85, trend: 'stable', change: '0%' },
-    { name: 'Tire Management', level: 65, trend: 'up', change: '+8%' },
-    { name: 'Fuel Efficiency', level: 71, trend: 'down', change: '-2%' },
-    { name: 'Racecraft', level: 74, trend: 'up', change: '+4%' },
-  ];
+  // Stats (Mocked or calculated for now)
+  const currentLevel = 12;
+  const totalXp = 2450;
 
-  const achievements: Achievement[] = [
-    { id: '1', name: 'Speed Demon', description: 'Top speed over 320 km/h', icon: '🚀', tier: 'gold', unlocked: true },
-    { id: '2', name: 'Perfect Lap', description: 'All green sectors in one lap', icon: '💚', tier: 'gold', unlocked: true },
-    { id: '3', name: 'Endurance', description: 'Complete a 60-minute session', icon: '⏱️', tier: 'silver', unlocked: true },
-    { id: '4', name: 'Podium Finish', description: 'Finish in top 3', icon: '🏆', tier: 'bronze', unlocked: false },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [fetchedGoals, fetchedBadges] = await Promise.all([
+          TrainingService.getGoals(),
+          TrainingService.getBadges()
+        ]);
+        setGoals(fetchedGoals);
+        setBadges(fetchedBadges);
+      } catch (error) {
+        console.error("Failed to load training data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -150,8 +102,8 @@ const TrainingDashboard: React.FC = () => {
                       <span className="progress-value">{goal.progress}%</span>
                     </div>
                     <div className="progress-bar">
-                      <div 
-                        className={`progress-fill ${goal.category}`} 
+                      <div
+                        className={`progress-fill ${goal.category}`}
                         style={{ width: `${goal.progress}%` }}
                       ></div>
                     </div>
@@ -232,24 +184,25 @@ const TrainingDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Achievements */}
+          {/* Achievements (Badges) */}
           <div className="sidebar-section">
-            <h3>Recent Achievements</h3>
+            <h3>Recent Badges</h3>
             <div className="achievements-list">
-              {achievements.map((achievement) => (
-                <div 
-                  key={achievement.id} 
-                  className={`achievement-item ${!achievement.unlocked ? 'locked' : ''}`}
+              {badges.map((badge) => (
+                <div
+                  key={badge.id}
+                  className={`achievement-item ${!badge.unlocked ? 'locked' : ''}`}
                 >
-                  <div className={`achievement-icon ${achievement.tier}`}>
-                    {achievement.icon}
+                  <div className={`achievement-icon ${badge.tier}`}>
+                    {badge.icon}
                   </div>
                   <div className="achievement-info">
-                    <div className="achievement-name">{achievement.name}</div>
-                    <div className="achievement-desc">{achievement.description}</div>
+                    <div className="achievement-name">{badge.name}</div>
+                    <div className="achievement-desc">{badge.description}</div>
                   </div>
                 </div>
               ))}
+              {badges.length === 0 && <div style={{ color: '#666', fontSize: '12px' }}>No badges earned yet.</div>}
             </div>
           </div>
         </div>

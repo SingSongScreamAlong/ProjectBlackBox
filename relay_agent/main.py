@@ -20,7 +20,8 @@ from typing import Optional
 
 import config
 from iracing_reader import IRacingReader
-from controlbox_client import ControlBoxClient
+from blackbox_client import BlackBoxClient
+from video_encoder import VideoEncoder
 from data_mapper import (
     map_session_metadata,
     map_telemetry_snapshot,
@@ -44,53 +45,83 @@ logger = logging.getLogger(__name__)
 # Main Relay Agent
 # ========================
 
+import os
+from exporters.motec_exporter import MoTeCLDExporter
+
 class RelayAgent:
     """
-    Main relay agent that bridges iRacing and ControlBox Cloud
+    Main Relay Agent Class
+    Orchestrates reading from iRacing and sending to BlackBox Cloud
     """
     
     def __init__(self, cloud_url: str = None):
         self.ir_reader = IRacingReader()
-        self.cloud_client = ControlBoxClient(cloud_url)
+        self.cloud_client = BlackBoxClient(cloud_url)
+        self.video_encoder = VideoEncoder(self.cloud_client)
+        self.vr = VoiceRecognition(
+            ptt_type=config.PTT_TYPE,
+            ptt_key=config.PTT_KEY,
+            joystick_id=config.JOYSTICK_ID,
+            joystick_button=config.JOYSTICK_BUTTON
+        )
+        self.overlay = PTTOverlay()
+        
+        # MoTeC Exporter
+        self.motec_exporter = MoTeCLDExporter()
+        self._setup_motec_channels()
+        
         self.running = False
         self.session_id: Optional[str] = None
         self.last_flag_state: str = 'green'
-        self.discipline_category: str = 'road'
         
         # Stats
+        self.start_time = 0
         self.telemetry_count = 0
         self.incident_count = 0
-        self.start_time = 0
-    
+
+    def _setup_motec_channels(self):
+        """Configure MoTeC channels"""
+        self.motec_exporter.add_channel("Speed", "km/h")
+        self.motec_exporter.add_channel("RPM", "rpm")
+        self.motec_exporter.add_channel("Gear", "")
+        self.motec_exporter.add_channel("Throttle", "%")
+        self.motec_exporter.add_channel("Brake", "%")
+        self.motec_exporter.add_channel("Steering", "%") # Or degrees
+        self.motec_exporter.add_channel("Lap", "")
+        
     def start(self):
         """Start the relay agent"""
         self.running = True
         self.start_time = time.time()
         
+        # Video encoder starts later (after session is established)
+        # self.video_encoder.start()
+        
+        # Start Overlay
+        self.overlay.start()
+        
         print("╔════════════════════════════════════════════════════════════╗")
         print("║         BlackBox Relay Agent v1.0.0                        ║")
         print("║         iRacing → BlackBox AI Coaching Bridge              ║")
         print("╚════════════════════════════════════════════════════════════╝")
-        print()
+        print(f"Connecting to: {self.cloud_client.url}")
         
-        # Connect to cloud
-        if not self.cloud_client.connect():
-            logger.error("Failed to connect to BlackBox Server. Exiting.")
-            return
-        
-        # Main loop
-        try:
-            self._main_loop()
-        except KeyboardInterrupt:
-            logger.info("Shutdown requested...")
-        finally:
-            self.stop()
+        self.cloud_client.connect()
+        self._main_loop()
     
     def stop(self):
         """Stop the relay agent"""
         self.running = False
+        self.video_encoder.stop()
+        self.overlay.stop()
         self.ir_reader.disconnect()
         self.cloud_client.disconnect()
+        
+        # Export MoTeC Data
+        if self.session_id:
+            filename = f"blackbox_session_{self.session_id}_{int(time.time())}.ld"
+            self.motec_exporter.export(filename)
+            print(f"💾 Saved MoTeC telemetry to: {filename}")
         
         # Print stats
         elapsed = time.time() - self.start_time
@@ -99,6 +130,7 @@ class RelayAgent:
         print(f"Session Stats:")
         print(f"  Runtime: {elapsed:.1f}s")
         print(f"  Telemetry frames sent: {self.telemetry_count}")
+        print(f"  Video frames sent: {self.video_encoder.frames_sent}")
         print(f"  Incidents detected: {self.incident_count}")
         print("═" * 50)
     
@@ -109,6 +141,10 @@ class RelayAgent:
         session_sent = False
         
         while self.running:
+            # Check PTT for Overlay
+            if hasattr(self, 'vr') and hasattr(self, 'overlay'):
+                self.overlay.set_talking(self.vr.is_pressed())
+                
             # Try to connect to iRacing
             if not self.ir_reader.is_connected():
                 if self.ir_reader.connect():
@@ -158,6 +194,11 @@ class RelayAgent:
         logger.info(f"   Multi-class: {session.is_multiclass}")
         
         self.cloud_client.send_session_metadata(metadata)
+        
+        # NOW start video encoder (client has session ID)
+        if not self.video_encoder.running:
+            logger.info("🎥 Starting video encoder...")
+            self.video_encoder.start()
     
     def _check_flag_state(self):
         """Check for flag state changes and send race events"""
@@ -196,6 +237,20 @@ class RelayAgent:
         
         if not cars:
             return
+        
+        # Filter for player car to log to MoTeC
+        for car in cars:
+            if car.is_player:
+                self.motec_exporter.add_sample({
+                    "Speed": car.speed * 3.6, # m/s to km/h
+                    "RPM": car.rpm,
+                    "Gear": float(car.gear),
+                    "Throttle": car.throttle * 100,
+                    "Brake": car.brake * 100,
+                    "Steering": car.steering * 100, # Approx %
+                    "Lap": float(car.lap)
+                })
+                break
         
         telemetry = map_telemetry_snapshot(self.session_id, cars)
         self.cloud_client.send_telemetry(telemetry)

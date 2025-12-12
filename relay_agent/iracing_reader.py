@@ -50,7 +50,9 @@ class CarData:
     velocity_x: float = 0.0    # X velocity (m/s)
     velocity_y: float = 0.0    # Y velocity (m/s)
     velocity_z: float = 0.0    # Z velocity (m/s)
+    velocity_z: float = 0.0    # Z velocity (m/s)
     yaw: float = 0.0           # Heading angle (radians)
+    is_player: bool = False    # Is this the local player?
 
 
 @dataclass
@@ -246,7 +248,8 @@ class IRacingReader:
                     velocity_x=player_vel_x if is_player else 0,
                     velocity_y=player_vel_y if is_player else 0,
                     velocity_z=player_vel_z if is_player else 0,
-                    yaw=player_yaw if is_player else 0
+                    yaw=player_yaw if is_player else 0,
+                    is_player=is_player
                 )
                 cars.append(car_data)
             

@@ -16,11 +16,21 @@ if local_env.exists():
     load_dotenv(local_env, override=True)
 
 # BlackBox Server Connection (local or cloud)
-CLOUD_URL = os.getenv('BLACKBOX_SERVER_URL', os.getenv('CONTROLBOX_CLOUD_URL', 'http://localhost:3000'))
+CLOUD_URL = os.getenv('BLACKBOX_SERVER_URL', 'http://localhost:3000')
+AI_AGENT_URL = os.getenv('AI_AGENT_URL', 'http://localhost:3001')
 
 # Relay Identification
 RELAY_ID = os.getenv('RELAY_ID', 'blackbox-relay-1')
 RELAY_VERSION = '1.0.0'
+
+# Telemetry
+TELEMETRY_RATE_HZ = int(os.getenv('TELEMETRY_RATE_HZ', '10'))
+
+# PTT Defaults (used by main.py if not using settings_manager directly)
+PTT_TYPE = 'keyboard'
+PTT_KEY = 'space'
+JOYSTICK_ID = 0
+JOYSTICK_BUTTON = 0
 
 # Polling Configuration
 POLL_RATE_HZ = int(os.getenv('POLL_RATE_HZ', '10'))  # Telemetry updates per second
@@ -45,7 +55,7 @@ SESSION_TYPES = {
     'Time Trial': 'practice'
 }
 
-# Flag State Mapping (iRacing SessionFlags to ControlBox)
+# Flag State Mapping (iRacing SessionFlags to BlackBox)
 FLAG_STATES = {
     'green': 'green',
     'checkered': 'checkered',
