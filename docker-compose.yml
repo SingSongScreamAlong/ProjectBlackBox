@@ -1,7 +1,7 @@
 services:
   backend-engine:
     build:
-      context: ./deployment/digitalocean/backend-engine
+      context: ./local_backend
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
