@@ -118,45 +118,39 @@ router.post('/analyze', aiLimiter, authenticateToken, async (req, res) => {
       }))
     };
 
-    // Call AI Agent service
+    // Use OpenAI service directly
     try {
-      const aiResponse = await fetch(`${AI_AGENT_URL}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': AI_AGENT_API_KEY
-        },
-        body: JSON.stringify({
-          telemetry: telemetryData,
-          analysisType,
-          includeVoice
-        })
-      });
+      const { OpenAIService } = await import('./openai-service.js');
+      const openaiService = new OpenAIService();
 
-      if (!aiResponse.ok) {
-        console.error('AI Agent returned error:', aiResponse.status);
-        return res.status(502).json({
-          error: 'AI analysis service unavailable',
-          detail: `AI Agent returned status ${aiResponse.status}`
+      if (!openaiService.isEnabled()) {
+        return res.status(503).json({
+          error: 'AI coaching service not configured',
+          detail: 'OPENAI_API_KEY environment variable not set'
         });
       }
 
-      const analysis = await aiResponse.json();
+      const analysis = await openaiService.analyzeTelemetryData(
+        telemetryData.samples,
+        { track: session.track, sessionId },
+        { id: (req as any).user?.id || 'unknown', name: (req as any).user?.name }
+      );
 
       return res.json({
         sessionId,
         analysisType,
-        analysis: analysis.analysis || analysis.text || '',
-        audioAvailable: analysis.audioUrl ? true : false,
-        audioUrl: analysis.audioUrl,
+        analysis: analysis.analysis.performance,
+        recommendations: analysis.analysis.recommendations,
+        keyInsights: analysis.analysis.keyInsights,
+        riskLevel: analysis.analysis.riskLevel,
         lapNumber: lapNumber || 'all',
         timestamp: Date.now()
       });
 
     } catch (aiError) {
-      console.error('Error calling AI Agent:', aiError);
+      console.error('Error calling OpenAI:', aiError);
       return res.status(503).json({
-        error: 'Failed to connect to AI coaching service',
+        error: 'Failed to analyze telemetry',
         detail: aiError instanceof Error ? aiError.message : 'Unknown error'
       });
     }
