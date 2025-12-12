@@ -374,13 +374,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 // Hook for persisting settings
 export const useSettings = () => {
   const [settings, setSettings] = useState<UserSettings>(() => {
-    const saved = localStorage.getItem('blackbox-settings');
+    const saved = localStorage.getItem('pitbox-settings');
     return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
   });
 
   const updateSettings = (newSettings: UserSettings) => {
     setSettings(newSettings);
-    localStorage.setItem('blackbox-settings', JSON.stringify(newSettings));
+    localStorage.setItem('pitbox-settings', JSON.stringify(newSettings));
   };
 
   return { settings, updateSettings };

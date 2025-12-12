@@ -8,7 +8,7 @@
 Start Your Engines.
 
 ### Subheadline
-Join BlackBox, ControlBox, or the full okboxbox ecosystem.
+Join PitBox, ControlBox, or the full okboxbox ecosystem.
 
 ---
 
@@ -23,7 +23,7 @@ Join BlackBox, ControlBox, or the full okboxbox ecosystem.
 - Placeholder: "you@example.com"
 
 **Product Interest** (select, required)
-- BlackBox — AI Race Team
+- PitBox — AI Race Team
 - ControlBox — Race Control
 - Both Products
 

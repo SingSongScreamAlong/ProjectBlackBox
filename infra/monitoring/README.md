@@ -1,4 +1,4 @@
-# BlackBox Monitoring System
+# PitBox Monitoring System
 
 Complete $0-$20/month monitoring stack.
 

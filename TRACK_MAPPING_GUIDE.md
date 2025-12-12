@@ -6,7 +6,7 @@ Generate pixel-perfect, production-quality track maps from real iRacing telemetr
 
 ## 🎯 Overview
 
-The BlackBox Track Mapping System creates **accurate, validated track maps** using:
+The PitBox Track Mapping System creates **accurate, validated track maps** using:
 1. **Real telemetry data** from iRacing sessions
 2. **AI-powered corner detection** (braking zones, apex points, exit analysis)
 3. **Automatic calibration** with quality metrics
@@ -93,7 +93,7 @@ Save track map? (y/n): y
 ✓ Track map saved to: ../server/src/data/tracks/spa-francorchamps.json
 
 To use this track map:
-1. Restart the BlackBox server
+1. Restart the PitBox server
 2. Access via: GET /api/tracks/spa-francorchamps
 3. View SVG: GET /api/tracks/spa-francorchamps/svg
 ```
@@ -104,7 +104,7 @@ To use this track map:
 
 ### Step 1: Export Session CSV
 
-From your BlackBox dashboard or iRacing export:
+From your PitBox dashboard or iRacing export:
 
 ```bash
 GET /api/export/csv/{sessionId}
@@ -570,6 +570,6 @@ You now have **production-quality track maps** with:
 
 ---
 
-**Created by:** BlackBox Track Mapping System
+**Created by:** PitBox Track Mapping System
 **Version:** 1.0 Production
 **Last Updated:** 2025-11-30

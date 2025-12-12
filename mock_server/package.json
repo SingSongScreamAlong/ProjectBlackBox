@@ -1,7 +1,7 @@
 {
-  "name": "blackbox-mock-server",
+  "name": "pitbox-mock-server",
   "version": "0.1.0",
-  "description": "Mock server for BlackBox Driver App testing",
+  "description": "Mock server for PitBox Driver App testing",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,8 +1,8 @@
-# BlackBox API Documentation
+# PitBox API Documentation
 
 ## Overview
 
-The BlackBox API provides comprehensive telemetry data collection, analysis, and management for racing applications. It supports multi-driver sessions, AI-powered coaching, voice synthesis, and real-time data streaming.
+The PitBox API provides comprehensive telemetry data collection, analysis, and management for racing applications. It supports multi-driver sessions, AI-powered coaching, voice synthesis, and real-time data streaming.
 
 ## Authentication
 

@@ -1,5 +1,5 @@
 {
-    "name": "blackbox-server-tests",
+    "name": "pitbox-server-tests",
     "version": "0.1.0",
     "private": true,
     "scripts": {

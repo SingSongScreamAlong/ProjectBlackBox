@@ -1,6 +1,6 @@
 """
-BlackBox Relay Agent - Server Client
-Socket.IO client for connecting to BlackBox Server
+PitBox Relay Agent - Server Client
+Socket.IO client for connecting to PitBox Server
 """
 import logging
 import time
@@ -12,9 +12,9 @@ import config
 logger = logging.getLogger(__name__)
 
 
-class BlackBoxClient:
+class PitBoxClient:
     """
-    Socket.IO client for communicating with BlackBox Server
+    Socket.IO client for communicating with PitBox Server
     """
     
     def __init__(self, url: str = None):
@@ -39,12 +39,12 @@ class BlackBoxClient:
         @self.sio.event
         def connect():
             self.connected = True
-            logger.info(f"✅ Connected to BlackBox Server at {self.url}")
+            logger.info(f"✅ Connected to PitBox Server at {self.url}")
         
         @self.sio.event
         def disconnect():
             self.connected = False
-            logger.warning("⚠️ Disconnected from BlackBox Server")
+            logger.warning("⚠️ Disconnected from PitBox Server")
         
         @self.sio.event
         def connect_error(error):
@@ -71,14 +71,14 @@ class BlackBoxClient:
     
     def connect(self) -> bool:
         """
-        Connect to BlackBox Cloud
+        Connect to PitBox Cloud
         Returns True if connected successfully
         """
         if self.connected:
             return True
         
         try:
-            logger.info(f"🔌 Connecting to BlackBox Server at {self.url}...")
+            logger.info(f"🔌 Connecting to PitBox Server at {self.url}...")
             self.sio.connect(
                 self.url,
                 transports=['websocket'],
@@ -91,11 +91,11 @@ class BlackBoxClient:
             return False
     
     def disconnect(self):
-        """Disconnect from BlackBox Cloud"""
+        """Disconnect from PitBox Cloud"""
         if self.sio.connected:
             self.sio.disconnect()
         self.connected = False
-        logger.info("🔌 Disconnected from BlackBox Server")
+        logger.info("🔌 Disconnected from PitBox Server")
     
     def is_connected(self) -> bool:
         """Check if connected"""
@@ -103,7 +103,7 @@ class BlackBoxClient:
     
     def emit(self, event: str, data: Dict[str, Any]):
         """
-        Emit an event to BlackBox Cloud
+        Emit an event to PitBox Cloud
         """
         if not self.is_connected():
             logger.warning(f"Cannot emit {event}: not connected")

@@ -1,7 +1,7 @@
 {
-  "name": "blackbox-driver-app",
+  "name": "pitbox-driver-app",
   "version": "0.1.0",
-  "description": "BlackBox Driver App - Lightweight telemetry collector for sim racing",
+  "description": "PitBox Driver App - Lightweight telemetry collector for sim racing",
   "main": "dist/main.js",
   "scripts": {
     "start": "electron .",
@@ -14,7 +14,7 @@
     "generate-icons": "electron-icon-maker --input=./assets/icon.svg --output=./assets",
     "validate:hybrid-cloud": "node ./deployment/validate-hybrid-cloud.js"
   },
-  "author": "BlackBox Racing",
+  "author": "PitBox Racing",
   "license": "MIT",
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0",

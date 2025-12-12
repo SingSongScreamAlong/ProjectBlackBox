@@ -1,5 +1,5 @@
 /**
- * API endpoints for communication between Driver App and BlackBox Core
+ * API endpoints for communication between Driver App and PitBox Core
  */
 export const ApiEndpoints = {
   // Authentication endpoints

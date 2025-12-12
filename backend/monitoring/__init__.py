@@ -1,1 +1,1 @@
-"""BlackBox Monitoring Package"""
+"""PitBox Monitoring Package"""

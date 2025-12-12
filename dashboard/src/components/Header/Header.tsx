@@ -71,7 +71,7 @@ const Header: React.FC<HeaderProps> = ({
       <div className="header-center">
         <div className="header-logo">
           <span className="logo-tagline">OK, Box Box</span>
-          <span className="logo-main">Project: <span>BlackBox</span></span>
+          <span className="logo-main">Project: <span>PitBox</span></span>
         </div>
         
         {/* Quick Action Buttons */}

@@ -1,4 +1,4 @@
-# ProjectBlackBox - Critical Advanced Features Status & Integration Plan
+# ProjectPitBox - Critical Advanced Features Status & Integration Plan
 
 **Date**: December 3, 2025  
 **Priority**: 🔴 **CRITICAL** - These features are REQUIRED, not optional  
@@ -12,7 +12,7 @@ The user has confirmed that **advanced features are CRUCIAL** to the program's s
 
 ---
 
-## ✅ ALREADY IMPLEMENTED (In `assess-complete-blackbox` branch)
+## ✅ ALREADY IMPLEMENTED (In `assess-complete-pitbox` branch)
 
 ### 1. ✅ Competitor Intelligence System
 **File**: `relay_agent/competitor_intelligence.py` (24,334 bytes)  
@@ -293,11 +293,11 @@ The user has confirmed that **advanced features are CRUCIAL** to the program's s
 
 ### Phase 1: Merge Advanced Branch (1 day) 🔴 **IMMEDIATE**
 
-**Action**: Merge `assess-complete-blackbox` branch to main
+**Action**: Merge `assess-complete-pitbox` branch to main
 
 **Steps**:
 1. Create new integration branch from main
-2. Merge `assess-complete-blackbox` branch
+2. Merge `assess-complete-pitbox` branch
 3. Resolve any conflicts
 4. Test all components
 5. Merge to main
@@ -529,7 +529,7 @@ dashboard/src/components/CornerAnalysis/
 
 ## 💡 Key Insight
 
-**You already have 9/14 critical features fully implemented** in the `assess-complete-blackbox` branch. That's **64% of critical features ready to go RIGHT NOW**.
+**You already have 9/14 critical features fully implemented** in the `assess-complete-pitbox` branch. That's **64% of critical features ready to go RIGHT NOW**.
 
 The remaining 5 features need to be built from scratch, but you have:
 - ✅ Complete design specifications

@@ -1,5 +1,5 @@
 """
-Performance Tests for BlackBox System
+Performance Tests for PitBox System
 
 Tests system performance under load
 """

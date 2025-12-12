@@ -1,8 +1,8 @@
-# ProjectBlackBox - Centralized API Key Setup
+# ProjectPitBox - Centralized API Key Setup
 
 ## Overview
 
-ProjectBlackBox now supports **centralized API key management**, making it easy to distribute to testers without requiring each user to configure their own API keys.
+ProjectPitBox now supports **centralized API key management**, making it easy to distribute to testers without requiring each user to configure their own API keys.
 
 ## How It Works
 
@@ -37,14 +37,14 @@ ProjectBlackBox now supports **centralized API key management**, making it easy 
 
 4. **Run the application**:
    ```bash
-   python run_blackbox.py
+   python run_pitbox.py
    ```
 
 ### For Testers
 
 **No API key configuration needed!** Just run:
 ```bash
-python run_blackbox.py
+python run_pitbox.py
 ```
 
 The app will automatically use the centralized API keys provided by the developer.

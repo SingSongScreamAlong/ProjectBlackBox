@@ -1,4 +1,4 @@
-# Building BlackBox Racing for Windows
+# Building PitBox Racing for Windows
 
 ## Prerequisites
 
@@ -12,8 +12,8 @@ On your **Windows PC**, install:
 
 1. Clone or pull the repository:
    ```cmd
-   git clone https://github.com/YourUsername/ProjectBlackBox.git
-   cd ProjectBlackBox
+   git clone https://github.com/YourUsername/ProjectPitBox.git
+   cd ProjectPitBox
    ```
 
 2. Run the build script:
@@ -52,7 +52,7 @@ cd ..
 ### 4. Build Relay Agent (Python → EXE)
 ```cmd
 cd relay_agent
-pyinstaller --clean blackbox_relay.spec
+pyinstaller --clean pitbox_relay.spec
 cd ..
 ```
 
@@ -66,7 +66,7 @@ cd ..
 ## Output
 
 After building, you'll find:
-- `desktop/dist/BlackBox Racing Setup 1.0.0.exe` - Windows installer
+- `desktop/dist/PitBox Racing Setup 1.0.0.exe` - Windows installer
 - `desktop/dist/win-unpacked/` - Portable version (no install needed)
 
 ## Adding Your Icon

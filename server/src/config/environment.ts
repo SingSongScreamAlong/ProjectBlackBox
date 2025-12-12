@@ -99,8 +99,8 @@ function loadEnvironment(): EnvironmentConfig {
     DASHBOARD_URL: env.DASHBOARD_URL || env.CLIENT_URL || 'http://localhost:3001',
 
     // Database
-    DATABASE_URL: env.DATABASE_URL || 'postgresql://blackbox:blackbox@localhost:5432/blackbox',
-    PG_CONNECTION_STRING: env.PG_CONNECTION_STRING || env.DATABASE_URL || 'postgresql://blackbox:blackbox@localhost:5432/blackbox',
+    DATABASE_URL: env.DATABASE_URL || 'postgresql://pitbox:pitbox@localhost:5432/pitbox',
+    PG_CONNECTION_STRING: env.PG_CONNECTION_STRING || env.DATABASE_URL || 'postgresql://pitbox:pitbox@localhost:5432/pitbox',
 
     // Security
     JWT_SECRET: env.JWT_SECRET || 'development-secret-change-in-production',

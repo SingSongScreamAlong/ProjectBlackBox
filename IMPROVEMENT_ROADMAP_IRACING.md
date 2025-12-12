@@ -1,4 +1,4 @@
-# ProjectBlackBox Improvement Roadmap - iRacing Edition
+# ProjectPitBox Improvement Roadmap - iRacing Edition
 
 **Generated**: November 29, 2025
 **Current Status**: 100% Core Complete
@@ -9,7 +9,7 @@
 
 ## 🏁 **iRACING-FOCUSED MISSION**
 
-ProjectBlackBox is a **professional-grade telemetry and AI coaching system exclusively for iRacing**, designed to help drivers improve their performance through data-driven insights and professional motorsport tools.
+ProjectPitBox is a **professional-grade telemetry and AI coaching system exclusively for iRacing**, designed to help drivers improve their performance through data-driven insights and professional motorsport tools.
 
 ---
 
@@ -22,7 +22,7 @@ Professional iRacing teams and top-level drivers use the same telemetry tools as
 - **Cosworth Toolbox** - Professional data logging
 - **Pi Toolbox** - Track-side analysis
 
-By exporting BlackBox data to these formats, iRacing drivers can:
+By exporting PitBox data to these formats, iRacing drivers can:
 - Analyze with professional-grade tools
 - Compare against real-world racing data
 - Work with real race engineers who know these tools
@@ -822,7 +822,7 @@ def test_iracing_sdk_connection():
 
 def test_iracing_telemetry_accuracy():
     """Verify telemetry matches iRacing output"""
-    # Compare BlackBox data to iRacing telemetry files
+    # Compare PitBox data to iRacing telemetry files
 ```
 
 ---
@@ -1000,4 +1000,4 @@ def test_iracing_telemetry_accuracy():
 
 ---
 
-*This roadmap transforms BlackBox into the premier iRacing telemetry platform, combining professional motorsport tools with AI-powered coaching specifically for iRacing sim racers.*
+*This roadmap transforms PitBox into the premier iRacing telemetry platform, combining professional motorsport tools with AI-powered coaching specifically for iRacing sim racers.*

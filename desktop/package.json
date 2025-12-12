@@ -1,9 +1,9 @@
 {
-  "name": "blackbox-racing",
+  "name": "pitbox-racing",
   "version": "1.0.0",
-  "description": "BlackBox Racing - AI-Powered iRacing Coach",
+  "description": "PitBox Racing - AI-Powered iRacing Coach",
   "main": "main.js",
-  "author": "BlackBox Racing",
+  "author": "PitBox Racing",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
@@ -11,8 +11,8 @@
     "build:dir": "electron-builder --win --dir"
   },
   "build": {
-    "appId": "com.blackbox.racing",
-    "productName": "BlackBox Racing",
+    "appId": "com.pitbox.racing",
+    "productName": "PitBox Racing",
     "directories": {
       "output": "dist"
     },
@@ -59,7 +59,7 @@
       "installerHeaderIcon": "assets/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "BlackBox Racing"
+      "shortcutName": "PitBox Racing"
     }
   },
   "dependencies": {

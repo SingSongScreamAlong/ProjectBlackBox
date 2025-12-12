@@ -1,4 +1,4 @@
-# BlackBox Hybrid Cloud System - Technical Documentation
+# PitBox Hybrid Cloud System - Technical Documentation
 
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
@@ -13,7 +13,7 @@
 
 ## Architecture Overview
 
-The BlackBox system implements a hybrid cloud architecture with four main components:
+The PitBox system implements a hybrid cloud architecture with four main components:
 
 1. **Driver App**: Electron-based desktop application for Windows
 2. **Relay Agent**: Python WebSocket server for data processing
@@ -635,8 +635,8 @@ python -m pytest tests/test_websocket_server.py  # Test WebSocket server
 
 1. **Clone Repository**:
    ```bash
-   git clone https://github.com/SingSongScreamAlong/blackboxdriverapp.git
-   cd blackboxdriverapp
+   git clone https://github.com/SingSongScreamAlong/pitboxdriverapp.git
+   cd pitboxdriverapp
    ```
 
 2. **Start Relay Agent**:
@@ -699,7 +699,7 @@ If experiencing issues with App Platform:
 
 1. **Create Droplet**:
    ```bash
-   doctl compute droplet create blackbox-server \
+   doctl compute droplet create pitbox-server \
      --image docker-20-04 \
      --size s-2vcpu-4gb \
      --region nyc1 \
@@ -708,13 +708,13 @@ If experiencing issues with App Platform:
 
 2. **SSH to Droplet**:
    ```bash
-   doctl compute ssh blackbox-server
+   doctl compute ssh pitbox-server
    ```
 
 3. **Clone Repository**:
    ```bash
-   git clone https://github.com/SingSongScreamAlong/blackboxdriverapp.git
-   cd blackboxdriverapp
+   git clone https://github.com/SingSongScreamAlong/pitboxdriverapp.git
+   cd pitboxdriverapp
    ```
 
 4. **Deploy with Docker Compose**:

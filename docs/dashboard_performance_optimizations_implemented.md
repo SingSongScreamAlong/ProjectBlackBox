@@ -1,6 +1,6 @@
 # Dashboard Performance Optimizations - Implementation Report
 
-This document details the performance optimizations implemented in the BlackBox Dashboard application to improve real-time telemetry data handling and rendering efficiency.
+This document details the performance optimizations implemented in the PitBox Dashboard application to improve real-time telemetry data handling and rendering efficiency.
 
 ## Overview of Implemented Optimizations
 
@@ -206,6 +206,6 @@ Based on initial testing, these optimizations have resulted in:
 
 ## Conclusion
 
-The implemented optimizations have significantly improved the BlackBox Dashboard's performance, particularly for real-time telemetry data handling. The dashboard now maintains smooth UI updates even under high-frequency data conditions, providing a responsive and efficient user experience for race monitoring and analysis.
+The implemented optimizations have significantly improved the PitBox Dashboard's performance, particularly for real-time telemetry data handling. The dashboard now maintains smooth UI updates even under high-frequency data conditions, providing a responsive and efficient user experience for race monitoring and analysis.
 
 These optimizations follow best practices for React performance and establish patterns that should be followed in future development to maintain optimal performance.

@@ -18,7 +18,7 @@ class RelayGUI(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("BlackBox Relay Agent")
+        self.title("PitBox Relay Agent")
         self.geometry("600x500")
         
         self.settings = SettingsManager()

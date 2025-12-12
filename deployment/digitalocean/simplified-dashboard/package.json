@@ -1,5 +1,5 @@
 {
-  "name": "blackbox-dashboard",
+  "name": "pitbox-dashboard",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

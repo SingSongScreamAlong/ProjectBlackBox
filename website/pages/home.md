@@ -8,7 +8,7 @@
 The Future of Racing Intelligence.
 
 ### Subheadline
-okboxbox builds advanced AI systems for sim racers, leagues, and competitive teams. BlackBox elevates your driving. ControlBox transforms race control.
+okboxbox builds advanced AI systems for sim racers, leagues, and competitive teams. PitBox elevates your driving. ControlBox transforms race control.
 
 ### Buttons
 - **Primary:** Join Pre-Season Testing → /join
@@ -18,10 +18,10 @@ okboxbox builds advanced AI systems for sim racers, leagues, and competitive tea
 
 ## Product Overview Cards
 
-### Card 1: BlackBox
+### Card 1: PitBox
 **Subtitle:** AI Race Team  
 **Description:** Real-time strategist, engineer, spotter, and coach for every lap.  
-**Link:** /products/blackbox
+**Link:** /products/pitbox
 
 ### Card 2: ControlBox
 **Subtitle:** Race Control Engine  

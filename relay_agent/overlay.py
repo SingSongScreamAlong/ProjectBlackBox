@@ -1,5 +1,5 @@
 """
-BlackBox PTT Overlay
+PitBox PTT Overlay
 A lightweight, transparent, always-on-top window to show PTT status.
 """
 import threading
@@ -50,7 +50,7 @@ class PTTOverlay:
     def _run_gui(self):
         """Main GUI loop"""
         self.root = tk.Tk()
-        self.root.title("BlackBox Overlay")
+        self.root.title("PitBox Overlay")
         
         # Remove decoration
         self.root.overrideredirect(True)

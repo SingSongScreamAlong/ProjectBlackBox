@@ -1,6 +1,6 @@
 # Dashboard Error Handling and Resilience Plan
 
-This document outlines the implementation plan for enhancing error handling and resilience in the BlackBox Dashboard, which is the second highest priority improvement identified in the next-phase improvements document.
+This document outlines the implementation plan for enhancing error handling and resilience in the PitBox Dashboard, which is the second highest priority improvement identified in the next-phase improvements document.
 
 ## Current Error Handling Assessment
 
@@ -756,6 +756,6 @@ setTimeout(() => {
 
 ## Conclusion
 
-This error handling and resilience plan addresses key vulnerabilities in the BlackBox Dashboard's error management capabilities. By implementing comprehensive error boundaries, robust reconnection logic, data validation, user notifications, and global error handling, we will significantly improve the dashboard's ability to handle and recover from various error conditions.
+This error handling and resilience plan addresses key vulnerabilities in the PitBox Dashboard's error management capabilities. By implementing comprehensive error boundaries, robust reconnection logic, data validation, user notifications, and global error handling, we will significantly improve the dashboard's ability to handle and recover from various error conditions.
 
 The plan follows a systematic approach, addressing errors at multiple levels: connection, component, data, user interface, and global. Each enhancement is designed to work together to create a more resilient and user-friendly dashboard experience, even when facing unexpected issues or edge cases.

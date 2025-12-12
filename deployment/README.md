@@ -1,8 +1,8 @@
-# Project BlackBox Deployment
+# Project PitBox Deployment
 
 ## Server Deployment
 
-This directory contains all the necessary files to deploy Project BlackBox on a DigitalOcean Droplet or any other server with Docker support.
+This directory contains all the necessary files to deploy Project PitBox on a DigitalOcean Droplet or any other server with Docker support.
 
 ### System Requirements
 
@@ -46,7 +46,7 @@ sudo sh get-docker.sh
 sudo apt install -y docker-compose
 
 # Create deployment directory
-mkdir -p ~/blackbox
+mkdir -p ~/pitbox
 ```
 
 #### 2. Upload Files
@@ -55,14 +55,14 @@ Upload all files in this directory to your server using SCP, SFTP, or Git:
 
 ```bash
 # Example using SCP (run from your local machine)
-scp -r ./deployment/* user@your-server-ip:~/blackbox/
+scp -r ./deployment/* user@your-server-ip:~/pitbox/
 ```
 
 #### 3. Configure Environment Variables
 
 ```bash
 # Navigate to the deployment directory
-cd ~/blackbox
+cd ~/pitbox
 
 # Create backend .env file from example
 cp backend/.env.example backend/.env
@@ -127,7 +127,7 @@ The backend data is stored in a Docker volume. To backup:
 mkdir -p ~/backups
 
 # Backup the volume data
-docker run --rm -v blackbox_backend_data:/data -v ~/backups:/backup alpine tar -czf /backup/blackbox-data-$(date +%Y%m%d).tar.gz /data
+docker run --rm -v pitbox_backend_data:/data -v ~/backups:/backup alpine tar -czf /backup/pitbox-data-$(date +%Y%m%d).tar.gz /data
 ```
 
 ### Troubleshooting
@@ -167,7 +167,7 @@ If you're hitting resource limits, consider upgrading your Droplet or optimizing
 
 ## Driver App Deployment
 
-This section provides instructions for deploying the BlackBox Driver App for development, testing, and production environments.
+This section provides instructions for deploying the PitBox Driver App for development, testing, and production environments.
 
 ### Prerequisites
 
@@ -179,8 +179,8 @@ This section provides instructions for deploying the BlackBox Driver App for dev
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/SingSongScreamAlong/blackboxdriverapp.git
-   cd blackboxdriverapp/driver_app
+   git clone https://github.com/SingSongScreamAlong/pitboxdriverapp.git
+   cd pitboxdriverapp/driver_app
    ```
 
 2. Install dependencies:
@@ -239,16 +239,16 @@ npm run make:linux
 
 The Driver App can be configured using the following methods:
 
-1. **Config file**: Located at `%APPDATA%/blackbox-driver/config.json` (Windows) or `~/Library/Application Support/blackbox-driver/config.json` (macOS)
+1. **Config file**: Located at `%APPDATA%/pitbox-driver/config.json` (Windows) or `~/Library/Application Support/pitbox-driver/config.json` (macOS)
 
 2. **Command line arguments**:
    ```bash
-   blackbox-driver --server=https://your-server.com --telemetry-rate=60
+   pitbox-driver --server=https://your-server.com --telemetry-rate=60
    ```
 
 3. **Environment variables**:
    ```bash
-   BLACKBOX_SERVER_URL=https://your-server.com BLACKBOX_TELEMETRY_RATE=60 blackbox-driver
+   BLACKBOX_SERVER_URL=https://your-server.com BLACKBOX_TELEMETRY_RATE=60 pitbox-driver
    ```
 
 ### Deployment Workflow
@@ -294,10 +294,10 @@ The Driver App uses GitHub Actions for CI/CD. The workflow is defined in `.githu
 
 - **Build errors**: Check Node.js version and dependencies
 - **Packaging errors**: Verify Electron Builder configuration
-- **Runtime errors**: Check logs at `%APPDATA%/blackbox-driver/logs` (Windows) or `~/Library/Logs/blackbox-driver` (macOS)
+- **Runtime errors**: Check logs at `%APPDATA%/pitbox-driver/logs` (Windows) or `~/Library/Logs/pitbox-driver` (macOS)
 
 ## Support
 
 For issues or questions, please refer to the project documentation or open an issue in the project repository.
 
-For deployment issues, contact the BlackBox DevOps team at devops@blackbox-racing.com
+For deployment issues, contact the PitBox DevOps team at devops@pitbox-racing.com

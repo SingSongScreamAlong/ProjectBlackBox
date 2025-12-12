@@ -1,5 +1,5 @@
 """
-BlackBox Relay Agent - Configuration
+PitBox Relay Agent - Configuration
 (Based on ControlBox Relay)
 """
 import os
@@ -15,12 +15,12 @@ if root_env.exists():
 if local_env.exists():
     load_dotenv(local_env, override=True)
 
-# BlackBox Server Connection (local or cloud)
+# PitBox Server Connection (local or cloud)
 CLOUD_URL = os.getenv('BLACKBOX_SERVER_URL', 'http://localhost:3000')
 AI_AGENT_URL = os.getenv('AI_AGENT_URL', 'http://localhost:3001')
 
 # Relay Identification
-RELAY_ID = os.getenv('RELAY_ID', 'blackbox-relay-1')
+RELAY_ID = os.getenv('RELAY_ID', 'pitbox-relay-1')
 RELAY_VERSION = '1.0.0'
 
 # Telemetry
@@ -55,7 +55,7 @@ SESSION_TYPES = {
     'Time Trial': 'practice'
 }
 
-# Flag State Mapping (iRacing SessionFlags to BlackBox)
+# Flag State Mapping (iRacing SessionFlags to PitBox)
 FLAG_STATES = {
     'green': 'green',
     'checkered': 'checkered',

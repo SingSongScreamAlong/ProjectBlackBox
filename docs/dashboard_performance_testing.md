@@ -4,7 +4,7 @@ This document provides instructions for running and interpreting the dashboard p
 
 ## Overview
 
-The BlackBox dashboard includes automated performance testing utilities to measure and validate rendering performance, memory usage, and data processing efficiency. These tests help identify performance regressions and validate optimization efforts.
+The PitBox dashboard includes automated performance testing utilities to measure and validate rendering performance, memory usage, and data processing efficiency. These tests help identify performance regressions and validate optimization efforts.
 
 ## Running Performance Tests
 

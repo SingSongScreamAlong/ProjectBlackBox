@@ -2,7 +2,7 @@
 
 ## Overview
 
-The MultiDriverService is a critical component of the ProjectBlackBox dashboard that bridges WebSocketService events with Redux state management for multi-driver collaboration features. It acts as an intermediary layer that processes WebSocket events, transforms them into appropriate Redux actions, and provides a clean API for components to interact with multi-driver functionality.
+The MultiDriverService is a critical component of the ProjectPitBox dashboard that bridges WebSocketService events with Redux state management for multi-driver collaboration features. It acts as an intermediary layer that processes WebSocket events, transforms them into appropriate Redux actions, and provides a clean API for components to interact with multi-driver functionality.
 
 This guide explains how to use the MultiDriverService effectively, particularly in conjunction with the WebSocketService and Redux store.
 

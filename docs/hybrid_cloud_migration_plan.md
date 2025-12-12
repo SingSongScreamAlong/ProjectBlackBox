@@ -1,8 +1,8 @@
-# BlackBox Hybrid Cloud Migration Plan
+# PitBox Hybrid Cloud Migration Plan
 
 ## Overview
 
-This document outlines the migration plan for transitioning the BlackBox project to a hybrid cloud architecture. The new architecture will maintain the existing team-side telemetry UI while moving the core engine to DigitalOcean for improved performance, scalability, and integration with AI services.
+This document outlines the migration plan for transitioning the PitBox project to a hybrid cloud architecture. The new architecture will maintain the existing team-side telemetry UI while moving the core engine to DigitalOcean for improved performance, scalability, and integration with AI services.
 
 ## Architecture Components
 
@@ -189,4 +189,4 @@ This document outlines the migration plan for transitioning the BlackBox project
 
 ## Conclusion
 
-This migration plan provides a structured approach to transitioning the BlackBox project to a hybrid cloud architecture. By following this plan, we can ensure a smooth migration while maintaining existing functionality and adding powerful new features.
+This migration plan provides a structured approach to transitioning the PitBox project to a hybrid cloud architecture. By following this plan, we can ensure a smooth migration while maintaining existing functionality and adding powerful new features.

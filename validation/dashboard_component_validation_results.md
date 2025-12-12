@@ -105,4 +105,4 @@ All dashboard components have been successfully validated. Each component render
 
 ## Conclusion
 
-The dashboard component validation has been completed successfully. All components meet the requirements and function as expected. The validation system has proven effective in testing individual components with targeted data, ensuring the overall quality and reliability of the BlackBox dashboard.
+The dashboard component validation has been completed successfully. All components meet the requirements and function as expected. The validation system has proven effective in testing individual components with targeted data, ensuring the overall quality and reliability of the PitBox dashboard.

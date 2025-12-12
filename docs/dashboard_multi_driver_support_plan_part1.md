@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This document outlines the implementation plan for adding multi-driver support to the BlackBox Dashboard. Multi-driver support is a core requirement for team racing scenarios, driver handoffs, and comparative analysis between drivers.
+This document outlines the implementation plan for adding multi-driver support to the PitBox Dashboard. Multi-driver support is a core requirement for team racing scenarios, driver handoffs, and comparative analysis between drivers.
 
 ## 2. Goals and Requirements
 

@@ -5,7 +5,7 @@ import { AppConfig } from '../config/AppConfig';
 import { DataCompression, CompressionLevel, CompressionOptions } from '../utils/DataCompression';
 
 /**
- * Service responsible for transmitting telemetry data to the BlackBox Core server
+ * Service responsible for transmitting telemetry data to the PitBox Core server
  */
 export class DataTransmissionService extends EventEmitter {
   private socket: any = null;
@@ -34,7 +34,7 @@ export class DataTransmissionService extends EventEmitter {
 
   /**
    * Initialize the data transmission service
-   * @param serverUrl URL of the BlackBox Core server
+   * @param serverUrl URL of the PitBox Core server
    */
   public initialize(serverUrl: string): void {
     console.log(`Initializing DataTransmissionService with server: ${serverUrl}`);
@@ -63,7 +63,7 @@ export class DataTransmissionService extends EventEmitter {
   }
 
   /**
-   * Connect to the BlackBox Core server
+   * Connect to the PitBox Core server
    */
   private connect(): void {
     if (this.socket) {
@@ -83,7 +83,7 @@ export class DataTransmissionService extends EventEmitter {
       
       // Set up event listeners
       this.socket.on('connect', () => {
-        console.log('Connected to BlackBox Core server');
+        console.log('Connected to PitBox Core server');
         this.connected = true;
         this.reconnectAttempts = 0;
         this.fallbackMode = false;
@@ -172,7 +172,7 @@ export class DataTransmissionService extends EventEmitter {
   }
 
   /**
-   * Disconnect from the BlackBox Core server
+   * Disconnect from the PitBox Core server
    */
   public disconnect(): void {
     if (this.reconnectTimer) {

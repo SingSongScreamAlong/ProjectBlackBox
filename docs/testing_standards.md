@@ -1,6 +1,6 @@
 # Testing Standards and Conventions
 
-This document outlines the testing standards and conventions for the ProjectBlackBox dashboard application. Following these guidelines will ensure consistency across tests and make them easier to write, read, and maintain.
+This document outlines the testing standards and conventions for the ProjectPitBox dashboard application. Following these guidelines will ensure consistency across tests and make them easier to write, read, and maintain.
 
 ## Test File Organization
 

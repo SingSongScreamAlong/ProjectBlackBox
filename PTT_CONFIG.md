@@ -1,8 +1,8 @@
-# ProjectBlackBox - Push-to-Talk Configuration
+# ProjectPitBox - Push-to-Talk Configuration
 
 ## 🎮 Wheel Button Mapping
 
-ProjectBlackBox supports mapping push-to-talk to **any button on your racing wheel**.
+ProjectPitBox supports mapping push-to-talk to **any button on your racing wheel**.
 
 ---
 
@@ -40,7 +40,7 @@ Choose option 2 (Wheel/Joystick), enter device ID and button number.
 
 ### 3. Configure in Main Script
 
-Edit `run_blackbox.py`:
+Edit `run_pitbox.py`:
 
 ```python
 # Configure PTT for your wheel

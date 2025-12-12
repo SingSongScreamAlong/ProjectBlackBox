@@ -1,6 +1,6 @@
-# BlackBox Backend Engine
+# PitBox Backend Engine
 
-The Backend Engine is the core server component of the BlackBox hybrid cloud architecture. It handles data processing, storage, and communication between the driver app, relay agent, AI agent, and team dashboard.
+The Backend Engine is the core server component of the PitBox hybrid cloud architecture. It handles data processing, storage, and communication between the driver app, relay agent, AI agent, and team dashboard.
 
 ## Features
 
@@ -15,7 +15,7 @@ The Backend Engine is the core server component of the BlackBox hybrid cloud arc
 
 ## Architecture
 
-The Backend Engine is designed as a Node.js Express application that serves as the central hub for the BlackBox hybrid cloud architecture. It communicates with:
+The Backend Engine is designed as a Node.js Express application that serves as the central hub for the PitBox hybrid cloud architecture. It communicates with:
 
 1. **Driver App** - Receives telemetry and video data from the local driver application
 2. **Relay Agent** - Processes and forwards data from the driver app to the backend
@@ -57,12 +57,12 @@ The Backend Engine is designed as a Node.js Express application that serves as t
 
 1. Build the Docker image:
    ```
-   docker build -t blackbox-backend-engine .
+   docker build -t pitbox-backend-engine .
    ```
 
 2. Run the container:
    ```
-   docker run -p 8080:8080 --env-file .env blackbox-backend-engine
+   docker run -p 8080:8080 --env-file .env pitbox-backend-engine
    ```
 
 ## API Documentation

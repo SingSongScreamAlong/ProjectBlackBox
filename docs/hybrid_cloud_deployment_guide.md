@@ -1,10 +1,10 @@
-# BlackBox Hybrid Cloud Deployment Guide
+# PitBox Hybrid Cloud Deployment Guide
 
-This guide provides detailed instructions for deploying the BlackBox system in a hybrid cloud architecture using DigitalOcean as the cloud provider, with GradientAI for AI agent capabilities and ElevenLabs for voice integration.
+This guide provides detailed instructions for deploying the PitBox system in a hybrid cloud architecture using DigitalOcean as the cloud provider, with GradientAI for AI agent capabilities and ElevenLabs for voice integration.
 
 ## Architecture Overview
 
-The BlackBox hybrid cloud architecture consists of the following components:
+The PitBox hybrid cloud architecture consists of the following components:
 
 1. **Driver App (Local)** - Electron-based application running on the driver's Windows PC
 2. **Relay Agent (Cloud)** - Containerized service running on DigitalOcean that relays telemetry and video data
@@ -36,10 +36,10 @@ DO_REGION=nyc1
 
 # Domain Configuration
 DOMAIN=your-domain.com
-SUBDOMAIN=blackbox
+SUBDOMAIN=pitbox
 
 # Container Registry
-REGISTRY=registry.digitalocean.com/blackbox
+REGISTRY=registry.digitalocean.com/pitbox
 
 # API Keys
 GRADIENT_AI_API_KEY=your_gradient_ai_api_key
@@ -91,7 +91,7 @@ cd deployment/digitalocean
 
 Update the relay agent configuration to connect to the cloud backend:
 
-1. Edit `~/BlackBoxRelay/config/config.json`
+1. Edit `~/PitBoxRelay/config/config.json`
 2. Set `backend_url` to your DigitalOcean app URL
 3. Restart the relay agent service
 
@@ -176,7 +176,7 @@ cd deployment/digitalocean
 ## Monitoring and Logging
 
 - DigitalOcean App Platform provides built-in monitoring and logging
-- Additional logs are available in the driver app at `%APPDATA%\BlackBox\logs`
+- Additional logs are available in the driver app at `%APPDATA%\PitBox\logs`
 - AI agent logs are available in the DigitalOcean dashboard
 
 ## Security Considerations
@@ -194,4 +194,4 @@ cd deployment/digitalocean
 
 ## Conclusion
 
-This hybrid cloud architecture provides a scalable, secure, and modular solution for the BlackBox system. By leveraging DigitalOcean for cloud infrastructure, GradientAI for intelligent feedback, and ElevenLabs for voice integration, the system delivers a comprehensive driver coaching and telemetry analysis platform.
+This hybrid cloud architecture provides a scalable, secure, and modular solution for the PitBox system. By leveraging DigitalOcean for cloud infrastructure, GradientAI for intelligent feedback, and ElevenLabs for voice integration, the system delivers a comprehensive driver coaching and telemetry analysis platform.

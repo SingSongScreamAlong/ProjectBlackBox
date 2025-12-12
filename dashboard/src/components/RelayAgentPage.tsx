@@ -124,7 +124,7 @@ const RelayAgentPage: React.FC = () => {
             <li>
               <Typography variant="body1" paragraph>
                 <strong>Configure the relay agent</strong> on the driver PC by editing 
-                <code>~/BlackBoxRelay/config/config.json</code> and setting:
+                <code>~/PitBoxRelay/config/config.json</code> and setting:
                 <pre>{`"backend_url": "ws://137.184.151.3:8765"`}</pre>
               </Typography>
             </li>

@@ -1,6 +1,6 @@
 {
   "agent": {
-    "name": "BlackBoxAIAgent",
+    "name": "PitBoxAIAgent",
     "version": "1.0.0",
     "log_level": "INFO"
   },
@@ -27,8 +27,8 @@
     }
   },
   "relay_agent": {
-    "url": "https://blackbox-api.digitalocean.app/api",
-    "ws_url": "wss://blackbox-api.digitalocean.app/ws",
+    "url": "https://pitbox-api.digitalocean.app/api",
+    "ws_url": "wss://pitbox-api.digitalocean.app/ws",
     "auth_token": "${RELAY_AGENT_AUTH_TOKEN}"
   },
   "voice": {

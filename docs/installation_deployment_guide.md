@@ -1,4 +1,4 @@
-# BlackBox Hybrid Cloud System - Installation & Deployment Guide
+# PitBox Hybrid Cloud System - Installation & Deployment Guide
 
 ## Table of Contents
 1. [System Requirements](#system-requirements)
@@ -43,8 +43,8 @@
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/SingSongScreamAlong/blackboxdriverapp.git
-cd blackboxdriverapp
+git clone https://github.com/SingSongScreamAlong/pitboxdriverapp.git
+cd pitboxdriverapp
 ```
 
 ### Step 2: Install Driver App
@@ -153,7 +153,7 @@ This script:
 
 1. Get your app URL from DigitalOcean App Platform dashboard
 2. Add a CNAME record in your DNS provider:
-   - Name: `blackbox` (or your preferred subdomain)
+   - Name: `pitbox` (or your preferred subdomain)
    - Value: Your DigitalOcean app URL
    - TTL: 3600 (or as recommended by your DNS provider)
 
@@ -173,7 +173,7 @@ This script:
 #### Step 1: Create Droplet
 
 ```bash
-doctl compute droplet create blackbox-server \
+doctl compute droplet create pitbox-server \
   --image docker-20-04 \
   --size s-2vcpu-4gb \
   --region nyc1 \
@@ -183,15 +183,15 @@ doctl compute droplet create blackbox-server \
 #### Step 2: SSH to Droplet
 
 ```bash
-doctl compute ssh blackbox-server
+doctl compute ssh pitbox-server
 ```
 
 #### Step 3: Clone Repository and Configure
 
 ```bash
 # Clone repository
-git clone https://github.com/SingSongScreamAlong/blackboxdriverapp.git
-cd blackboxdriverapp
+git clone https://github.com/SingSongScreamAlong/pitboxdriverapp.git
+cd pitboxdriverapp
 
 # Configure environment
 cd deployment/digitalocean
@@ -214,9 +214,9 @@ apt-get update
 apt-get install -y certbot python3-certbot-nginx
 
 # Configure Nginx
-cp nginx-config.example /etc/nginx/sites-available/blackbox
-ln -s /etc/nginx/sites-available/blackbox /etc/nginx/sites-enabled/
-nano /etc/nginx/sites-available/blackbox  # Edit with your domain
+cp nginx-config.example /etc/nginx/sites-available/pitbox
+ln -s /etc/nginx/sites-available/pitbox /etc/nginx/sites-enabled/
+nano /etc/nginx/sites-available/pitbox  # Edit with your domain
 
 # Obtain SSL certificate
 certbot --nginx -d your-domain.com
@@ -255,8 +255,8 @@ choco install nodejs-lts python -y
 
 ```powershell
 # Clone repository
-git clone https://github.com/SingSongScreamAlong/blackboxdriverapp.git
-cd blackboxdriverapp
+git clone https://github.com/SingSongScreamAlong/pitboxdriverapp.git
+cd pitboxdriverapp
 ```
 
 #### Step 3: Configure and Build
@@ -282,8 +282,8 @@ pip install -r requirements.txt
 
 1. Open IIS Manager
 2. Create a new website:
-   - Site name: BlackBox Dashboard
-   - Physical path: `C:\path\to\blackboxdriverapp\dashboard\build`
+   - Site name: PitBox Dashboard
+   - Physical path: `C:\path\to\pitboxdriverapp\dashboard\build`
    - Binding: Your preferred hostname and port
 3. Set up URL Rewrite for SPA routing
 
@@ -296,9 +296,9 @@ pip install -r requirements.txt
 
 2. Create service for Relay Agent:
    ```powershell
-   nssm install BlackBoxRelayAgent "C:\path\to\blackboxdriverapp\relay_agent\relay_agent_venv\Scripts\python.exe" "C:\path\to\blackboxdriverapp\relay_agent\agent_main.py"
-   nssm set BlackBoxRelayAgent AppDirectory "C:\path\to\blackboxdriverapp\relay_agent"
-   nssm start BlackBoxRelayAgent
+   nssm install PitBoxRelayAgent "C:\path\to\pitboxdriverapp\relay_agent\relay_agent_venv\Scripts\python.exe" "C:\path\to\pitboxdriverapp\relay_agent\agent_main.py"
+   nssm set PitBoxRelayAgent AppDirectory "C:\path\to\pitboxdriverapp\relay_agent"
+   nssm start PitBoxRelayAgent
    ```
 
 ## Configuration Reference
@@ -338,7 +338,7 @@ export const AppConfig = {
     voiceId: "en-US-Neural2-F",
     volume: 0.8,
     speed: 1.0,
-    wakeWord: "BlackBox"
+    wakeWord: "PitBox"
   },
   
   // Video capture
@@ -420,12 +420,12 @@ REACT_APP_USE_WEBWORKER=true
 File: `deployment/digitalocean/app-spec-working.yaml`
 
 ```yaml
-name: blackbox-hybrid-cloud
+name: pitbox-hybrid-cloud
 region: nyc
 services:
   - name: dashboard
     github:
-      repo: SingSongScreamAlong/blackboxdriverapp
+      repo: SingSongScreamAlong/pitboxdriverapp
       branch: main
       deploy_on_push: true
     build_command: cd dashboard && npm install && npm run build
@@ -445,7 +445,7 @@ services:
   
   - name: api
     github:
-      repo: SingSongScreamAlong/blackboxdriverapp
+      repo: SingSongScreamAlong/pitboxdriverapp
       branch: main
       deploy_on_push: true
     build_command: cd relay_agent && pip install -r requirements.txt
@@ -549,7 +549,7 @@ python validate_system.py --config ../config/validation.json
 
 ```bash
 # Backup PostgreSQL database
-pg_dump -U postgres -d blackbox > backup/blackbox_db_$(date +%Y%m%d).sql
+pg_dump -U postgres -d pitbox > backup/pitbox_db_$(date +%Y%m%d).sql
 ```
 
 #### Configuration Backup

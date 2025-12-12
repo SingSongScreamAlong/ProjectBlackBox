@@ -1,4 +1,4 @@
-# ProjectBlackBox Improvement Roadmap
+# ProjectPitBox Improvement Roadmap
 
 **Generated**: November 29, 2025
 **Current Status**: 100% Core Complete
@@ -43,7 +43,7 @@ Dependencies:
 
 **Data Mapping**:
 ```
-BlackBox → MoTeC i2 Channels:
+PitBox → MoTeC i2 Channels:
 - Speed → Ground Speed (km/h)
 - RPM → Engine Speed
 - Throttle → Throttle Position (%)
@@ -602,14 +602,14 @@ Since you asked about Cosworth specifically, here's what we can learn from their
 
 ### MoTeC Integration Flow
 ```
-iRacing → BlackBox → MoTeC Export → i2 Pro Analysis
+iRacing → PitBox → MoTeC Export → i2 Pro Analysis
                    ↓
             AI Coaching Suggestions
 ```
 
 ### Team Workflow
 ```
-Driver → BlackBox Capture → Cloud Storage
+Driver → PitBox Capture → Cloud Storage
                           ↓
         ┌─────────────────┴─────────────────┐
         ▼                                   ▼

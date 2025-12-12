@@ -1,6 +1,6 @@
 # Dashboard Next-Phase Improvements
 
-This document outlines prioritized improvements for the BlackBox Dashboard based on validation results and future enhancement opportunities.
+This document outlines prioritized improvements for the PitBox Dashboard based on validation results and future enhancement opportunities.
 
 ## Priority 1: Core Functionality Enhancements
 
@@ -168,6 +168,6 @@ This document outlines prioritized improvements for the BlackBox Dashboard based
 
 ## Conclusion
 
-These prioritized improvements will significantly enhance the BlackBox Dashboard's functionality, user experience, and advanced features. By implementing these enhancements in phases, we can deliver incremental value while maintaining a stable and reliable dashboard for users.
+These prioritized improvements will significantly enhance the PitBox Dashboard's functionality, user experience, and advanced features. By implementing these enhancements in phases, we can deliver incremental value while maintaining a stable and reliable dashboard for users.
 
-The improvements are aligned with the overall BlackBox system goals of providing a comprehensive, AI-powered race strategy platform with real-time telemetry visualization, predictive analytics, and driver coaching capabilities.
+The improvements are aligned with the overall PitBox system goals of providing a comprehensive, AI-powered race strategy platform with real-time telemetry visualization, predictive analytics, and driver coaching capabilities.

@@ -1,4 +1,4 @@
-# BlackBox Windows Deployment Guide
+# PitBox Windows Deployment Guide
 
 ## 🚀 Quick Start
 
@@ -9,7 +9,7 @@
 3. **Run the setup script**:
    - Double-click `setup_windows.bat`
    - Follow the on-screen instructions
-4. **Access BlackBox**:
+4. **Access PitBox**:
    - Dashboard: http://localhost
    - API: http://localhost/api
 
@@ -30,8 +30,8 @@
 
 ### Step 1: Extract Files
 ```
-Extract the BlackBox_Windows.zip file to a folder like:
-C:\Projects\BlackBox
+Extract the PitBox_Windows.zip file to a folder like:
+C:\Projects\PitBox
 ```
 
 ### Step 2: Install Docker Desktop
@@ -54,14 +54,14 @@ POSTGRES_PASSWORD=your-db-password
 ```
 
 ### Step 4: Start the System
-Run `setup_windows.bat` and choose option 1 to start BlackBox.
+Run `setup_windows.bat` and choose option 1 to start PitBox.
 
 ### Step 5: Access the Dashboard
 Open your web browser and go to: **http://localhost**
 
 ## 🏗️ Architecture Overview
 
-BlackBox consists of several components:
+PitBox consists of several components:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -156,9 +156,9 @@ Run `setup_windows.bat` and choose option 3 to view system status:
 
 ```bash
 CONTAINER ID   IMAGE          STATUS              PORTS
-abc123def456   blackbox-server  Up 2 minutes      0.0.0.0:4000->4000/tcp
-def456ghi789   blackbox-postgres Up 2 minutes     0.0.0.0:5432->5432/tcp
-ghi789jkl012   blackbox-dashboard Up 2 minutes   0.0.0.0:80->80/tcp
+abc123def456   pitbox-server  Up 2 minutes      0.0.0.0:4000->4000/tcp
+def456ghi789   pitbox-postgres Up 2 minutes     0.0.0.0:5432->5432/tcp
+ghi789jkl012   pitbox-dashboard Up 2 minutes   0.0.0.0:80->80/tcp
 ```
 
 ### Viewing Logs
@@ -193,7 +193,7 @@ Authorization: Bearer <jwt_token>
 
 Run `setup_windows.bat` and choose option 2 to stop all services.
 
-## 🔄 Updating BlackBox
+## 🔄 Updating PitBox
 
 1. Stop the current system
 2. Extract the new version over the existing files
@@ -237,7 +237,7 @@ setup_windows.bat (choose option 5)
 ## 📋 File Structure
 
 ```
-BlackBox/
+PitBox/
 ├── setup_windows.bat          # Main setup script
 ├── docker-compose.yml         # Docker orchestration
 ├── .env                       # Environment configuration
@@ -251,4 +251,4 @@ BlackBox/
 
 ---
 
-**BlackBox Windows Deployment - Ready for Racing!** 🏁
+**PitBox Windows Deployment - Ready for Racing!** 🏁

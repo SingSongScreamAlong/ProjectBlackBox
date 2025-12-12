@@ -1,4 +1,4 @@
-# BlackBox AI Agent Service
+# PitBox AI Agent Service
 
 AI-powered driver coaching and race strategy analysis service using GradientAI/OpenAI.
 
@@ -141,8 +141,8 @@ ws.on('message', (data) => {
 Build and run with Docker:
 
 ```bash
-docker build -t blackbox-ai-agent .
-docker run -p 3001:3001 --env-file .env blackbox-ai-agent
+docker build -t pitbox-ai-agent .
+docker run -p 3001:3001 --env-file .env pitbox-ai-agent
 ```
 
 ## Integration

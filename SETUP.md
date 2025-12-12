@@ -1,4 +1,4 @@
-# ProjectBlackBox - Setup Guide
+# ProjectPitBox - Setup Guide
 
 ## 🚀 Quick Start
 
@@ -24,13 +24,13 @@ brew install postgresql timescaledb
 brew services start postgresql
 
 # Create database
-createdb blackbox
+createdb pitbox
 
 # Enable TimescaleDB extension
-psql blackbox -c "CREATE EXTENSION IF NOT EXISTS timescaledb;"
+psql pitbox -c "CREATE EXTENSION IF NOT EXISTS timescaledb;"
 
 # Run schema
-psql blackbox < database/schema.sql
+psql pitbox < database/schema.sql
 ```
 
 ### 2. Python Backend
@@ -80,7 +80,7 @@ Create `.env` file in project root:
 
 ```bash
 # Database
-DATABASE_URL=postgresql://blackbox:blackbox@localhost:5432/blackbox
+DATABASE_URL=postgresql://pitbox:pitbox@localhost:5432/pitbox
 
 # API Keys (optional for voice)
 OPENAI_API_KEY=your_openai_key
@@ -206,7 +206,7 @@ Team responds with voice and updates UI.
 
 ```bash
 cd database
-python -c "from manager import DatabaseManager; db = DatabaseManager('postgresql://blackbox:blackbox@localhost:5432/blackbox'); db.create_tables(); print('✅ Database OK')"
+python -c "from manager import DatabaseManager; db = DatabaseManager('postgresql://pitbox:pitbox@localhost:5432/pitbox'); db.create_tables(); print('✅ Database OK')"
 ```
 
 ### Test iRacing Connection
@@ -238,7 +238,7 @@ curl http://localhost:8000/health
 
 ### "Database connection failed"
 - Check PostgreSQL is running: `brew services list`
-- Check database exists: `psql -l | grep blackbox`
+- Check database exists: `psql -l | grep pitbox`
 - Check connection string in `.env`
 
 ### "WebSocket connection failed"
@@ -251,7 +251,7 @@ curl http://localhost:8000/health
 ## 📁 Project Structure
 
 ```
-ProjectBlackBox/
+ProjectPitBox/
 ├── relay_agent/          # Python - iRacing connection
 │   ├── iracing_sdk_wrapper.py
 │   ├── telemetry_streamer.py

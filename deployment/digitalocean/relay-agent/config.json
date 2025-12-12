@@ -1,9 +1,9 @@
 {
   "agent": {
-    "name": "BlackBoxRelayAgent",
+    "name": "PitBoxRelayAgent",
     "version": "1.0.0",
     "log_level": "INFO",
-    "backend_url": "https://blackbox-api.digitalocean.app",
+    "backend_url": "https://pitbox-api.digitalocean.app",
     "websocket": {
       "host": "0.0.0.0",
       "port": 8765,
@@ -31,13 +31,13 @@
   },
   "storage": {
     "enabled": true,
-    "path": "/root/BlackBoxRelay/data",
+    "path": "/root/PitBoxRelay/data",
     "max_size_gb": 10,
     "retention_days": 7
   },
   "ai": {
     "enabled": true,
-    "endpoint": "https://blackbox-ai.digitalocean.app/api/v1",
+    "endpoint": "https://pitbox-ai.digitalocean.app/api/v1",
     "models": {
       "driver_coach": "driver-coach-v1",
       "strategy": "race-strategy-v1",
@@ -54,6 +54,6 @@
   "security": {
     "api_key_required": true,
     "jwt_auth": true,
-    "cors_origins": ["https://blackbox-dashboard.digitalocean.app"]
+    "cors_origins": ["https://pitbox-dashboard.digitalocean.app"]
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "blackbox-backend-engine",
+  "name": "pitbox-backend-engine",
   "version": "1.0.0",
-  "description": "Backend engine for BlackBox hybrid cloud architecture",
+  "description": "Backend engine for PitBox hybrid cloud architecture",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -27,7 +27,7 @@
     "nodemon": "^3.0.1",
     "supertest": "^6.3.3"
   },
-  "author": "BlackBox Team",
+  "author": "PitBox Team",
   "license": "UNLICENSED",
   "private": true
 }

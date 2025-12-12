@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-BlackBox Relay Agent - Main Entry Point
-Connects iRacing to BlackBox Server for real-time telemetry and AI coaching
+PitBox Relay Agent - Main Entry Point
+Connects iRacing to PitBox Server for real-time telemetry and AI coaching
 
 Usage:
     python main.py [--url SERVER_URL]
 
 Environment Variables:
-    BLACKBOX_SERVER_URL - BlackBox Server WebSocket URL (default: http://localhost:3000)
+    BLACKBOX_SERVER_URL - PitBox Server WebSocket URL (default: http://localhost:3000)
     POLL_RATE_HZ - Telemetry polling rate (default: 10)
     LOG_LEVEL - Logging level (default: INFO)
 """
@@ -20,7 +20,7 @@ from typing import Optional
 
 import config
 from iracing_reader import IRacingReader
-from blackbox_client import BlackBoxClient
+from pitbox_client import PitBoxClient
 from video_encoder import VideoEncoder
 from data_mapper import (
     map_session_metadata,
@@ -51,12 +51,12 @@ from exporters.motec_exporter import MoTeCLDExporter
 class RelayAgent:
     """
     Main Relay Agent Class
-    Orchestrates reading from iRacing and sending to BlackBox Cloud
+    Orchestrates reading from iRacing and sending to PitBox Cloud
     """
     
     def __init__(self, cloud_url: str = None):
         self.ir_reader = IRacingReader()
-        self.cloud_client = BlackBoxClient(cloud_url)
+        self.cloud_client = PitBoxClient(cloud_url)
         self.video_encoder = VideoEncoder(self.cloud_client)
         self.vr = VoiceRecognition(
             ptt_type=config.PTT_TYPE,
@@ -101,8 +101,8 @@ class RelayAgent:
         self.overlay.start()
         
         print("╔════════════════════════════════════════════════════════════╗")
-        print("║         BlackBox Relay Agent v1.0.0                        ║")
-        print("║         iRacing → BlackBox AI Coaching Bridge              ║")
+        print("║         PitBox Relay Agent v1.0.0                        ║")
+        print("║         iRacing → PitBox AI Coaching Bridge              ║")
         print("╚════════════════════════════════════════════════════════════╝")
         print(f"Connecting to: {self.cloud_client.url}")
         
@@ -119,7 +119,7 @@ class RelayAgent:
         
         # Export MoTeC Data
         if self.session_id:
-            filename = f"blackbox_session_{self.session_id}_{int(time.time())}.ld"
+            filename = f"pitbox_session_{self.session_id}_{int(time.time())}.ld"
             self.motec_exporter.export(filename)
             print(f"💾 Saved MoTeC telemetry to: {filename}")
         
@@ -266,12 +266,12 @@ class RelayAgent:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='BlackBox Relay Agent - Bridge iRacing to BlackBox Server'
+        description='PitBox Relay Agent - Bridge iRacing to PitBox Server'
     )
     parser.add_argument(
         '--url',
         default=config.CLOUD_URL,
-        help=f'BlackBox Server URL (default: {config.CLOUD_URL})'
+        help=f'PitBox Server URL (default: {config.CLOUD_URL})'
     )
     parser.add_argument(
         '--rate',

@@ -34,7 +34,7 @@ Paste contents of `theme_tokens.css` into **Design > Custom CSS**
 ```
 Home (/)
 Products
-  ├── BlackBox (/products/blackbox)
+  ├── PitBox (/products/pitbox)
   └── ControlBox (/products/controlbox)
 Roadmap (/roadmap)
 Pricing (/pricing)
@@ -73,7 +73,7 @@ Join (/join) [Button style in nav]
 
 ## Product Pages Build
 
-### BlackBox Page
+### PitBox Page
 - Use accent color #E10600 throughout
 - Sections: Hero → Features (4 cards) → Steps (3) → Technology → Video → CTA
 
@@ -149,7 +149,7 @@ body { background: var(--color-primary-black); }
 Add to page settings > Advanced > Page Header Code Injection:
 ```html
 <style>
-  /* BlackBox page accent */
+  /* PitBox page accent */
   .page-section .btn-primary { background: #E10600; }
 </style>
 ```

@@ -1,6 +1,6 @@
-# BlackBox Racing Dashboard
+# PitBox Racing Dashboard
 
-A real-time telemetry visualization dashboard for the BlackBox sim racing platform. This React-based dashboard provides a modular, customizable interface for displaying telemetry data, AI coaching insights, track maps, competitor analysis, and more.
+A real-time telemetry visualization dashboard for the PitBox sim racing platform. This React-based dashboard provides a modular, customizable interface for displaying telemetry data, AI coaching insights, track maps, competitor analysis, and more.
 
 ## Available Scripts
 
@@ -39,7 +39,7 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## BlackBox Dashboard Architecture
+## PitBox Dashboard Architecture
 
 The dashboard follows a modular component-based architecture:
 
@@ -63,7 +63,7 @@ src/
 
 ## WebSocket Integration
 
-The dashboard connects to the BlackBox backend via WebSockets to receive real-time telemetry data. The `WebSocketService` singleton manages this connection and provides an event-based API for components to subscribe to specific event types.
+The dashboard connects to the PitBox backend via WebSockets to receive real-time telemetry data. The `WebSocketService` singleton manages this connection and provides an event-based API for components to subscribe to specific event types.
 
 Supported event types include:
 - `connect`: Connection established

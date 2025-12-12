@@ -1,8 +1,8 @@
-# BlackBox Hybrid Cloud Deployment Guide
+# PitBox Hybrid Cloud Deployment Guide
 
 ## Overview
 
-This guide will walk you through the complete process of deploying the BlackBox hybrid cloud system to DigitalOcean. By following these steps, you'll complete the final 5% of your hybrid cloud migration.
+This guide will walk you through the complete process of deploying the PitBox hybrid cloud system to DigitalOcean. By following these steps, you'll complete the final 5% of your hybrid cloud migration.
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ This guide will walk you through the complete process of deploying the BlackBox 
 First, run the preparation script to set up your environment variables and API keys:
 
 ```bash
-cd /Users/conradweeden/ProjectBlackBox/deployment
+cd /Users/conradweeden/ProjectPitBox/deployment
 ./prepare-deployment.sh
 ```
 
@@ -64,14 +64,14 @@ This script will:
 - Install Docker and Docker Compose if needed
 - Copy all necessary files to your Droplet
 - Configure the environment
-- Start all BlackBox services
+- Start all PitBox services
 
 ### Step 5: Verify Deployment
 
 After deployment completes, verify that all services are running:
 
 ```bash
-ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && docker-compose ps"
+ssh $DROPLET_USER@$DROPLET_IP "cd /opt/pitbox && docker-compose ps"
 ```
 
 You should see all services (postgres, backend, dashboard, relay-agent, ai-agent, nginx) running.
@@ -81,7 +81,7 @@ You should see all services (postgres, backend, dashboard, relay-agent, ai-agent
 Run the validation script to test the connection between your local driver app and the cloud backend:
 
 ```bash
-cd /Users/conradweeden/ProjectBlackBox/dashboard
+cd /Users/conradweeden/ProjectPitBox/dashboard
 npm run validate:hybrid-cloud
 ```
 
@@ -112,13 +112,13 @@ If you experience connection issues:
 
 1. Verify that all services are running:
    ```bash
-   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && docker-compose ps"
+   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/pitbox && docker-compose ps"
    ```
 
 2. Check service logs:
    ```bash
-   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && docker-compose logs -f backend"
-   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && docker-compose logs -f relay-agent"
+   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/pitbox && docker-compose logs -f backend"
+   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/pitbox && docker-compose logs -f relay-agent"
    ```
 
 3. Ensure firewall rules allow traffic on ports 3000, 8765, and 80:
@@ -132,12 +132,12 @@ If API services aren't working:
 
 1. Verify API keys in the `.env` file:
    ```bash
-   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && cat .env"
+   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/pitbox && cat .env"
    ```
 
 2. Restart services to apply changes:
    ```bash
-   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && docker-compose restart"
+   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/pitbox && docker-compose restart"
    ```
 
 ## Maintenance
@@ -147,7 +147,7 @@ If API services aren't working:
 To update your deployment with new code:
 
 ```bash
-cd /Users/conradweeden/ProjectBlackBox/deployment
+cd /Users/conradweeden/ProjectPitBox/deployment
 ./droplet-deploy.sh
 ```
 
@@ -156,7 +156,7 @@ cd /Users/conradweeden/ProjectBlackBox/deployment
 To monitor logs from your services:
 
 ```bash
-ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && docker-compose logs -f"
+ssh $DROPLET_USER@$DROPLET_IP "cd /opt/pitbox && docker-compose logs -f"
 ```
 
 ### Backing Up Data
@@ -164,12 +164,12 @@ ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && docker-compose logs -f"
 To back up your PostgreSQL database:
 
 ```bash
-ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && docker-compose exec postgres pg_dump -U blackbox -d blackbox > backup.sql"
+ssh $DROPLET_USER@$DROPLET_IP "cd /opt/pitbox && docker-compose exec postgres pg_dump -U pitbox -d pitbox > backup.sql"
 ```
 
 ## Conclusion
 
-Congratulations! You've successfully completed the BlackBox hybrid cloud migration. Your system now has:
+Congratulations! You've successfully completed the PitBox hybrid cloud migration. Your system now has:
 
 - ✅ Local driver app for low-latency data collection
 - ✅ Relay agent for data streaming and processing

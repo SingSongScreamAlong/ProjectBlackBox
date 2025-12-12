@@ -1,6 +1,6 @@
 # Dashboard Component Validation
 
-This document provides a comprehensive guide to the BlackBox Dashboard Component Validation system, which allows for targeted testing of individual dashboard components with simulated data. The system now includes support for both standard dashboard components and multi-driver components.
+This document provides a comprehensive guide to the PitBox Dashboard Component Validation system, which allows for targeted testing of individual dashboard components with simulated data. The system now includes support for both standard dashboard components and multi-driver components.
 
 ## Overview
 
@@ -102,11 +102,11 @@ The ComponentValidator UI is a React component that provides a user interface fo
 
 ## WebSocket Service Integration
 
-The dashboard's WebSocketService has been enhanced to support both Socket.io and native WebSocket connections, enabling it to connect to both the main BlackBox backend and the validation servers.
+The dashboard's WebSocketService has been enhanced to support both Socket.io and native WebSocket connections, enabling it to connect to both the main PitBox backend and the validation servers.
 
 ### Connection Types
 
-- `SOCKET_IO`: Used for connecting to the main BlackBox backend
+- `SOCKET_IO`: Used for connecting to the main PitBox backend
 - `NATIVE_WEBSOCKET`: Used for connecting to the validation servers
 
 ### Event Types
@@ -330,4 +330,4 @@ To customize the test data for a component:
 
 ## Conclusion
 
-The Dashboard Component Validation system provides a powerful tool for ensuring the quality and reliability of the BlackBox dashboard components. By testing components individually with targeted data, developers can quickly identify and fix issues before they affect the entire dashboard.
+The Dashboard Component Validation system provides a powerful tool for ensuring the quality and reliability of the PitBox dashboard components. By testing components individually with targeted data, developers can quickly identify and fix issues before they affect the entire dashboard.

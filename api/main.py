@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastAPI
 app = FastAPI(
-    title="ProjectBlackBox API",
+    title="ProjectPitBox API",
     description="Complete Digital Race Team API",
     version="1.0.0"
 )
@@ -49,7 +49,7 @@ app.add_middleware(
 )
 
 # Database connection
-DATABASE_URL = "postgresql://blackbox:blackbox@localhost:5432/blackbox"
+DATABASE_URL = "postgresql://pitbox:pitbox@localhost:5432/pitbox"
 db = DatabaseManager(DATABASE_URL)
 
 # Analysis systems (initialized on startup)
@@ -73,7 +73,7 @@ async def startup():
     global corner_analyzer, incident_analyzer, setup_analyzer
     global ai_engineer, race_engineer, strategist, coach, intel_analyst, voice_interface
     
-    logger.info("🚀 Starting ProjectBlackBox API...")
+    logger.info("🚀 Starting ProjectPitBox API...")
     
     # Create database tables
     db.create_tables()
@@ -96,13 +96,13 @@ async def startup():
         intelligence_analyst=intel_analyst
     )
     
-    logger.info("✅ ProjectBlackBox API ready!")
+    logger.info("✅ ProjectPitBox API ready!")
 
 
 @app.on_event("shutdown")
 async def shutdown():
     """Cleanup on shutdown"""
-    logger.info("Shutting down ProjectBlackBox API...")
+    logger.info("Shutting down ProjectPitBox API...")
 
 
 # ============================================================================
@@ -354,7 +354,7 @@ async def health_check():
 async def root():
     """Root endpoint"""
     return {
-        "name": "ProjectBlackBox API",
+        "name": "ProjectPitBox API",
         "version": "1.0.0",
         "description": "Complete Digital Race Team",
         "docs": "/docs"

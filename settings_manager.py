@@ -1,5 +1,5 @@
 """
-ProjectBlackBox Settings Manager
+ProjectPitBox Settings Manager
 In-program configuration for all settings
 """
 
@@ -43,7 +43,7 @@ class VoiceConfig:
 @dataclass
 class DatabaseConfig:
     """Database settings"""
-    url: str = 'postgresql://blackbox:blackbox@localhost:5432/blackbox'
+    url: str = 'postgresql://pitbox:pitbox@localhost:5432/pitbox'
 
 
 @dataclass
@@ -56,8 +56,8 @@ class UIConfig:
 
 
 @dataclass
-class BlackBoxSettings:
-    """Complete ProjectBlackBox settings"""
+class PitBoxSettings:
+    """Complete ProjectPitBox settings"""
     ptt: PTTConfig
     voice: VoiceConfig
     database: DatabaseConfig
@@ -72,20 +72,20 @@ class BlackBoxSettings:
 
 class SettingsManager:
     """
-    Manage all ProjectBlackBox settings
+    Manage all ProjectPitBox settings
     Loads from file, provides UI for configuration, saves changes
     """
     
     def __init__(self, config_file: str = None):
         if config_file is None:
             # Default to user's home directory
-            config_dir = Path.home() / '.projectblackbox'
+            config_dir = Path.home() / '.projectpitbox'
             config_dir.mkdir(exist_ok=True)
             self.config_file = config_dir / 'settings.json'
         else:
             self.config_file = Path(config_file)
         
-        self.settings = BlackBoxSettings()
+        self.settings = PitBoxSettings()
         self.load()
     
     def load(self):
@@ -306,10 +306,10 @@ class SettingsManager:
     def run_setup_wizard(self):
         """Run complete setup wizard"""
         print("\n" + "=" * 70)
-        print("🏁 ProjectBlackBox - Setup Wizard")
+        print("🏁 ProjectPitBox - Setup Wizard")
         print("=" * 70)
         
-        print("\nWelcome! Let's configure ProjectBlackBox.")
+        print("\nWelcome! Let's configure ProjectPitBox.")
         
         # PTT
         print("\n1️⃣ Push-to-Talk Configuration")
@@ -332,7 +332,7 @@ class SettingsManager:
         self.show_current_settings()
         
         print(f"\n💾 Settings saved to: {self.config_file}")
-        print("\nYou can now run: python run_blackbox.py")
+        print("\nYou can now run: python run_pitbox.py")
 
 
 def main():
@@ -341,7 +341,7 @@ def main():
     
     while True:
         print("\n" + "=" * 70)
-        print("ProjectBlackBox - Settings")
+        print("ProjectPitBox - Settings")
         print("=" * 70)
         
         print("\n1. Run setup wizard")

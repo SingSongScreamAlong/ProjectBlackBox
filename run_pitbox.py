@@ -31,9 +31,9 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # Configure logging
-log_dir = Path.home() / '.projectblackbox' / 'logs'
+log_dir = Path.home() / '.projectpitbox' / 'logs'
 log_dir.mkdir(parents=True, exist_ok=True)
-log_file = log_dir / 'blackbox.log'
+log_file = log_dir / 'pitbox.log'
 
 logging.basicConfig(
     level=logging.INFO,
@@ -46,7 +46,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class ProjectBlackBox:
+class ProjectPitBox:
     """
     Main integration class
     Uses settings manager for all configuration
@@ -59,7 +59,7 @@ class ProjectBlackBox:
         
         # Check if configured
         if not self._is_configured():
-            logger.error("❌ ProjectBlackBox is not configured!")
+            logger.error("❌ ProjectPitBox is not configured!")
             logger.error("Run: python settings_manager.py")
             sys.exit(1)
         
@@ -94,7 +94,7 @@ class ProjectBlackBox:
     async def initialize(self):
         """Initialize all components using settings"""
         logger.info("=" * 70)
-        logger.info("🏁 ProjectBlackBox - Complete Digital Race Team")
+        logger.info("🏁 ProjectPitBox - Complete Digital Race Team")
         logger.info("=" * 70)
         
         # Show configuration
@@ -168,7 +168,7 @@ class ProjectBlackBox:
         logger.info("✅ Profiler ready")
         
         logger.info("\n" + "=" * 70)
-        logger.info("✅ ProjectBlackBox ready!")
+        logger.info("✅ ProjectPitBox ready!")
         logger.info("=" * 70)
         
         return True
@@ -251,7 +251,7 @@ class ProjectBlackBox:
     
     async def shutdown(self):
         """Shutdown all components"""
-        logger.info("Shutting down ProjectBlackBox...")
+        logger.info("Shutting down ProjectPitBox...")
         
         self.running = False
         
@@ -273,11 +273,11 @@ class ProjectBlackBox:
 async def main():
     """Main entry point"""
     # Check if settings exist
-    settings_file = Path.home() / '.projectblackbox' / 'settings.json'
+    settings_file = Path.home() / '.projectpitbox' / 'settings.json'
     
     if not settings_file.exists():
         print("\n" + "=" * 70)
-        print("🏁 Welcome to ProjectBlackBox!")
+        print("🏁 Welcome to ProjectPitBox!")
         print("=" * 70)
         print("\nFirst time setup required.")
         print("\nRun: python settings_manager.py")
@@ -286,21 +286,21 @@ async def main():
         return
     
     # Create and initialize
-    blackbox = ProjectBlackBox()
+    pitbox = ProjectPitBox()
     
-    if not await blackbox.initialize():
-        logger.error("Failed to initialize ProjectBlackBox")
+    if not await pitbox.initialize():
+        logger.error("Failed to initialize ProjectPitBox")
         return
     
     # Handle Ctrl+C gracefully
     def signal_handler(sig, frame):
         logger.info("Received shutdown signal")
-        blackbox.running = False
+        pitbox.running = False
     
     signal.signal(signal.SIGINT, signal_handler)
     
     # Run
-    await blackbox.run()
+    await pitbox.run()
 
 
 if __name__ == '__main__':

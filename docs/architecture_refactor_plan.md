@@ -1,8 +1,8 @@
-# BlackBox System Architecture Refactor Plan
+# PitBox System Architecture Refactor Plan
 
 *Date: July 13, 2025*
 
-This document outlines the comprehensive architectural refactor plan for the BlackBox system to support expanded features for sim racing telemetry, strategy, and coaching with a focus on endurance racing, training, and performance analytics.
+This document outlines the comprehensive architectural refactor plan for the PitBox system to support expanded features for sim racing telemetry, strategy, and coaching with a focus on endurance racing, training, and performance analytics.
 
 ## 1. System Architecture Overview
 
@@ -35,7 +35,7 @@ This document outlines the comprehensive architectural refactor plan for the Bla
   - Driver identification system
   - Secure data transmission with compression
 
-### 2.2 BlackBox Core (Extend Existing)
+### 2.2 PitBox Core (Extend Existing)
 - **Current State**: Partial implementation (data ingestion, event detection)
 - **Needed Extensions**:
   - Modular sim adapter framework (beyond iRacing)
@@ -238,7 +238,7 @@ enum ExtendedEventType {
 - `DriverIdentification` - Auto-detection of current driver
 - `DataCompression` - Optimized data transmission
 
-### 5.2 BlackBox Core Extensions
+### 5.2 PitBox Core Extensions
 - `PredictiveModeling` - ML-based prediction for tire wear, fuel, etc.
 - `IncidentDetection` - Advanced detection of racing incidents
 - `DriverFatigueAnalyzer` - Monitoring driver input patterns for fatigue
@@ -274,7 +274,7 @@ enum ExtendedEventType {
 ## 6. Implementation Priorities & Roadmap
 
 ### Phase 1: Core Architecture Refactor (1-2 weeks)
-- Separate codebase into Driver App, BlackBox Core, and Engineer Dashboard
+- Separate codebase into Driver App, PitBox Core, and Engineer Dashboard
 - Establish clean API boundaries between components
 - Update data models and schemas for expanded features
 - Create deployment and development workflows for each component
@@ -285,7 +285,7 @@ enum ExtendedEventType {
 - Add driver identification system
 - Develop secure data transmission with compression
 
-### Phase 3: BlackBox Core Enhancement (3-4 weeks)
+### Phase 3: PitBox Core Enhancement (3-4 weeks)
 - Extend ML pipeline for predictive models
 - Implement incident detection system
 - Develop driver fatigue modeling

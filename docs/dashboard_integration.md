@@ -1,10 +1,10 @@
-# BlackBox Dashboard Integration
+# PitBox Dashboard Integration
 
-This document provides comprehensive information about the BlackBox Dashboard integration, including its architecture, components, and how to extend it for future development.
+This document provides comprehensive information about the PitBox Dashboard integration, including its architecture, components, and how to extend it for future development.
 
 ## Overview
 
-The BlackBox Dashboard is a React-based real-time telemetry visualization interface that connects to the BlackBox backend via WebSockets. It provides a modular, customizable interface for displaying telemetry data, AI coaching insights, track maps, competitor analysis, and more.
+The PitBox Dashboard is a React-based real-time telemetry visualization interface that connects to the PitBox backend via WebSockets. It provides a modular, customizable interface for displaying telemetry data, AI coaching insights, track maps, competitor analysis, and more.
 
 ## Architecture
 
@@ -42,7 +42,7 @@ dashboard/
 
 ## WebSocket Service
 
-The `WebSocketService` is a singleton that manages the WebSocket connection to the BlackBox backend. It handles:
+The `WebSocketService` is a singleton that manages the WebSocket connection to the PitBox backend. It handles:
 
 - Connection establishment and management
 - Event subscription and dispatching

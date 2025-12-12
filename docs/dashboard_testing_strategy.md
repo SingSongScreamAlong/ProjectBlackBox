@@ -1,6 +1,6 @@
 # Dashboard Testing Strategy
 
-This document outlines a comprehensive testing strategy for the ProjectBlackBox dashboard application, with special emphasis on multi-driver components and real-time data handling.
+This document outlines a comprehensive testing strategy for the ProjectPitBox dashboard application, with special emphasis on multi-driver components and real-time data handling.
 
 ## Current Testing Status
 
@@ -282,4 +282,4 @@ test('renders error boundary when component throws', async () => {
 
 ## Conclusion
 
-This testing strategy provides a comprehensive approach to ensuring the quality and reliability of the ProjectBlackBox dashboard, with special emphasis on the multi-driver components. By implementing this strategy, we can improve code quality, facilitate safe refactoring, and ensure that the application meets its requirements for real-time performance and reliability.
+This testing strategy provides a comprehensive approach to ensuring the quality and reliability of the ProjectPitBox dashboard, with special emphasis on the multi-driver components. By implementing this strategy, we can improve code quality, facilitate safe refactoring, and ensure that the application meets its requirements for real-time performance and reliability.

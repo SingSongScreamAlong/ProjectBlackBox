@@ -1,6 +1,6 @@
-# BlackBox Mock Server
+# PitBox Mock Server
 
-This is a simple mock server for testing the BlackBox Driver App. It provides a Socket.IO server that can receive telemetry data, video frames, and driver identification from the Driver App.
+This is a simple mock server for testing the PitBox Driver App. It provides a Socket.IO server that can receive telemetry data, video frames, and driver identification from the Driver App.
 
 ## Features
 
@@ -52,7 +52,7 @@ The server will run on port 3000 by default. You can change this by setting the 
 
 ## Testing
 
-You can test the server using the BlackBox Driver App or any Socket.IO client.
+You can test the server using the PitBox Driver App or any Socket.IO client.
 
 ## License
 

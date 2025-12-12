@@ -1,4 +1,4 @@
-# Deploying BlackBox Racing to DigitalOcean
+# Deploying PitBox Racing to DigitalOcean
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@
 
 1. Go to [DigitalOcean App Platform](https://cloud.digitalocean.com/apps)
 2. Click "Create App"
-3. Select your GitHub repo: `SingSongScreamAlong/ProjectBlackBox`
+3. Select your GitHub repo: `SingSongScreamAlong/ProjectPitBox`
 4. DigitalOcean will auto-detect the `.do/app.yaml` configuration
 5. Add your secrets in the App Settings:
    - `DATABASE_URL` - Will be auto-filled if using DO managed database
@@ -25,8 +25,8 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/SingSongScreamAlong/ProjectBlackBox.git
-cd ProjectBlackBox
+git clone https://github.com/SingSongScreamAlong/ProjectPitBox.git
+cd ProjectPitBox
 
 # Create .env file
 cp .env.example .env
@@ -54,7 +54,7 @@ docker-compose up -d
 ┌─────────────────────────────┴───────────────────────────────┐
 │                     Windows PC (User)                        │
 │  ┌─────────────────┐    ┌─────────────────────────────────┐ │
-│  │    iRacing      │◄──►│      BlackBox Relay Agent       │ │
+│  │    iRacing      │◄──►│      PitBox Relay Agent       │ │
 │  │   Simulator     │    │         (Python)                │ │
 │  └─────────────────┘    └─────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
@@ -100,7 +100,7 @@ python main.py
 
 Or use the pre-built executable:
 ```powershell
-BlackBox-Relay.exe --url https://your-app.ondigitalocean.app
+PitBox-Relay.exe --url https://your-app.ondigitalocean.app
 ```
 
 ## Monitoring

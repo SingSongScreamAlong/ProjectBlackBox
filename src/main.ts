@@ -3,7 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
 import { AppConfig } from './config/AppConfig';
-import { BlackBoxCore } from './core/BlackBoxCore';
+import { PitBoxCore } from './core/PitBoxCore';
 import { v4 as uuidv4 } from 'uuid';
 
 // Simple driver identification service
@@ -64,8 +64,8 @@ let isQuitting = false;
 // Load configuration
 AppConfig.load();
 
-// Initialize BlackBoxCore
-const blackBoxCore = BlackBoxCore.getInstance();
+// Initialize PitBoxCore
+const blackBoxCore = PitBoxCore.getInstance();
 
 const createWindow = (): void => {
   // Create the browser window.
@@ -98,7 +98,7 @@ const createWindow = (): void => {
 const createTrayIcon = (): void => {
   const iconPath = path.join(__dirname, '../assets/icons/tray-icon.png');
   tray = new Tray(iconPath);
-  tray.setToolTip('BlackBox Driver App');
+  tray.setToolTip('PitBox Driver App');
   
   const contextMenu = Menu.buildFromTemplate([
     { 
@@ -210,7 +210,7 @@ const createTray = (): void => {
     }
   ]);
   
-  tray.setToolTip('BlackBox Driver App');
+  tray.setToolTip('PitBox Driver App');
   tray.setContextMenu(contextMenu);
   
   tray.on('click', () => {
@@ -568,7 +568,7 @@ const stopTelemetry = async (): Promise<void> => {
 // Initialize services
 const initializeServices = async (): Promise<void> => {
   try {
-    // Initialize BlackBoxCore
+    // Initialize PitBoxCore
     await blackBoxCore.initialize();
     
     // Set up event listeners
@@ -604,7 +604,7 @@ const initializeServices = async (): Promise<void> => {
 // Update settings
 const updateSettings = async (settings: any): Promise<void> => {
   try {
-    // Update BlackBoxCore settings
+    // Update PitBoxCore settings
     blackBoxCore.updateSettings(settings);
     
     // Update config using the public update method
@@ -674,7 +674,7 @@ const updateDriver = async (driverData: any): Promise<void> => {
 // Delete driver profile
 const deleteDriver = async (driverData: any): Promise<void> => {
   try {
-    // Delete driver using BlackBoxCore
+    // Delete driver using PitBoxCore
     const success = blackBoxCore.deleteDriver(driverData.id);
 
     if (success) {
@@ -824,5 +824,5 @@ if (AppConfig.getAutoStart()) {
   blackBoxCore.start();
 }
 
-// Export BlackBoxCore for testing
+// Export PitBoxCore for testing
 export { blackBoxCore };

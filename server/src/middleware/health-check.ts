@@ -105,21 +105,21 @@ export class HealthCheckService {
         const memUsage = process.memoryUsage();
 
         const metrics = [
-            `# HELP blackbox_uptime_seconds Server uptime in seconds`,
-            `# TYPE blackbox_uptime_seconds gauge`,
-            `blackbox_uptime_seconds ${uptime}`,
+            `# HELP pitbox_uptime_seconds Server uptime in seconds`,
+            `# TYPE pitbox_uptime_seconds gauge`,
+            `pitbox_uptime_seconds ${uptime}`,
             ``,
-            `# HELP blackbox_memory_heap_used_bytes Heap memory used in bytes`,
-            `# TYPE blackbox_memory_heap_used_bytes gauge`,
-            `blackbox_memory_heap_used_bytes ${memUsage.heapUsed}`,
+            `# HELP pitbox_memory_heap_used_bytes Heap memory used in bytes`,
+            `# TYPE pitbox_memory_heap_used_bytes gauge`,
+            `pitbox_memory_heap_used_bytes ${memUsage.heapUsed}`,
             ``,
-            `# HELP blackbox_memory_heap_total_bytes Total heap memory in bytes`,
-            `# TYPE blackbox_memory_heap_total_bytes gauge`,
-            `blackbox_memory_heap_total_bytes ${memUsage.heapTotal}`,
+            `# HELP pitbox_memory_heap_total_bytes Total heap memory in bytes`,
+            `# TYPE pitbox_memory_heap_total_bytes gauge`,
+            `pitbox_memory_heap_total_bytes ${memUsage.heapTotal}`,
             ``,
-            `# HELP blackbox_memory_rss_bytes Resident set size in bytes`,
-            `# TYPE blackbox_memory_rss_bytes gauge`,
-            `blackbox_memory_rss_bytes ${memUsage.rss}`,
+            `# HELP pitbox_memory_rss_bytes Resident set size in bytes`,
+            `# TYPE pitbox_memory_rss_bytes gauge`,
+            `pitbox_memory_rss_bytes ${memUsage.rss}`,
             ``
         ];
 

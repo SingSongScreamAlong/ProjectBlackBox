@@ -41,7 +41,7 @@ The "one lap at a time" philosophy isn't just a tagline. It's a practice of stay
 The Ecosystem
 
 ### Body
-Everything in the okboxbox suite is designed to work together seamlessly. BlackBox handles the driver experience. ControlBox handles the league experience. Future modules will extend into coaching, telemetry analysis, team management, and beyond.
+Everything in the okboxbox suite is designed to work together seamlessly. PitBox handles the driver experience. ControlBox handles the league experience. Future modules will extend into coaching, telemetry analysis, team management, and beyond.
 
 One ecosystem. Many boxes. All racing.
 

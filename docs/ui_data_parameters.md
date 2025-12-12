@@ -1,7 +1,7 @@
 
-# ProjectBlackBox: UI Data Parameters and Visualization Points
+# ProjectPitBox: UI Data Parameters and Visualization Points
 
-This document provides a comprehensive list of all parameters and data points collected and displayed in the ProjectBlackBox system. Use this as a reference for UI prototyping and development.
+This document provides a comprehensive list of all parameters and data points collected and displayed in the ProjectPitBox system. Use this as a reference for UI prototyping and development.
 
 ## Table of Contents
 1. [Telemetry Data](#telemetry-data)
@@ -314,4 +314,4 @@ This document provides a comprehensive list of all parameters and data points co
 | AnimationStyle | Style of UI animations | Smooth transitions, Instant updates, Minimal animation |
 | InteractionModel | User interaction model | Click-based, Drag-and-drop, Touch-optimized |
 
-This document provides a comprehensive overview of the data parameters and visualization components in the ProjectBlackBox system. Use this as a reference for UI prototyping and development to ensure all necessary data points are properly represented in the user interface.
+This document provides a comprehensive overview of the data parameters and visualization components in the ProjectPitBox system. Use this as a reference for UI prototyping and development to ensure all necessary data points are properly represented in the user interface.

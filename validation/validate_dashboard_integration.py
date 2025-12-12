@@ -2,7 +2,7 @@
 """
 Dashboard Integration Validation Script
 
-This script validates the integration between the BlackBox backend and the React dashboard
+This script validates the integration between the PitBox backend and the React dashboard
 by simulating telemetry data and verifying that it's properly received by the WebSocket service.
 """
 

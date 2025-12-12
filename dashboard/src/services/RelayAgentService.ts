@@ -1,7 +1,7 @@
 import WebSocketService, { ConnectionType } from './WebSocketService';
 
 /**
- * Service for handling communication with the BlackBox Relay Agent and Cloud Backend
+ * Service for handling communication with the PitBox Relay Agent and Cloud Backend
  * This service connects to the relay agent's WebSocket server or cloud backend
  * and processes video frames and telemetry data
  */
@@ -22,7 +22,7 @@ interface RelayAgentConfig {
 export class RelayAgentService {
   private static instance: RelayAgentService;
   private isConnected: boolean = false;
-  private serverUrl: string = 'wss://blackbox.digitalocean.app/ws'; // Default to DigitalOcean cloud backend
+  private serverUrl: string = 'wss://pitbox.digitalocean.app/ws'; // Default to DigitalOcean cloud backend
   private localServerUrl: string = 'ws://localhost:8765'; // Local relay agent fallback
   private useCloudMode: boolean = true; // Default to cloud mode
   private reconnectInterval: number = 5000; // 5 seconds
@@ -65,7 +65,7 @@ export class RelayAgentService {
       this.serverUrl = url;
     } else {
       // Otherwise use the appropriate default URL based on mode
-      this.serverUrl = this.useCloudMode ? 'wss://blackbox.digitalocean.app/ws' : this.localServerUrl;
+      this.serverUrl = this.useCloudMode ? 'wss://pitbox.digitalocean.app/ws' : this.localServerUrl;
     }
     
     // Store token if provided
@@ -252,7 +252,7 @@ export class RelayAgentService {
         url: cloudData.url,
         // Add base URL if it's a relative path
         imageUrl: cloudData.url.startsWith('/') ? 
-          `https://blackbox.digitalocean.app${cloudData.url}` : 
+          `https://pitbox.digitalocean.app${cloudData.url}` : 
           cloudData.url
       };
     }

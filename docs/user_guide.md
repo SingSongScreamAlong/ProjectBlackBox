@@ -1,4 +1,4 @@
-# BlackBox Hybrid Cloud System - User Guide
+# PitBox Hybrid Cloud System - User Guide
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -13,7 +13,7 @@
 
 ## Introduction
 
-The BlackBox Hybrid Cloud System is a comprehensive telemetry and coaching platform for iRacing sim racing. It combines local data collection with cloud-based processing to provide real-time feedback, AI coaching, and team coordination features.
+The PitBox Hybrid Cloud System is a comprehensive telemetry and coaching platform for iRacing sim racing. It combines local data collection with cloud-based processing to provide real-time feedback, AI coaching, and team coordination features.
 
 ### Key Features
 
@@ -40,9 +40,9 @@ The BlackBox Hybrid Cloud System is a comprehensive telemetry and coaching platf
 
 #### Driver App (Windows)
 
-1. Download the latest installer from [GitHub Releases](https://github.com/SingSongScreamAlong/blackboxdriverapp/releases)
+1. Download the latest installer from [GitHub Releases](https://github.com/SingSongScreamAlong/pitboxdriverapp/releases)
 2. Run the installer and follow the prompts
-3. Launch BlackBox Driver App from your Start menu
+3. Launch PitBox Driver App from your Start menu
 4. Enter your API keys when prompted (if you have them)
 
 #### Dashboard (Any Platform)
@@ -173,18 +173,18 @@ The dashboard includes several performance monitoring tools:
 
 | Command | Action |
 |---------|--------|
-| "BlackBox, status" | Reports system status |
-| "BlackBox, lap time" | Reports current lap time |
-| "BlackBox, fuel status" | Reports fuel level and estimate |
-| "BlackBox, tire wear" | Reports tire condition |
-| "BlackBox, coach on/off" | Enables/disables AI coaching |
-| "BlackBox, request handoff" | Initiates driver handoff process |
-| "BlackBox, team message" | Records a message for the team |
-| "BlackBox, strategy" | Reports current race strategy |
+| "PitBox, status" | Reports system status |
+| "PitBox, lap time" | Reports current lap time |
+| "PitBox, fuel status" | Reports fuel level and estimate |
+| "PitBox, tire wear" | Reports tire condition |
+| "PitBox, coach on/off" | Enables/disables AI coaching |
+| "PitBox, request handoff" | Initiates driver handoff process |
+| "PitBox, team message" | Records a message for the team |
+| "PitBox, strategy" | Reports current race strategy |
 
 ### Using Voice Commands
 
-1. Voice recognition is always listening for the wake word "BlackBox"
+1. Voice recognition is always listening for the wake word "PitBox"
 2. Speak clearly and at a normal pace
 3. A tone will sound when a command is recognized
 4. Wait for the response before giving another command
@@ -231,13 +231,13 @@ The dashboard includes several performance monitoring tools:
 
 ### General Questions
 
-**Q: Is BlackBox compatible with other racing simulators?**
-A: Currently, BlackBox is optimized for iRacing. Support for other simulators is planned for future releases.
+**Q: Is PitBox compatible with other racing simulators?**
+A: Currently, PitBox is optimized for iRacing. Support for other simulators is planned for future releases.
 
 **Q: How much bandwidth does the system use?**
 A: The system typically uses 2-5 Mbps upload bandwidth during normal operation. Video streaming features may increase this requirement.
 
-**Q: Can I use BlackBox without the cloud features?**
+**Q: Can I use PitBox without the cloud features?**
 A: Yes, the system can operate in local-only mode with reduced functionality. AI coaching and some team features will be limited.
 
 ### Technical Questions
@@ -246,7 +246,7 @@ A: Yes, the system can operate in local-only mode with reduced functionality. AI
 A: The Driver App will automatically check for updates on startup. You can also manually check by going to Help > Check for Updates.
 
 **Q: Can I run multiple instances on the same network?**
-A: Yes, multiple drivers can use BlackBox on the same network. Each instance needs its own API keys for full functionality.
+A: Yes, multiple drivers can use PitBox on the same network. Each instance needs its own API keys for full functionality.
 
 **Q: How secure is my data?**
 A: All data transmission uses encrypted WebSocket connections. API keys are stored locally with encryption and never transmitted to other team members.
@@ -254,6 +254,6 @@ A: All data transmission uses encrypted WebSocket connections. API keys are stor
 ### Support
 
 For additional support:
-- **Documentation**: [https://blackbox.docs.singscream.com](https://blackbox.docs.singscream.com)
-- **GitHub Issues**: [https://github.com/SingSongScreamAlong/blackboxdriverapp/issues](https://github.com/SingSongScreamAlong/blackboxdriverapp/issues)
+- **Documentation**: [https://pitbox.docs.singscream.com](https://pitbox.docs.singscream.com)
+- **GitHub Issues**: [https://github.com/SingSongScreamAlong/pitboxdriverapp/issues](https://github.com/SingSongScreamAlong/pitboxdriverapp/issues)
 - **Email Support**: support@singscream.com

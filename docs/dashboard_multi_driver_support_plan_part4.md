@@ -518,7 +518,7 @@ export class MultiDriverTestDataGenerator {
 
 ## 10. Conclusion
 
-The multi-driver support implementation will significantly enhance the BlackBox platform's capabilities for team racing scenarios. By following this implementation plan, we will create a robust, performant, and user-friendly system that enables seamless driver handoffs, comparative analysis, and team coordination.
+The multi-driver support implementation will significantly enhance the PitBox platform's capabilities for team racing scenarios. By following this implementation plan, we will create a robust, performant, and user-friendly system that enables seamless driver handoffs, comparative analysis, and team coordination.
 
 Key success metrics for this implementation will include:
 - Smooth, lag-free performance when tracking multiple drivers

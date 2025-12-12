@@ -6,7 +6,7 @@ Complete guide to using ElevenLabs text-to-speech for professional race engineer
 
 ## 🎙️ Voice Profiles
 
-ProjectBlackBox includes **4 professional male voices** optimized for race engineering:
+ProjectPitBox includes **4 professional male voices** optimized for race engineering:
 
 ### 1. **Professional** (Default)
 - **Voice:** Adam
@@ -458,6 +458,6 @@ engineer.set_voice_profile('calm')  # Clearer enunciation
 
 ---
 
-**Created by:** BlackBox Voice Race Engineer
+**Created by:** PitBox Voice Race Engineer
 **ElevenLabs Integration:** Production Ready
 **Last Updated:** 2025-11-30

@@ -1,6 +1,6 @@
-at# BlackBox Driver App Development Guide
+at# PitBox Driver App Development Guide
 
-This guide provides instructions for setting up and developing the BlackBox Driver App.
+This guide provides instructions for setting up and developing the PitBox Driver App.
 
 > Note on archived code
 >
@@ -18,8 +18,8 @@ This guide provides instructions for setting up and developing the BlackBox Driv
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-org/blackbox.git
-   cd blackbox/driver_app
+   git clone https://github.com/your-org/pitbox.git
+   cd pitbox/driver_app
    ```
 
 2. Install dependencies:
@@ -105,8 +105,8 @@ The backend now persists sessions and telemetry to Postgres using TimescaleDB.
 
 ```sql
 -- In psql
-CREATE DATABASE blackbox_telemetry;
-\c blackbox_telemetry
+CREATE DATABASE pitbox_telemetry;
+\c pitbox_telemetry
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 ```
 
@@ -115,7 +115,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 Copy and edit `server/.env.example` to `server/.env`:
 
 ```
-PG_CONNECTION_STRING=postgres://postgres:postgres@localhost:5432/blackbox_telemetry
+PG_CONNECTION_STRING=postgres://postgres:postgres@localhost:5432/pitbox_telemetry
 ```
 
 ### Install server deps and run migrations
@@ -279,9 +279,9 @@ driver_app/
 
 ## API Integration
 
-### Connecting to BlackBox Core
+### Connecting to PitBox Core
 
-The Driver App communicates with BlackBox Core using WebSockets and REST APIs:
+The Driver App communicates with PitBox Core using WebSockets and REST APIs:
 
 1. WebSocket connection for real-time telemetry:
    ```typescript
@@ -333,9 +333,9 @@ To add support for a new simulator:
 - Enable debug logging:
   ```bash
   # Windows
-  set DEBUG=blackbox:*
+  set DEBUG=pitbox:*
   # macOS/Linux
-  export DEBUG=blackbox:*
+  export DEBUG=pitbox:*
   
   npm run dev
   ```

@@ -70,10 +70,10 @@ describe('Health Check Endpoints', () => {
                 .expect(200)
                 .expect('Content-Type', /text\/plain/);
 
-            expect(response.text).toContain('blackbox_uptime_seconds');
-            expect(response.text).toContain('blackbox_memory_heap_used_bytes');
-            expect(response.text).toContain('blackbox_memory_heap_total_bytes');
-            expect(response.text).toContain('blackbox_memory_rss_bytes');
+            expect(response.text).toContain('pitbox_uptime_seconds');
+            expect(response.text).toContain('pitbox_memory_heap_used_bytes');
+            expect(response.text).toContain('pitbox_memory_heap_total_bytes');
+            expect(response.text).toContain('pitbox_memory_rss_bytes');
         });
 
         it('should include metric types and help text', async () => {

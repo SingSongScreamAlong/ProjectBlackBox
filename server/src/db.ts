@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { Pool } from 'pg';
 
-const connectionString = process.env.PG_CONNECTION_STRING || process.env.DATABASE_URL || 'postgres://localhost:5432/blackbox_telemetry';
+const connectionString = process.env.PG_CONNECTION_STRING || process.env.DATABASE_URL || 'postgres://localhost:5432/pitbox_telemetry';
 
 // Debug: Log connection string (mask password)
 console.log('[DB] Connection string:', connectionString.replace(/:[^:@]+@/, ':***@'));

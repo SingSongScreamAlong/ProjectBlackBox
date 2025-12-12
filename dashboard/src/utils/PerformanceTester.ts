@@ -1,5 +1,5 @@
 /**
- * Performance testing utility for the BlackBox Dashboard
+ * Performance testing utility for the PitBox Dashboard
  * Helps automate performance testing and benchmarking
  */
 import { PerformanceMonitor } from './PerformanceMonitor';

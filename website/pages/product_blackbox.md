@@ -1,4 +1,4 @@
-# BlackBox Product Page
+# PitBox Product Page
 
 **Accent Color:** #E10600 (F1 Red)
 
@@ -7,7 +7,7 @@
 ## Hero Section
 
 ### Eyebrow
-BlackBox
+PitBox
 
 ### Headline
 Your AI Race Team. Every Lap.
@@ -37,10 +37,10 @@ Post-session analysis, driving technique feedback, and personalized improvement 
 
 ---
 
-## How BlackBox Works
+## How PitBox Works
 
 ### Step 1: Connect
-BlackBox connects to your sim via the relay agent, streaming real-time telemetry data.
+PitBox connects to your sim via the relay agent, streaming real-time telemetry data.
 
 ### Step 2: Analyze
 Our AI models process your inputs, track position, tire wear, fuel load, and race situation in real time.
@@ -56,7 +56,7 @@ Receive voice-activated guidance from your AI crew — ask questions, get strate
 Precision Engineering
 
 ### Body
-BlackBox combines a high-frequency telemetry pipeline, advanced AI models, and natural voice synthesis to deliver a race engineer experience that feels human. Every response is contextual. Every recommendation is data-driven.
+PitBox combines a high-frequency telemetry pipeline, advanced AI models, and natural voice synthesis to deliver a race engineer experience that feels human. Every response is contextual. Every recommendation is data-driven.
 
 ### Features
 - Real-time telemetry processing
@@ -68,7 +68,7 @@ BlackBox combines a high-frequency telemetry pipeline, advanced AI models, and n
 
 ## Video Demo Section
 
-**Placeholder:** Demo video showing BlackBox voice interaction during a race
+**Placeholder:** Demo video showing PitBox voice interaction during a race
 
 ---
 

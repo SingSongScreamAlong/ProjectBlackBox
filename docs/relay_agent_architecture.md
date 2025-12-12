@@ -1,10 +1,10 @@
-# BlackBox Relay Agent & Streaming System Architecture
+# PitBox Relay Agent & Streaming System Architecture
 
-This document outlines the architecture for the BlackBox Relay Agent, a lightweight client that enables drivers to automatically stream telemetry and video data to the ProjectBlackBox system.
+This document outlines the architecture for the PitBox Relay Agent, a lightweight client that enables drivers to automatically stream telemetry and video data to the ProjectPitBox system.
 
 ## System Overview
 
-The BlackBox Relay Agent is designed to be:
+The PitBox Relay Agent is designed to be:
 - Self-installing and auto-updating
 - Extremely lightweight with minimal performance impact
 - Zero-configuration for drivers
@@ -16,10 +16,10 @@ The BlackBox Relay Agent is designed to be:
 ```
 ┌─────────────────────────────────┐      ┌──────────────────────────────┐
 │                                 │      │                              │
-│    Driver PC                    │      │    BlackBox Backend          │
+│    Driver PC                    │      │    PitBox Backend          │
 │    ┌─────────────────────────┐  │      │    ┌────────────────────┐    │
 │    │                         │  │      │    │                    │    │
-│    │  BlackBox Relay Agent   │  │      │    │  Telemetry Ingest  │    │
+│    │  PitBox Relay Agent   │  │      │    │  Telemetry Ingest  │    │
 │    │  ┌─────────────────┐    │  │      │    │  Server            │    │
 │    │  │ Core Agent      │    │  │      │    │                    │    │
 │    │  └─────────────────┘    │  │      │    └────────────────────┘    │

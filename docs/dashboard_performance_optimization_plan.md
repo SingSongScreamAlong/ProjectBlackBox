@@ -1,6 +1,6 @@
 # Dashboard Performance Optimization Plan
 
-This document outlines the implementation plan for optimizing the BlackBox Dashboard's performance for real-time data handling, which is the highest priority improvement identified in the next-phase improvements document.
+This document outlines the implementation plan for optimizing the PitBox Dashboard's performance for real-time data handling, which is the highest priority improvement identified in the next-phase improvements document.
 
 ## Current Performance Assessment
 
@@ -362,6 +362,6 @@ export class ObjectPool<T> {
 
 ## Conclusion
 
-This performance optimization plan addresses the key areas that impact the BlackBox Dashboard's responsiveness and efficiency when handling real-time telemetry data. By implementing these optimizations, we expect to achieve significant improvements in rendering performance, CPU usage, and overall user experience, particularly during high-frequency data updates.
+This performance optimization plan addresses the key areas that impact the PitBox Dashboard's responsiveness and efficiency when handling real-time telemetry data. By implementing these optimizations, we expect to achieve significant improvements in rendering performance, CPU usage, and overall user experience, particularly during high-frequency data updates.
 
 The plan follows a systematic approach, targeting React component optimization, data processing, rendering efficiency, and memory management. Each optimization is designed to work together to create a smooth, responsive dashboard experience even under demanding racing conditions.

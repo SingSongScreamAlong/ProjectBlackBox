@@ -1,9 +1,9 @@
-# BlackBox Deployment Configuration
+# PitBox Deployment Configuration
 
 ## Environment Variables
 
 ```
-# BlackBox Droplet Deployment Configuration
+# PitBox Droplet Deployment Configuration
 
 # Database Configuration
 DB_PASSWORD=secure_random_password_here
@@ -41,13 +41,13 @@ CORS_ORIGIN=*
 
 3. Run deployment script:
    ```bash
-   cd /Users/conradweeden/ProjectBlackBox/deployment
+   cd /Users/conradweeden/ProjectPitBox/deployment
    ./droplet-deploy.sh
    ```
 
 4. Verify deployment:
    ```bash
-   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/blackbox && docker-compose ps"
+   ssh $DROPLET_USER@$DROPLET_IP "cd /opt/pitbox && docker-compose ps"
    ```
 
 5. Configure Driver App:
@@ -56,6 +56,6 @@ CORS_ORIGIN=*
 
 6. Test hybrid cloud connection:
    ```bash
-   cd /Users/conradweeden/ProjectBlackBox/dashboard
+   cd /Users/conradweeden/ProjectPitBox/dashboard
    npm run validate:hybrid-cloud
    ```

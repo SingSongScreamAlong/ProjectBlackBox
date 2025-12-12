@@ -1,8 +1,8 @@
-# BlackBox Droplet Deployment Guide
+# PitBox Droplet Deployment Guide
 
 ## 🚀 Quick Start for Your Existing Droplet
 
-Since you already have a DigitalOcean droplet, this is the simplest and most cost-effective way to deploy BlackBox.
+Since you already have a DigitalOcean droplet, this is the simplest and most cost-effective way to deploy PitBox.
 
 ### Prerequisites
 
@@ -14,7 +14,7 @@ Since you already have a DigitalOcean droplet, this is the simplest and most cos
 
 ```bash
 # Navigate to deployment directory
-cd /Users/conradweeden/ProjectBlackBox/deployment
+cd /Users/conradweeden/ProjectPitBox/deployment
 
 # Make deployment script executable
 chmod +x droplet-deploy.sh
@@ -35,7 +35,7 @@ This script will:
 - ✅ Test connection to your droplet
 - ✅ Install Docker and Docker Compose (if needed)
 - ✅ Copy all deployment files to your droplet
-- ✅ Start all BlackBox services
+- ✅ Start all PitBox services
 
 ### Step 3: Configure API Keys
 
@@ -46,7 +46,7 @@ After deployment, SSH to your droplet and configure your API keys:
 ssh root@68.183.18.151
 
 # Edit the configuration file
-cd /opt/blackbox
+cd /opt/pitbox
 nano .env
 ```
 
@@ -79,7 +79,7 @@ Your services will be available at:
 Test the connection:
 ```bash
 # From your local machine, test the hybrid cloud validator
-cd /Users/conradweeden/ProjectBlackBox/dashboard
+cd /Users/conradweeden/ProjectPitBox/dashboard
 npm run validate:hybrid-cloud
 ```
 
@@ -116,7 +116,7 @@ docker-compose up -d
 If you want to use a custom domain instead of the IP address:
 
 1. **Point your domain** to your droplet IP in your DNS settings
-2. **Update the configuration** in `/opt/blackbox/.env`:
+2. **Update the configuration** in `/opt/pitbox/.env`:
    ```bash
    DOMAIN=yourdomain.com
    ```

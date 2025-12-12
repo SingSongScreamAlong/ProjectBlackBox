@@ -1,5 +1,5 @@
 """
-BlackBox Relay Agent - Audio Pipeline
+PitBox Relay Agent - Audio Pipeline
 Handles Audio Rec -> Whisper Transcribe -> AI Agent -> TTS
 """
 import logging
@@ -175,7 +175,7 @@ class AudioPipeline:
         """Transcribe audio using OpenAI API directly (or via local if preferred)"""
         # For simplicity/speed, using OpenAI API directly here
         # or we could send audio blob to ai_agent if it supported it.
-        # Let's use OpenAI API locally for transcription as per run_blackbox structure
+        # Let's use OpenAI API locally for transcription as per run_pitbox structure
         
         if not self.openai_key:
             return None

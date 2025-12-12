@@ -1,6 +1,6 @@
 """
-BlackBox Relay Agent - Video Encoder
-Captures and streams SCREEN video frames to BlackBox Server
+PitBox Relay Agent - Video Encoder
+Captures and streams SCREEN video frames to PitBox Server
 """
 import base64
 import logging

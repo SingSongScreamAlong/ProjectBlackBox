@@ -1,4 +1,4 @@
-# ProjectBlackBox - iRacing Telemetry & AI Coaching Platform
+# ProjectPitBox - iRacing Telemetry & AI Coaching Platform
 
 **Status**: ✅ **Production Ready**  
 **Version**: 1.0.0  
@@ -8,7 +8,7 @@
 
 ## ⚡ Quick Start (For Users)
 
-**No API keys required!** BlackBox provides all AI services.
+**No API keys required!** PitBox provides all AI services.
 
 1. Download the latest release
 2. Run the application
@@ -20,12 +20,12 @@ The dashboard opens automatically at http://localhost:3001
 
 ## 🔧 Server Deployment (For Operators)
 
-If you're hosting your own BlackBox server:
+If you're hosting your own PitBox server:
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/YourUsername/ProjectBlackBox.git
-cd ProjectBlackBox
+git clone https://github.com/YourUsername/ProjectPitBox.git
+cd ProjectPitBox
 cp .env.example .env
 
 # 2. Add your API keys to .env
@@ -40,7 +40,7 @@ cp .env.example .env
 
 ## 🏎️ Overview
 
-ProjectBlackBox is a **hybrid cloud telemetry and AI coaching platform** for iRacing sim racing. It provides real-time telemetry analysis, AI-powered coaching feedback, and multi-driver team coordination capabilities.
+ProjectPitBox is a **hybrid cloud telemetry and AI coaching platform** for iRacing sim racing. It provides real-time telemetry analysis, AI-powered coaching feedback, and multi-driver team coordination capabilities.
 
 ### Key Features
 
@@ -84,12 +84,12 @@ ProjectBlackBox is a **hybrid cloud telemetry and AI coaching platform** for iRa
 
 ### For Drivers (Windows)
 Download portable executable - no installation required!
-- **GitHub Releases**: [Latest Release](https://github.com/YourUsername/ProjectBlackBox/releases)
-- **Direct Download**: `BlackBox-Racing-Portable.exe`
+- **GitHub Releases**: [Latest Release](https://github.com/YourUsername/ProjectPitBox/releases)
+- **Direct Download**: `PitBox-Racing-Portable.exe`
 
 ### For Everyone (Universal Dashboard)
 Access from any device via web browser:
-- **Dashboard URL**: `https://blackbox-racing.vercel.app`
+- **Dashboard URL**: `https://pitbox-racing.vercel.app`
 - **Works on**: Windows, macOS, iPad, iPhone, Android
 - **Install as App**: Add to home screen (PWA)
 
@@ -118,9 +118,9 @@ Access from any device via web browser:
 
 ### Windows (Recommended)
 
-1. Download the latest Windows installer (.exe) from the [Releases](https://github.com/SingSongScreamAlong/blackboxdriverapp/releases) page
+1. Download the latest Windows installer (.exe) from the [Releases](https://github.com/SingSongScreamAlong/pitboxdriverapp/releases) page
 2. Run the installer and follow the prompts
-3. Launch the BlackBox Driver App from your Start menu
+3. Launch the PitBox Driver App from your Start menu
 
 ### Building from Source
 
@@ -135,8 +135,8 @@ Access from any device via web browser:
 
 1. Clone this repository
    ```bash
-   git clone https://github.com/SingSongScreamAlong/blackboxdriverapp.git
-   cd blackboxdriverapp
+   git clone https://github.com/SingSongScreamAlong/pitboxdriverapp.git
+   cd pitboxdriverapp
    ```
 
 2. **Driver App Setup**:
@@ -221,7 +221,7 @@ Access from any device via web browser:
 ### Project Structure
 
 ```
-ProjectBlackBox/
+ProjectPitBox/
 ├── driver_app/          # Electron app for Windows
 │   ├── src/services/    # Core services (iRacing, WebSocket, AI, Voice)
 │   └── dist/           # Built application

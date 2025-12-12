@@ -1,5 +1,5 @@
 """
-BlackBox Relay Agent - Voice Recognition / PTT Handler
+PitBox Relay Agent - Voice Recognition / PTT Handler
 Handles Push-to-Talk triggers from Keyboard or Joystick/Wheel
 """
 import logging

@@ -1,7 +1,7 @@
 {
-  "name": "blackbox-api",
+  "name": "pitbox-api",
   "version": "1.0.0",
-  "description": "BlackBox API Server for telemetry data",
+  "description": "PitBox API Server for telemetry data",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

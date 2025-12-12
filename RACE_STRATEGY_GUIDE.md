@@ -709,6 +709,6 @@ avg_pit_time=55.0
 
 ---
 
-**Created by:** BlackBox Race Strategy Team
+**Created by:** PitBox Race Strategy Team
 **Last Updated:** 2025-11-30
 **Version:** 1.0 Production

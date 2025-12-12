@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the testing strategy for the ProjectBlackBox driver app's video capture functionality, with special consideration for cross-platform development and Windows-specific requirements.
+This document outlines the testing strategy for the ProjectPitBox driver app's video capture functionality, with special consideration for cross-platform development and Windows-specific requirements.
 
 ## Testing Environments
 
@@ -35,7 +35,7 @@ Complete validation must be performed on Windows with iRacing:
 ### Integration Tests
 
 - **Driver App ↔ Relay Agent**: Test WebSocket communication
-- **BlackBoxCore ↔ VideoCapture**: Test service integration
+- **PitBoxCore ↔ VideoCapture**: Test service integration
 - **Main Process ↔ Renderer**: Test IPC communication
 
 ### End-to-End Tests

@@ -65,7 +65,7 @@ engineer = VoiceRaceEngineer(
     elevenlabs_key="YOUR_ELEVENLABS_API_KEY"
 )
 
-# Connect to BlackBox server
+# Connect to PitBox server
 await engineer.connect_to_server("ws://localhost:4000/api/voice/stream?sessionId=SESSION_ID")
 
 # Start listening for driver commands
@@ -853,6 +853,6 @@ You now have a **professional voice race engineer** with:
 
 ---
 
-**Created by:** BlackBox Voice Race Engineer System
+**Created by:** PitBox Voice Race Engineer System
 **Version:** 1.0 Production
 **Last Updated:** 2025-11-30

@@ -12,9 +12,9 @@ Early adopters get lifetime benefits, predictable access, and influence over the
 
 ---
 
-## BlackBox Pricing
+## PitBox Pricing
 
-**Product:** BlackBox — AI Race Team  
+**Product:** PitBox — AI Race Team  
 **Accent:** #E10600
 
 ### Tier: Waitlist — $0
@@ -63,7 +63,7 @@ Early adopters get lifetime benefits, predictable access, and influence over the
 
 **CTA:** Join Waitlist
 
-**Note:** ControlBox pricing will follow a similar structure to BlackBox.
+**Note:** ControlBox pricing will follow a similar structure to PitBox.
 
 ---
 

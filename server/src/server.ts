@@ -319,7 +319,7 @@ app.get('/sessions/:id/telemetry', telemetryLimiter, authenticateToken, async (r
 // Start server
 server.listen(config.PORT, () => {
   console.log('='.repeat(60));
-  console.log('🚀 BlackBox Server Started');
+  console.log('🚀 PitBox Server Started');
   console.log('='.repeat(60));
   console.log(`Environment: ${config.NODE_ENV}`);
   console.log(`Server URL: ${config.SERVER_URL}`);

@@ -1,10 +1,10 @@
-# BlackBox Hybrid Cloud Migration Status
+# PitBox Hybrid Cloud Migration Status
 
-This document provides a status update on the migration of the BlackBox system to a hybrid cloud architecture using DigitalOcean as the cloud provider, with GradientAI for AI agent capabilities and ElevenLabs for voice integration.
+This document provides a status update on the migration of the PitBox system to a hybrid cloud architecture using DigitalOcean as the cloud provider, with GradientAI for AI agent capabilities and ElevenLabs for voice integration.
 
 ## Migration Overview
 
-The BlackBox hybrid cloud architecture consists of the following components:
+The PitBox hybrid cloud architecture consists of the following components:
 
 1. **Driver App (Local)** - Electron-based application running on the driver's Windows PC
 2. **Relay Agent (Cloud)** - Containerized service running on DigitalOcean that relays telemetry and video data

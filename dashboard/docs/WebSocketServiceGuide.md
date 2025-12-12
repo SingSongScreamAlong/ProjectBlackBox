@@ -2,7 +2,7 @@
 
 ## Overview
 
-The WebSocketService is a core component of the ProjectBlackBox dashboard that provides real-time communication capabilities. It supports both Socket.io and native WebSocket connections, enabling features like multi-driver collaboration, telemetry data streaming, and component validation.
+The WebSocketService is a core component of the ProjectPitBox dashboard that provides real-time communication capabilities. It supports both Socket.io and native WebSocket connections, enabling features like multi-driver collaboration, telemetry data streaming, and component validation.
 
 This guide explains how to use the WebSocketService securely and effectively, particularly in conjunction with the MultiDriverService for team collaboration features.
 

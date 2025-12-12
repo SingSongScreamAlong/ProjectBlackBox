@@ -44,7 +44,7 @@
 ### Accent Colors
 | Name | Hex | Usage |
 |------|-----|-------|
-| F1 Red | `#E10600` | BlackBox accent, CTAs, highlights |
+| F1 Red | `#E10600` | PitBox accent, CTAs, highlights |
 | Electric Blue | `#00A2FF` | ControlBox accent |
 
 ### Neutral Grays
@@ -55,7 +55,7 @@
 | Light Gray | `#CCCCCC` | Subtle text, dividers |
 
 ### Color Usage Rules
-- **BlackBox pages**: Use F1 Red (`#E10600`) as accent
+- **PitBox pages**: Use F1 Red (`#E10600`) as accent
 - **ControlBox pages**: Use Electric Blue (`#00A2FF`) as accent
 - **Global pages**: Use F1 Red as default accent
 - **Never** use both accents together on the same element
@@ -126,10 +126,10 @@ font-family: 'Inter', 'Helvetica Neue', -apple-system, sans-serif;
 
 ## Product Sub-Brands
 
-### BlackBox
+### PitBox
 | Element | Value |
 |---------|-------|
-| Full Name | BlackBox — AI Race Team |
+| Full Name | PitBox — AI Race Team |
 | Accent Color | `#E10600` (F1 Red) |
 | Icon Style | Solid, bold |
 | Tagline | "Your AI Race Team. Every Lap." |

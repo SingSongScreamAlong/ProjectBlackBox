@@ -144,4 +144,4 @@ After testing all components:
 
 ## Conclusion
 
-This test plan provides a structured approach to validating all dashboard components. By following this plan, we can ensure that each component renders correctly and responds appropriately to the data it receives, which is essential for the overall functionality of the BlackBox dashboard.
+This test plan provides a structured approach to validating all dashboard components. By following this plan, we can ensure that each component renders correctly and responds appropriately to the data it receives, which is essential for the overall functionality of the PitBox dashboard.

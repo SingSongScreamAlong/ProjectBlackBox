@@ -1,5 +1,5 @@
 /**
- * Rate Limiting Middleware for BlackBox Server
+ * Rate Limiting Middleware for PitBox Server
  * Protects API endpoints from abuse and DoS attacks
  */
 

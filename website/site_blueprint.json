@@ -19,9 +19,9 @@
                 "id": "products",
                 "children": [
                     {
-                        "label": "BlackBox",
-                        "path": "/products/blackbox",
-                        "id": "blackbox"
+                        "label": "PitBox",
+                        "path": "/products/pitbox",
+                        "id": "pitbox"
                     },
                     {
                         "label": "ControlBox",
@@ -98,7 +98,7 @@
             "title": "okboxbox — AI Systems for the Modern Racer",
             "slug": "/",
             "meta": {
-                "description": "okboxbox builds advanced AI systems for sim racers, leagues, and competitive teams. BlackBox elevates your driving. ControlBox transforms race control.",
+                "description": "okboxbox builds advanced AI systems for sim racers, leagues, and competitive teams. PitBox elevates your driving. ControlBox transforms race control.",
                 "keywords": [
                     "sim racing",
                     "AI",
@@ -119,7 +119,7 @@
                         },
                         {
                             "type": "subheadline",
-                            "content": "okboxbox builds advanced AI systems for sim racers, leagues, and competitive teams. BlackBox elevates your driving. ControlBox transforms race control."
+                            "content": "okboxbox builds advanced AI systems for sim racers, leagues, and competitive teams. PitBox elevates your driving. ControlBox transforms race control."
                         },
                         {
                             "type": "button-group",
@@ -150,12 +150,12 @@
                     "blocks": [
                         {
                             "type": "product-card",
-                            "id": "blackbox-card",
-                            "title": "BlackBox",
+                            "id": "pitbox-card",
+                            "title": "PitBox",
                             "subtitle": "AI Race Team",
                             "description": "Real-time strategist, engineer, spotter, and coach for every lap.",
-                            "link": "/products/blackbox",
-                            "icon": "blackbox-logo",
+                            "link": "/products/pitbox",
+                            "icon": "pitbox-logo",
                             "accentColor": "#E10600"
                         },
                         {
@@ -229,12 +229,12 @@
                 }
             ]
         },
-        "blackbox": {
-            "id": "blackbox",
-            "title": "BlackBox — Your AI Race Team",
-            "slug": "/products/blackbox",
+        "pitbox": {
+            "id": "pitbox",
+            "title": "PitBox — Your AI Race Team",
+            "slug": "/products/pitbox",
             "meta": {
-                "description": "BlackBox is your AI-powered race team: strategist, engineer, spotter, and coach — all powered by real-time telemetry and voice intelligence.",
+                "description": "PitBox is your AI-powered race team: strategist, engineer, spotter, and coach — all powered by real-time telemetry and voice intelligence.",
                 "keywords": [
                     "AI race engineer",
                     "sim racing AI",
@@ -250,7 +250,7 @@
                     "blocks": [
                         {
                             "type": "eyebrow",
-                            "content": "BlackBox"
+                            "content": "PitBox"
                         },
                         {
                             "type": "headline",
@@ -313,13 +313,13 @@
                 {
                     "id": "how-it-works",
                     "type": "steps-block",
-                    "heading": "How BlackBox Works",
+                    "heading": "How PitBox Works",
                     "blocks": [
                         {
                             "type": "step",
                             "number": 1,
                             "title": "Connect",
-                            "description": "BlackBox connects to your sim via the relay agent, streaming real-time telemetry data."
+                            "description": "PitBox connects to your sim via the relay agent, streaming real-time telemetry data."
                         },
                         {
                             "type": "step",
@@ -350,7 +350,7 @@
                         },
                         {
                             "type": "body-text",
-                            "content": "BlackBox combines a high-frequency telemetry pipeline, advanced AI models, and natural voice synthesis to deliver a race engineer experience that feels human. Every response is contextual. Every recommendation is data-driven."
+                            "content": "PitBox combines a high-frequency telemetry pipeline, advanced AI models, and natural voice synthesis to deliver a race engineer experience that feels human. Every response is contextual. Every recommendation is data-driven."
                         },
                         {
                             "type": "feature-list",
@@ -364,17 +364,17 @@
                     ],
                     "media": {
                         "type": "image-placeholder",
-                        "alt": "BlackBox technology diagram"
+                        "alt": "PitBox technology diagram"
                     }
                 },
                 {
                     "id": "demo",
                     "type": "video-block",
-                    "heading": "See BlackBox in Action",
+                    "heading": "See PitBox in Action",
                     "blocks": [
                         {
                             "type": "video-placeholder",
-                            "description": "Demo video showing BlackBox voice interaction during a race"
+                            "description": "Demo video showing PitBox voice interaction during a race"
                         }
                     ]
                 },
@@ -589,7 +589,7 @@
             "title": "Roadmap — okboxbox Development Timeline",
             "slug": "/roadmap",
             "meta": {
-                "description": "Track the development progress of BlackBox, ControlBox, and the entire okboxbox ecosystem.",
+                "description": "Track the development progress of PitBox, ControlBox, and the entire okboxbox ecosystem.",
                 "keywords": [
                     "roadmap",
                     "development",
@@ -627,7 +627,7 @@
                             "status": "active",
                             "period": "Now",
                             "items": [
-                                "Base systems build-out for BlackBox + ControlBox",
+                                "Base systems build-out for PitBox + ControlBox",
                                 "Early tester onboarding",
                                 "Voice + telemetry integration",
                                 "Core feedback loop established"
@@ -639,7 +639,7 @@
                             "status": "upcoming",
                             "period": "Q1 2025",
                             "items": [
-                                "Stable BlackBox core functionality",
+                                "Stable PitBox core functionality",
                                 "ControlBox initial incident engine",
                                 "Dashboard prototypes",
                                 "Expanded sim support research"
@@ -651,7 +651,7 @@
                             "status": "upcoming",
                             "period": "Q2 2025",
                             "items": [
-                                "Advanced strategy features in BlackBox",
+                                "Advanced strategy features in PitBox",
                                 "Rulebook Engine in ControlBox",
                                 "Web telemetry dashboard",
                                 "Team management tools"
@@ -663,7 +663,7 @@
                             "status": "upcoming",
                             "period": "Q3 2025",
                             "items": [
-                                "Full BlackBox team roles",
+                                "Full PitBox team roles",
                                 "Complete ControlBox incident suite",
                                 "Analytics and sponsor tools",
                                 "Community features"
@@ -722,7 +722,7 @@
             "title": "Pricing — okboxbox Products",
             "slug": "/pricing",
             "meta": {
-                "description": "Early adopter pricing for BlackBox and ControlBox. Join now for lifetime benefits.",
+                "description": "Early adopter pricing for PitBox and ControlBox. Join now for lifetime benefits.",
                 "keywords": [
                     "pricing",
                     "subscription",
@@ -746,9 +746,9 @@
                     ]
                 },
                 {
-                    "id": "blackbox-pricing",
+                    "id": "pitbox-pricing",
                     "type": "pricing-table",
-                    "heading": "BlackBox",
+                    "heading": "PitBox",
                     "subheading": "AI Race Team",
                     "accentColor": "#E10600",
                     "blocks": [
@@ -847,7 +847,7 @@
                             }
                         }
                     ],
-                    "note": "ControlBox pricing will follow a similar structure to BlackBox."
+                    "note": "ControlBox pricing will follow a similar structure to PitBox."
                 },
                 {
                     "id": "cta",
@@ -948,7 +948,7 @@
                         },
                         {
                             "type": "body-text",
-                            "content": "Everything in the okboxbox suite is designed to work together seamlessly. BlackBox handles the driver experience. ControlBox handles the league experience. Future modules will extend into coaching, telemetry analysis, team management, and beyond."
+                            "content": "Everything in the okboxbox suite is designed to work together seamlessly. PitBox handles the driver experience. ControlBox handles the league experience. Future modules will extend into coaching, telemetry analysis, team management, and beyond."
                         },
                         {
                             "type": "body-text",
@@ -979,7 +979,7 @@
             "title": "Join okboxbox",
             "slug": "/join",
             "meta": {
-                "description": "Join BlackBox, ControlBox, or the full okboxbox ecosystem. Start your engines.",
+                "description": "Join PitBox, ControlBox, or the full okboxbox ecosystem. Start your engines.",
                 "keywords": [
                     "signup",
                     "waitlist",
@@ -998,7 +998,7 @@
                         },
                         {
                             "type": "subheadline",
-                            "content": "Join BlackBox, ControlBox, or the full okboxbox ecosystem."
+                            "content": "Join PitBox, ControlBox, or the full okboxbox ecosystem."
                         }
                     ]
                 },
@@ -1028,8 +1028,8 @@
                             "required": true,
                             "options": [
                                 {
-                                    "value": "blackbox",
-                                    "label": "BlackBox — AI Race Team"
+                                    "value": "pitbox",
+                                    "label": "PitBox — AI Race Team"
                                 },
                                 {
                                     "value": "controlbox",

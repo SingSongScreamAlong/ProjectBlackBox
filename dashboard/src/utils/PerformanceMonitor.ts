@@ -1,5 +1,5 @@
 /**
- * Performance monitoring utility for the BlackBox Dashboard
+ * Performance monitoring utility for the PitBox Dashboard
  * Helps measure rendering performance and detect performance issues
  */
 

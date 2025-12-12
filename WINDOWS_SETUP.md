@@ -1,9 +1,9 @@
-# BlackBox Driver App - Windows Setup Guide
+# PitBox Driver App - Windows Setup Guide
 
 ## 🚀 Quick Start (5 Minutes)
 
 ### Step 1: Download the Project
-1. Go to: https://github.com/yourusername/ProjectBlackBox
+1. Go to: https://github.com/yourusername/ProjectPitBox
 2. Click the green **"Code"** button
 3. Click **"Download ZIP"**
 4. Extract the ZIP file to your Desktop or Documents folder
@@ -17,7 +17,7 @@ You need Node.js to build and run the app:
 4. **Restart your computer** after installation
 
 ### Step 3: Build and Run the App
-1. **Navigate** to the extracted ProjectBlackBox folder
+1. **Navigate** to the extracted ProjectPitBox folder
 2. **Double-click** one of these files:
    - `build-and-run-windows.bat` (for Command Prompt)
    - `build-and-run-windows.ps1` (for PowerShell - may require execution policy change)
@@ -26,7 +26,7 @@ The script will automatically:
 - ✅ Check if Node.js is installed
 - ✅ Install all dependencies
 - ✅ Build the TypeScript code
-- ✅ Start the BlackBox Driver App
+- ✅ Start the PitBox Driver App
 - ✅ Connect to your cloud server at `64.227.28.10:8765`
 
 ## 🎮 Using with iRacing
@@ -34,7 +34,7 @@ The script will automatically:
 Once the app is running:
 1. **Start iRacing** on your PC
 2. **Join a session** (practice, qualifying, or race)
-3. **BlackBox will automatically detect** iRacing and start collecting telemetry
+3. **PitBox will automatically detect** iRacing and start collecting telemetry
 4. **Your cloud server** will receive the data and provide AI analysis
 5. **Team members** can monitor your performance via the web dashboard
 
@@ -50,7 +50,7 @@ The app is pre-configured to connect to your cloud server, but you can modify se
 ## 📁 File Structure
 
 ```
-ProjectBlackBox/
+ProjectPitBox/
 ├── build-and-run-windows.bat    ← Double-click this (Command Prompt)
 ├── build-and-run-windows.ps1    ← Or this (PowerShell)
 ├── driver_app/                  ← Main application folder
@@ -65,7 +65,7 @@ ProjectBlackBox/
 If you prefer to build manually:
 
 ```bash
-# Open Command Prompt or PowerShell in the ProjectBlackBox folder
+# Open Command Prompt or PowerShell in the ProjectPitBox folder
 cd driver_app
 npm install
 npm run build
@@ -102,7 +102,7 @@ If you get an execution policy error with the `.ps1` file:
 ### App Won't Connect to iRacing
 - Make sure iRacing is running and you're in a session
 - Check that the app shows "Connected to iRacing" in the status
-- Try restarting both iRacing and the BlackBox app
+- Try restarting both iRacing and the PitBox app
 
 ### Cloud Connection Issues
 - Verify your internet connection
@@ -124,4 +124,4 @@ Once the driver app is running:
 - **Check your cloud dashboard** - team members can see your performance
 - **AI analysis** will provide real-time coaching feedback
 
-Your BlackBox system is now complete and operational! 🏁
+Your PitBox system is now complete and operational! 🏁

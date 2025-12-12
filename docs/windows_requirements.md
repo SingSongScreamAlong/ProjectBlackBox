@@ -1,8 +1,8 @@
-# Windows Requirements for ProjectBlackBox
+# Windows Requirements for ProjectPitBox
 
 ## Overview
 
-This document outlines the Windows-specific requirements for the ProjectBlackBox driver app and relay agent. Since iRacing is a Windows-only application, the driver app must be fully compatible with Windows operating systems to capture and process telemetry data from iRacing.
+This document outlines the Windows-specific requirements for the ProjectPitBox driver app and relay agent. Since iRacing is a Windows-only application, the driver app must be fully compatible with Windows operating systems to capture and process telemetry data from iRacing.
 
 ## Driver App Windows Requirements
 

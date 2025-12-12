@@ -54,7 +54,7 @@ try {
 
 // Configuration
 const LOCAL_RELAY_URL = 'ws://localhost:8765';
-const CLOUD_BACKEND_URL = 'wss://blackbox.digitalocean.app/ws';
+const CLOUD_BACKEND_URL = 'wss://pitbox.digitalocean.app/ws';
 const TEST_JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJuYW1lIjoiVGVzdCBVc2VyIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
 // Test data handlers

@@ -1,5 +1,5 @@
 """
-BlackBox PTT Binder
+PitBox PTT Binder
 Interactive tool to bind Push-to-Talk keys/buttons by pressing them.
 """
 import sys
@@ -20,7 +20,7 @@ except ImportError:
     sys.exit(1)
 
 # Manually load/save settings to avoid complex import dependencies if run from subdir
-CONFIG_DIR = Path.home() / '.projectblackbox'
+CONFIG_DIR = Path.home() / '.projectpitbox'
 CONFIG_FILE = CONFIG_DIR / 'settings.json'
 
 def load_settings():
@@ -89,7 +89,7 @@ def bind_joystick():
 
 def main():
     print("="*60)
-    print("🎙️  BlackBox PTT Binder")
+    print("🎙️  PitBox PTT Binder")
     print("="*60)
     print("1. Bind Keyboard Key")
     print("2. Bind Joystick/Wheel Button")

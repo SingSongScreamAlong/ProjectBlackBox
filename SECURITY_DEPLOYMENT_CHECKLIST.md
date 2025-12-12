@@ -1,4 +1,4 @@
-# 🔒 Security Deployment Checklist - iRacing BlackBox
+# 🔒 Security Deployment Checklist - iRacing PitBox
 
 **Before deploying to production, complete ALL items in this checklist.**
 
@@ -27,7 +27,7 @@ JWT_SECRET=<generate with: openssl rand -hex 32>
 # MINIMUM 32 characters - server will REJECT weak secrets in production
 
 # Database
-DATABASE_URL=postgresql://user:password@host:5432/blackbox
+DATABASE_URL=postgresql://user:password@host:5432/pitbox
 PG_CONNECTION_STRING=<same as DATABASE_URL>
 
 # AI Services
@@ -326,16 +326,16 @@ curl -H "Authorization: Bearer invalid_token" \
 **Logs to Watch**:
 ```bash
 # Authentication failures
-grep "401 Unauthorized" /var/log/blackbox/access.log
+grep "401 Unauthorized" /var/log/pitbox/access.log
 
 # Rate limit hits
-grep "429 Too Many Requests" /var/log/blackbox/access.log
+grep "429 Too Many Requests" /var/log/pitbox/access.log
 
 # SQL injection attempts
-grep "SQL injection" /var/log/blackbox/error.log
+grep "SQL injection" /var/log/pitbox/error.log
 
 # Database errors
-grep "Database error" /var/log/blackbox/error.log
+grep "Database error" /var/log/pitbox/error.log
 ```
 
 ---

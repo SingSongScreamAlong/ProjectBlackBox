@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-produ
 const token = sign(
     {
         id: uuidv4(),
-        email: 'admin@blackbox.com',
+        email: 'admin@pitbox.com',
         role: 'admin'
     },
     JWT_SECRET,

@@ -33,7 +33,7 @@ class DatabaseManager:
         
         Args:
             connection_string: PostgreSQL connection string
-                Example: postgresql://user:pass@localhost:5432/blackbox
+                Example: postgresql://user:pass@localhost:5432/pitbox
         """
         self.engine = create_engine(
             connection_string,
@@ -420,7 +420,7 @@ class DatabaseManager:
 # Example usage
 if __name__ == '__main__':
     # Initialize database
-    db = DatabaseManager('postgresql://user:pass@localhost:5432/blackbox')
+    db = DatabaseManager('postgresql://user:pass@localhost:5432/pitbox')
     
     # Create tables
     db.create_tables()

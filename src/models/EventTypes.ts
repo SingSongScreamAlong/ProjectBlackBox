@@ -1,5 +1,5 @@
 /**
- * Event types for WebSocket communication between Driver App and BlackBox Core
+ * Event types for WebSocket communication between Driver App and PitBox Core
  */
 export enum EventType {
   // Connection events

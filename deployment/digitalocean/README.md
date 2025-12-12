@@ -1,10 +1,10 @@
-# DigitalOcean Deployment for BlackBox
+# DigitalOcean Deployment for PitBox
 
-This directory contains configuration files and instructions for deploying the BlackBox hybrid cloud architecture to DigitalOcean.
+This directory contains configuration files and instructions for deploying the PitBox hybrid cloud architecture to DigitalOcean.
 
 ## Architecture Overview
 
-The BlackBox hybrid cloud architecture consists of the following components:
+The PitBox hybrid cloud architecture consists of the following components:
 
 1. **Cloud Backend (DigitalOcean App Platform)**
    - Relay Agent Service: Processes and distributes telemetry and video data
@@ -103,4 +103,4 @@ Update the deployed application:
 
 ### Support
 
-For additional support, please contact the BlackBox development team.
+For additional support, please contact the PitBox development team.

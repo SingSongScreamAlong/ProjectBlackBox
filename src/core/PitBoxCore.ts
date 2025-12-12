@@ -1,5 +1,5 @@
 /**
- * BlackBoxCore - Main integration module for the Driver App
+ * PitBoxCore - Main integration module for the Driver App
  * 
  * This module coordinates the various services and provides a unified API
  * for the main process to interact with the core functionality.
@@ -14,10 +14,10 @@ import { SessionManager, Session, SessionType, SessionStatus } from '../models/S
 import { TelemetryData } from '../models/TelemetryData';
 
 /**
- * BlackBoxCore class - Main integration module for the Driver App
+ * PitBoxCore class - Main integration module for the Driver App
  */
-export class BlackBoxCore extends EventEmitter {
-  private static instance: BlackBoxCore;
+export class PitBoxCore extends EventEmitter {
+  private static instance: PitBoxCore;
   private telemetryService: TelemetryService;
   private dataTransmissionService: DataTransmissionService;
   private driverService: DriverIdentificationService;
@@ -61,13 +61,13 @@ export class BlackBoxCore extends EventEmitter {
   }
 
   /**
-   * Get the BlackBoxCore instance (singleton)
+   * Get the PitBoxCore instance (singleton)
    */
-  public static getInstance(): BlackBoxCore {
-    if (!BlackBoxCore.instance) {
-      BlackBoxCore.instance = new BlackBoxCore();
+  public static getInstance(): PitBoxCore {
+    if (!PitBoxCore.instance) {
+      PitBoxCore.instance = new PitBoxCore();
     }
-    return BlackBoxCore.instance;
+    return PitBoxCore.instance;
   }
 
   /**
@@ -78,7 +78,7 @@ export class BlackBoxCore extends EventEmitter {
       return;
     }
     
-    console.log('Initializing BlackBoxCore...');
+    console.log('Initializing PitBoxCore...');
     
     // Initialize services
     await this.driverService.initialize();
@@ -98,7 +98,7 @@ export class BlackBoxCore extends EventEmitter {
     
     this.initialized = true;
     this.emit('initialized');
-    console.log('BlackBoxCore initialized');
+    console.log('PitBoxCore initialized');
   }
 
   /**
@@ -181,11 +181,11 @@ export class BlackBoxCore extends EventEmitter {
    */
   public start(): boolean {
     if (!this.initialized) {
-      console.error('BlackBoxCore not initialized');
+      console.error('PitBoxCore not initialized');
       return false;
     }
     
-    console.log('Starting BlackBoxCore services...');
+    console.log('Starting PitBoxCore services...');
     
     // Start telemetry service
     const telemetryStarted = this.telemetryService.start();
@@ -197,7 +197,7 @@ export class BlackBoxCore extends EventEmitter {
     // Connect to server - using internal method to access private connect method
     this.dataTransmissionService.reconnect();
     
-    console.log('BlackBoxCore services started');
+    console.log('PitBoxCore services started');
     this.emit('started');
     
     return true;
@@ -207,7 +207,7 @@ export class BlackBoxCore extends EventEmitter {
    * Stop all services
    */
   public stop(): void {
-    console.log('Stopping BlackBoxCore services...');
+    console.log('Stopping PitBoxCore services...');
     
     // Stop telemetry service
     this.telemetryService.stop();
@@ -215,7 +215,7 @@ export class BlackBoxCore extends EventEmitter {
     // Disconnect from server
     this.dataTransmissionService.disconnect();
     
-    console.log('BlackBoxCore services stopped');
+    console.log('PitBoxCore services stopped');
     this.emit('stopped');
   }
 
@@ -338,7 +338,7 @@ export class BlackBoxCore extends EventEmitter {
   }
 
   /**
-   * Check if BlackBoxCore is initialized
+   * Check if PitBoxCore is initialized
    */
   public isInitialized(): boolean {
     return this.initialized;
