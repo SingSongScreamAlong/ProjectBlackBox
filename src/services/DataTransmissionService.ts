@@ -39,17 +39,17 @@ export class DataTransmissionService extends EventEmitter {
   public initialize(serverUrl: string): void {
     console.log(`Initializing DataTransmissionService with server: ${serverUrl}`);
     this.serverUrl = serverUrl;
-    
+
     // Load configuration
     this.compressionEnabled = AppConfig.getCompressionEnabled() || true;
-    
+
     // Initialize compression options
     this.compressionOptions = {
       level: AppConfig.getCompressionLevel() || CompressionLevel.MEDIUM,
       threshold: AppConfig.getCompressionThreshold() || 1024,
       batchSize: AppConfig.getBatchSize() || 10
     };
-    
+
     // Initialize data compression utility
     this.dataCompression = new DataCompression(this.compressionOptions);
     this.batchingEnabled = AppConfig.getBatchingEnabled() || false;
@@ -57,7 +57,7 @@ export class DataTransmissionService extends EventEmitter {
     this.batchInterval = AppConfig.getBatchInterval() || 1000;
     this.maxOfflineBufferSize = AppConfig.getMaxOfflineBufferSize() || 1000;
     this.authToken = AppConfig.getAuthToken() || null;
-    
+
     // Connect to server
     this.connect();
   }
@@ -70,17 +70,17 @@ export class DataTransmissionService extends EventEmitter {
       this.socket.close();
       this.socket = null;
     }
-    
+
     try {
       console.log(`Connecting to server: ${this.serverUrl}`);
-      
+
       // Create socket.io connection
       this.socket = io(this.serverUrl, {
         reconnection: false, // We'll handle reconnection ourselves
         auth: this.authToken ? { token: this.authToken } : undefined,
         transports: ['websocket']
       });
-      
+
       // Set up event listeners
       this.socket.on('connect', () => {
         console.log('Connected to PitBox Core server');
@@ -88,58 +88,62 @@ export class DataTransmissionService extends EventEmitter {
         this.reconnectAttempts = 0;
         this.fallbackMode = false;
         this.emit('connected');
-        
+
         // Send any buffered data
         this.sendOfflineBuffer();
       });
-      
+
       this.socket.on('disconnect', (reason: string) => {
         console.log(`Disconnected from server: ${reason}`);
         this.connected = false;
         this.emit('disconnected', reason);
-        
-        // Attempt to reconnect
-        this.scheduleReconnect();
+
+        // Only attempt to reconnect if disconnect was NOT initiated by client
+        // 'io client disconnect' = client called disconnect()
+        // 'io server disconnect' = server kicked us
+        if (reason !== 'io client disconnect') {
+          this.scheduleReconnect();
+        }
       });
-      
+
       this.socket.on('connect_error', (error: Error) => {
         console.error('Connection error:', error);
         this.connected = false;
         this.emit('error', error);
-        
+
         // Attempt to reconnect
         this.scheduleReconnect();
       });
-      
+
       // Custom events from server
       this.socket.on('server_config', (config: any) => {
         console.log('Received server configuration:', config);
         this.emit('server_config', config);
-        
+
         // Update configuration based on server settings
         if (config.compressionEnabled !== undefined) {
           this.compressionEnabled = config.compressionEnabled;
         }
-        
+
         if (config.batchingEnabled !== undefined) {
           this.batchingEnabled = config.batchingEnabled;
-          
+
           if (this.batchingEnabled && !this.batchTimer) {
             this.startBatching();
           } else if (!this.batchingEnabled && this.batchTimer) {
             this.stopBatching();
           }
         }
-        
+
         if (config.fallbackMode !== undefined) {
           this.fallbackMode = config.fallbackMode;
         }
       });
-      
+
       this.socket.on('ping', () => {
         this.socket?.emit('pong', { timestamp: Date.now() });
       });
-      
+
     } catch (err) {
       console.error('Error connecting to server:', err);
       this.emit('error', err);
@@ -154,13 +158,13 @@ export class DataTransmissionService extends EventEmitter {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
     }
-    
+
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       const delay = Math.min(this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts), 60000);
-      
+
       console.log(`Scheduling reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
-      
+
       this.reconnectTimer = setTimeout(() => {
         this.connect();
       }, delay);
@@ -179,17 +183,17 @@ export class DataTransmissionService extends EventEmitter {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    
+
     if (this.batchTimer) {
       clearInterval(this.batchTimer);
       this.batchTimer = null;
     }
-    
+
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
     }
-    
+
     this.connected = false;
   }
 
@@ -200,14 +204,14 @@ export class DataTransmissionService extends EventEmitter {
   public sendTelemetry(data: TelemetryData): void {
     if (this.batchingEnabled) {
       this.batchedData.push(data);
-      
+
       if (this.batchedData.length >= this.batchSize) {
         this.sendBatch();
       }
-      
+
       return;
     }
-    
+
     this.sendData('telemetry', data);
   }
 
@@ -218,7 +222,7 @@ export class DataTransmissionService extends EventEmitter {
     if (this.batchTimer) {
       return;
     }
-    
+
     this.batchTimer = setInterval(() => {
       if (this.batchedData.length > 0) {
         this.sendBatch();
@@ -234,7 +238,7 @@ export class DataTransmissionService extends EventEmitter {
       clearInterval(this.batchTimer);
       this.batchTimer = null;
     }
-    
+
     // Send any remaining batched data
     if (this.batchedData.length > 0) {
       this.sendBatch();
@@ -248,10 +252,10 @@ export class DataTransmissionService extends EventEmitter {
     if (this.batchedData.length === 0) {
       return;
     }
-    
+
     const batch = [...this.batchedData];
     this.batchedData = [];
-    
+
     this.sendData('telemetry_batch', batch);
   }
 
@@ -265,18 +269,18 @@ export class DataTransmissionService extends EventEmitter {
       console.log('Not connected, cannot send data');
       return;
     }
-    
+
     try {
       if (this.compressionEnabled) {
         // Use the DataCompression utility for optimized compression
         const compressedData = await this.dataCompression.compressTelemetry(data);
-        
+
         // Send data with compression header (header byte indicates if compressed)
-        this.socket.emit(eventType, { 
-          optimized: true, 
+        this.socket.emit(eventType, {
+          optimized: true,
           data: compressedData.toString('base64')
         });
-        
+
         // Log compression stats in debug mode
         if (process.env.DEBUG) {
           const originalSize = JSON.stringify(data).length;
@@ -290,7 +294,7 @@ export class DataTransmissionService extends EventEmitter {
       }
     } catch (error) {
       console.error('Error sending data:', error);
-      
+
       // Fallback to uncompressed data in case of compression error
       try {
         this.socket.emit(eventType, { optimized: false, data });
@@ -308,7 +312,7 @@ export class DataTransmissionService extends EventEmitter {
     // Only buffer if it's a single telemetry data point
     if (!Array.isArray(data)) {
       this.offlineBuffer.push(data);
-      
+
       // Limit buffer size
       if (this.offlineBuffer.length > this.maxOfflineBufferSize) {
         this.offlineBuffer.shift();
@@ -323,21 +327,21 @@ export class DataTransmissionService extends EventEmitter {
     if (this.offlineBuffer.length === 0) {
       return;
     }
-    
+
     console.log(`Sending ${this.offlineBuffer.length} buffered data points`);
-    
+
     // Send in batches to avoid overwhelming the connection
     const batchSize = 50;
     const batches = Math.ceil(this.offlineBuffer.length / batchSize);
-    
+
     for (let i = 0; i < batches; i++) {
       const start = i * batchSize;
       const end = Math.min(start + batchSize, this.offlineBuffer.length);
       const batch = this.offlineBuffer.slice(start, end);
-      
+
       this.sendData('telemetry_batch', batch);
     }
-    
+
     // Clear the buffer
     this.offlineBuffer = [];
   }
@@ -349,7 +353,7 @@ export class DataTransmissionService extends EventEmitter {
   public updateServerUrl(serverUrl: string): void {
     if (this.serverUrl !== serverUrl) {
       this.serverUrl = serverUrl;
-      
+
       // Reconnect with new URL
       this.disconnect();
       this.connect();
@@ -376,7 +380,7 @@ export class DataTransmissionService extends EventEmitter {
   public getServerUrl(): string {
     return this.serverUrl;
   }
-  
+
   /**
    * Public method to reconnect to the server
    */
@@ -399,23 +403,23 @@ export class DataTransmissionService extends EventEmitter {
           timeout: 5000,
           forceNew: true
         });
-        
+
         // Set up event handlers
         tempSocket.on('connect', () => {
           tempSocket.disconnect();
           resolve(true);
         });
-        
+
         tempSocket.on('connect_error', () => {
           tempSocket.disconnect();
           resolve(false);
         });
-        
+
         tempSocket.on('connect_timeout', () => {
           tempSocket.disconnect();
           resolve(false);
         });
-        
+
         // Set timeout for connection attempt
         setTimeout(() => {
           if (tempSocket) {
@@ -429,76 +433,76 @@ export class DataTransmissionService extends EventEmitter {
       }
     });
   }
-  
+
   /**
    * Update service settings
    * @param settings New settings
    */
   public updateSettings(settings: any): void {
     if (!settings) return;
-    
+
     // Update server URL if provided
     if (settings.serverUrl) {
       this.updateServerUrl(settings.serverUrl);
     }
-    
+
     // Update compression settings if provided
     if (settings.compressionEnabled !== undefined) {
       this.compressionEnabled = settings.compressionEnabled;
     }
-    
+
     // Update compression options if provided
-    const compressionOptionsUpdated = 
+    const compressionOptionsUpdated =
       settings.compressionLevel !== undefined ||
       settings.compressionThreshold !== undefined;
-    
+
     if (settings.compressionLevel !== undefined) {
       this.compressionOptions.level = settings.compressionLevel;
     }
-    
+
     if (settings.compressionThreshold !== undefined) {
       this.compressionOptions.threshold = settings.compressionThreshold;
     }
-    
+
     // Update compression utility if options changed
     if (compressionOptionsUpdated) {
       this.dataCompression.setOptions(this.compressionOptions);
     }
-    
+
     // Update batching settings if provided
     if (settings.batchingEnabled !== undefined) {
       this.batchingEnabled = settings.batchingEnabled;
-      
+
       if (this.batchingEnabled && !this.batchTimer) {
         this.startBatching();
       } else if (!this.batchingEnabled && this.batchTimer) {
         this.stopBatching();
       }
     }
-    
+
     if (settings.batchSize !== undefined) {
       this.batchSize = settings.batchSize;
     }
-    
+
     if (settings.batchInterval !== undefined) {
       this.batchInterval = settings.batchInterval;
-      
+
       // Restart batching with new interval if active
       if (this.batchingEnabled && this.batchTimer) {
         this.stopBatching();
         this.startBatching();
       }
     }
-    
+
     // Update offline buffer size if provided
     if (settings.maxOfflineBufferSize !== undefined) {
       this.maxOfflineBufferSize = settings.maxOfflineBufferSize;
     }
-    
+
     // Update auth token if provided
     if (settings.authToken !== undefined) {
       this.authToken = settings.authToken;
-      
+
       // Reconnect with new auth token if connected
       if (this.connected) {
         this.disconnect();

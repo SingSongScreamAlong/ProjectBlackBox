@@ -26,16 +26,17 @@ export class IRacingAdapter extends SimAdapter {
   protected connected: boolean = false;
   private lastTelemetryUpdate: number = 0;
   private useRealSdk: boolean = false;
-  
+
   // iRacing SDK instance
   private irsdkInstance: any = null;
   private sessionInfo: any = null;
-  
+  private lastRawTelemetry: any = null; // Store telemetry data from event callback
+
   // Driver metrics tracking
   private _lastThrottle: number = 0;
   private _lastBrake: number = 0;
-  private _trackPositions: Array<{x: number, y: number}> = [];
-  
+  private _trackPositions: Array<{ x: number, y: number }> = [];
+
   // Mock telemetry data structure (used when real SDK is not available)
   private mockTelemetry: TelemetryData = {
     sessionId: 'mock-session-123',
@@ -114,17 +115,17 @@ export class IRacingAdapter extends SimAdapter {
   constructor() {
     super();
     this.simName = 'iRacing';
-    
+
     // Determine if we can use the real SDK
     this.useRealSdk = typeof irsdk !== 'undefined';
-    
+
     if (this.useRealSdk) {
       console.log('IRacingAdapter initialized with real SDK');
     } else {
       console.log('IRacingAdapter initialized with mock data (SDK not available)');
     }
   }
-  
+
   /**
    * Connect to iRacing
    * @returns boolean indicating if connection was successful
@@ -141,11 +142,11 @@ export class IRacingAdapter extends SimAdapter {
     }).catch(err => {
       console.error('Connection error:', err);
     });
-    
+
     // Return true to indicate connection process has started
     return true;
   }
-  
+
   /**
    * Handle the async connection process
    */
@@ -159,52 +160,68 @@ export class IRacingAdapter extends SimAdapter {
 
       if (this.useRealSdk) {
         try {
+          console.log('Attempting to connect to iRacing via node-irsdk...');
+
           // Create a new instance of the iRacing SDK
           this.irsdkInstance = irsdk.getInstance();
-          
+
           // Configure the SDK
           const opts = {
             telemetryUpdateInterval: 10  // 10ms (100Hz) telemetry update interval
           };
-          
+
+          // Set a timeout - if SDK doesn't connect in 5 seconds, fall back to mock
+          const connectionTimeout = setTimeout(() => {
+            if (!this.connected) {
+              console.log('iRacing SDK connection timeout - SDK may not be working properly');
+              console.log('Falling back to mock data mode for testing...');
+              this.useRealSdk = false;
+              this.connectWithMockData().then(resolve).catch(reject);
+            }
+          }, 5000);
+
           // Set up event handlers
           this.irsdkInstance.on('Connected', () => {
-            console.log('Connected to iRacing');
+            clearTimeout(connectionTimeout);
+            console.log('Connected to iRacing via SDK!');
             this.connected = true;
             this.lastTelemetryUpdate = Date.now();
-            
+
             // Start the connection check interval
             this.connectionCheckInterval = setInterval(() => {
               this.checkConnection();
             }, 5000);
-            
+
             // Start the session info update interval
             this.sessionInfoInterval = setInterval(() => {
               this.sessionInfo = this.irsdkInstance.getSessionInfo();
             }, 1000);
-            
+
             // Set up telemetry update handler
             this.irsdkInstance.on('Telemetry', (data: any) => {
               this.lastTelemetryUpdate = Date.now();
+              this.lastRawTelemetry = data; // Store the raw telemetry from event
               this.emit('telemetry', this.getTelemetryData());
             });
-            
+
             this.emit('connected');
             resolve(true);
           });
-          
+
           // Handle disconnection
           this.irsdkInstance.on('Disconnected', () => {
             console.log('Disconnected from iRacing');
             this.connected = false;
             this.emit('disconnected');
           });
-          
+
           // Start the SDK
+          console.log('Starting iRacing SDK...');
           this.irsdkInstance.start();
+          console.log('iRacing SDK started, waiting for Connected event...');
         } catch (err) {
           console.error('Failed to connect to iRacing:', err);
-          
+
           // Fall back to mock data
           this.useRealSdk = false;
           this.connectWithMockData().then(resolve).catch(reject);
@@ -215,28 +232,28 @@ export class IRacingAdapter extends SimAdapter {
       }
     });
   }
-  
+
   /**
    * Connect using mock data (fallback when SDK is not available)
    */
   private connectWithMockData(): Promise<boolean> {
     return new Promise((resolve) => {
       console.log('Connecting to iRacing (mock)...');
-      
+
       // Simulate connection after a short delay
       setTimeout(() => {
         this.connected = true;
         this.emit('connected');
         console.log('Connected to iRacing (mock)');
-        
+
         // Start sending mock telemetry updates
         this.startMockTelemetryUpdates();
-        
+
         resolve(true);
       }, 500);
     });
   }
-  
+
   /**
    * Disconnect from iRacing
    */
@@ -249,28 +266,28 @@ export class IRacingAdapter extends SimAdapter {
       }
 
       console.log('Disconnecting from iRacing...');
-      
+
       // Clear all intervals
       if (this.updateInterval) {
         clearInterval(this.updateInterval);
         this.updateInterval = null;
       }
-      
+
       if (this.mockDataInterval) {
         clearInterval(this.mockDataInterval);
         this.mockDataInterval = null;
       }
-      
+
       if (this.sessionInfoInterval) {
         clearInterval(this.sessionInfoInterval);
         this.sessionInfoInterval = null;
       }
-      
+
       if (this.connectionCheckInterval) {
         clearInterval(this.connectionCheckInterval);
         this.connectionCheckInterval = null;
       }
-      
+
       // Shutdown the iRacing SDK if we're using it
       if (this.useRealSdk && this.irsdkInstance) {
         try {
@@ -279,16 +296,16 @@ export class IRacingAdapter extends SimAdapter {
           console.error('Error shutting down iRacing SDK:', err);
         }
       }
-      
+
       // Set connected state to false
       this.connected = false;
       this.emit('disconnected');
-      
+
       console.log('Disconnected from iRacing');
       resolve(true);
     });
   }
-  
+
   /**
    * Start sending mock telemetry updates
    */
@@ -296,27 +313,27 @@ export class IRacingAdapter extends SimAdapter {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
-    
+
     // Update mock data every 500ms to simulate changing values
     this.mockDataInterval = setInterval(() => {
       this.updateMockData();
     }, 500);
-    
+
     // Send telemetry updates every 100ms
     this.updateInterval = setInterval(() => {
       if (!this.connected) return;
-      
+
       // Clone the mock telemetry to avoid reference issues
       const telemetry = { ...this.mockTelemetry };
-      
+
       // Update timestamp
       telemetry.timestamp = Date.now();
-      
+
       // Emit telemetry update
       this.emit('telemetry', telemetry);
     }, 100);
   }
-  
+
   /**
    * Update mock data with realistic changes
    */
@@ -324,11 +341,11 @@ export class IRacingAdapter extends SimAdapter {
     // Update speed (random fluctuation)
     this.mockTelemetry.speed += (Math.random() * 4) - 2;
     this.mockTelemetry.speed = Math.max(0, Math.min(300, this.mockTelemetry.speed));
-    
+
     // Update RPM (random fluctuation)
     this.mockTelemetry.rpm += (Math.random() * 200) - 100;
     this.mockTelemetry.rpm = Math.max(1000, Math.min(8000, this.mockTelemetry.rpm));
-    
+
     // Update throttle/brake (occasional changes)
     if (Math.random() > 0.9) {
       if (this.mockTelemetry.throttle > 0.5) {
@@ -339,11 +356,11 @@ export class IRacingAdapter extends SimAdapter {
         this.mockTelemetry.brake = Math.max(0, this.mockTelemetry.brake - 0.1);
       }
     }
-    
+
     // Update steering (random fluctuation)
     this.mockTelemetry.steering += (Math.random() * 0.1) - 0.05;
     this.mockTelemetry.steering = Math.max(-1, Math.min(1, this.mockTelemetry.steering));
-    
+
     // Update lap time (increment)
     this.mockTelemetry.lapTime += 0.1;
     if (this.mockTelemetry.lapTime > 90) {
@@ -351,7 +368,7 @@ export class IRacingAdapter extends SimAdapter {
       this.mockTelemetry.lap += 1;
       this.mockTelemetry.lastLapTime = this.mockTelemetry.lapTime;
       this.mockTelemetry.lapTime = 0;
-      
+
       // Random chance of a better lap
       if (Math.random() > 0.7) {
         const newBestLap = this.mockTelemetry.lastLapTime - (Math.random() * 0.5);
@@ -360,35 +377,39 @@ export class IRacingAdapter extends SimAdapter {
         }
       }
     }
-    
+
     // Update fuel (decrease slowly)
     this.mockTelemetry.fuel.level -= 0.02;
     if (this.mockTelemetry.fuel.level < 0) {
       this.mockTelemetry.fuel.level = this.mockTelemetry.fuel.capacity;
     }
-    
+
     // Update estimated laps remaining
-    this.mockTelemetry.fuel.estimatedLapsRemaining = 
+    this.mockTelemetry.fuel.estimatedLapsRemaining =
       this.mockTelemetry.fuel.level / this.mockTelemetry.fuel.usagePerLap;
   }
-  
+
   /**
    * Get the current telemetry data from iRacing
    */
   public getTelemetryData(): TelemetryData | null {
+    // For mock mode, return mock telemetry
+    if (!this.useRealSdk && this.connected) {
+      return { ...this.mockTelemetry, timestamp: Date.now() };
+    }
+
     if (!this.connected || !this.irsdkInstance) {
       return null;
     }
-    
+
     try {
-      // Get the latest telemetry data from the iRacing SDK
-      const irData = this.irsdkInstance.getTelemetry();
-      
+      // Use stored telemetry data from event callback
+      const irData = this.lastRawTelemetry;
+
       if (!irData) {
-        console.warn('No telemetry data available from iRacing');
         return null;
       }
-      
+
       // Map the iRacing telemetry data to our TelemetryData model
       const telemetryData: TelemetryData = {
         sessionId: `ir-${Date.now()}`,
@@ -492,7 +513,7 @@ export class IRacingAdapter extends SimAdapter {
           trackGrip: this.calculateTrackGrip(irData)
         }
       };
-      
+
       return telemetryData;
     } catch (err) {
       console.error('Error getting telemetry data:', err);
@@ -500,17 +521,17 @@ export class IRacingAdapter extends SimAdapter {
       return null;
     }
   }
-  
+
   /**
    * Check if the connection to iRacing is still active
    */
   private checkConnection(): void {
     // Check if we're still connected to iRacing by checking the time since the last telemetry update
     // If it's been more than 5 seconds, consider the connection lost
-    
+
     const now = Date.now();
     const timeSinceLastUpdate = now - this.lastTelemetryUpdate;
-    
+
     // If we haven't received telemetry data in 10 seconds, consider the connection lost
     if (this.connected && timeSinceLastUpdate > 10000) {
       this.connected = false;
@@ -518,7 +539,7 @@ export class IRacingAdapter extends SimAdapter {
       console.log('Lost connection to iRacing');
     }
   }
-  
+
   /**
    * Helper methods for processing iRacing telemetry data
    */
@@ -528,24 +549,24 @@ export class IRacingAdapter extends SimAdapter {
     const inner = irData[`${tire}innerTemp`] || 0;
     const middle = irData[`${tire}middleTemp`] || 0;
     const outer = irData[`${tire}outerTemp`] || 0;
-    
+
     return (inner + middle + outer) / 3;
   }
-  
+
   private getSectorFromPosition(irData: any): number {
     // Determine the current sector based on track position
     const lapDistPct = irData.LapDistPct;
-    
+
     if (lapDistPct < 0.33) return 1;
     if (lapDistPct < 0.66) return 2;
     return 3;
   }
-  
+
   private getCurrentSectorTime(irData: any): number {
     // Extract the current sector time from iRacing data
     // This is a simplified implementation
     const sector = this.getSectorFromPosition(irData);
-    
+
     if (sector === 1) return irData.LapCurrentLapTime;
     if (sector === 2) {
       const sector1Time = irData.LapLastSector1 || 0;
@@ -556,66 +577,66 @@ export class IRacingAdapter extends SimAdapter {
       const sector2Time = irData.LapLastSector2 || 0;
       return irData.LapCurrentLapTime - (sector1Time + sector2Time);
     }
-    
+
     return 0;
   }
-  
+
   private getBestSectorTimes(): number[] {
     // Return the best sector times from the session info
     if (!this.sessionInfo || !this.sessionInfo.DriverInfo) {
       return [0, 0, 0];
     }
-    
+
     const driverIdx = this.sessionInfo.DriverInfo.DriverCarIdx;
     const driver = this.sessionInfo.DriverInfo.Drivers.find((d: any) => d.CarIdx === driverIdx);
-    
+
     if (!driver) return [0, 0, 0];
-    
+
     return [
       driver.BestSector1 || 0,
       driver.BestSector2 || 0,
       driver.BestSector3 || 0
     ];
   }
-  
+
   private calculateGapAhead(irData: any): number {
     // Calculate the gap to the car ahead
     // This is a simplified implementation
     return irData.CarIdxDistance ? Math.abs(irData.CarIdxDistance[irData.CarIdxPosition - 1] || 0) : 0;
   }
-  
+
   private calculateGapBehind(irData: any): number {
     // Calculate the gap to the car behind
     // This is a simplified implementation
     return irData.CarIdxDistance ? Math.abs(irData.CarIdxDistance[irData.CarIdxPosition + 1] || 0) : 0;
   }
-  
+
   private calculateFuelUsagePerLap(irData: any): number {
     // Calculate fuel usage per lap based on recent consumption
     // This is a simplified implementation
     const fuelUsedLastLap = irData.FuelUsePerHour / 60 * (irData.LapLastLapTime / 60);
     return fuelUsedLastLap > 0 ? fuelUsedLastLap : 2.0; // Default to 2.0 if no data
   }
-  
+
   private calculateEstimatedLapsRemaining(irData: any): number {
     // Calculate estimated laps remaining based on fuel level and usage
     const fuelUsagePerLap = this.calculateFuelUsagePerLap(irData);
     return fuelUsagePerLap > 0 ? Math.floor(irData.FuelLevel / fuelUsagePerLap) : 0;
   }
-  
+
   private calculateDriverSmoothness(irData: any): number {
     // Calculate driver smoothness based on input variations
     // This is a simplified implementation using throttle/brake transitions
     const throttleChange = Math.abs(irData.ThrottleRaw - (this._lastThrottle || 0));
     const brakeChange = Math.abs(irData.BrakeRaw - (this._lastBrake || 0));
-    
+
     this._lastThrottle = irData.ThrottleRaw;
     this._lastBrake = irData.BrakeRaw;
-    
+
     // Lower changes = higher smoothness (0-1 scale)
     return Math.max(0, Math.min(1, 1 - (throttleChange + brakeChange) / 2));
   }
-  
+
   private calculateDriverAggression(irData: any): number {
     // Calculate driver aggression based on inputs and g-forces
     // This is a simplified implementation
@@ -623,28 +644,28 @@ export class IRacingAdapter extends SimAdapter {
     const brakeApplication = irData.BrakeRaw;
     const lateralG = Math.abs(irData.LatAccel);
     const longitudinalG = Math.abs(irData.LongAccel);
-    
+
     // Higher values = higher aggression (0-1 scale)
     return Math.max(0, Math.min(1, (throttleApplication + brakeApplication + lateralG / 5 + longitudinalG / 5) / 2.4));
   }
-  
+
   private calculateDriverPrecision(irData: any): number {
     // Calculate driver precision based on line consistency
     // This is a simplified implementation using track position variance
     if (!this._trackPositions) this._trackPositions = [];
-    
+
     // Store track positions at regular intervals
     const currentPos = { x: irData.VelocityX, y: irData.VelocityY };
     this._trackPositions.push(currentPos);
-    
+
     // Keep only the last 100 positions
     if (this._trackPositions.length > 100) {
       this._trackPositions.shift();
     }
-    
+
     // Not enough data points yet
     if (this._trackPositions.length < 10) return 0.5;
-    
+
     // Calculate variance in track position
     // Lower variance = higher precision (0-1 scale)
     let totalVariance = 0;
@@ -653,21 +674,21 @@ export class IRacingAdapter extends SimAdapter {
       const pos = this._trackPositions[i];
       totalVariance += Math.sqrt(Math.pow(pos.x - prevPos.x, 2) + Math.pow(pos.y - prevPos.y, 2));
     }
-    
+
     const avgVariance = totalVariance / this._trackPositions.length;
     return Math.max(0, Math.min(1, 1 - avgVariance / 10));
   }
-  
+
   private calculateTrackGrip(irData: any): number {
     // Calculate track grip based on weather conditions
     // This is a simplified implementation
     const baseGrip = 0.9; // Base grip level
     const tempFactor = Math.max(0, Math.min(1, (irData.TrackTemp - 10) / 40)); // Optimal temp around 30°C
     const rainFactor = irData.SessionFlags & 0x10000 ? 0.7 : 1.0; // Reduce grip if raining
-    
+
     return baseGrip * tempFactor * rainFactor;
   }
-  
+
   /**
    * Generate mock telemetry data for testing when iRacing is not available
    */
@@ -676,7 +697,7 @@ export class IRacingAdapter extends SimAdapter {
     const now = Date.now();
     const lapProgress = (now % 90000) / 90000; // 90-second lap time
     const speed = 200 + Math.sin(lapProgress * Math.PI * 2) * 50; // Speed varies between 150-250 km/h
-    
+
     return {
       simName: this.simName,
       sessionId: 'mock-session',

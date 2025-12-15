@@ -4,17 +4,18 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { AppConfig } from './config/AppConfig';
 import { PitBoxCore } from './core/PitBoxCore';
+import { PythonRelayService } from './services/PythonRelayService';
 import { v4 as uuidv4 } from 'uuid';
 
 // Simple driver identification service
 class DriverIdentificationService {
   private drivers: any[] = [];
   private currentDriver: any = null;
-  
+
   getAllDrivers(): any[] {
     return this.drivers;
   }
-  
+
   getCurrentDriver(): any {
     return this.currentDriver;
   }
@@ -23,11 +24,11 @@ class DriverIdentificationService {
 // Simple data transmission service
 class DataTransmissionService {
   private serverUrl: string = '';
-  
+
   getServerUrl(): string {
     return this.serverUrl;
   }
-  
+
   testConnection(url: string): Promise<any> {
     return Promise.resolve({ connected: true });
   }
@@ -67,6 +68,10 @@ AppConfig.load();
 // Initialize PitBoxCore
 const blackBoxCore = PitBoxCore.getInstance();
 
+// Initialize Python Relay Service for iRacing telemetry
+const pythonRelayService = new PythonRelayService();
+pythonRelayService.initialize(AppConfig.getServerUrl());
+
 const createWindow = (): void => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -77,7 +82,7 @@ const createWindow = (): void => {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    show: false, // Hide window by default (runs in background)
+    show: true, // Show window by default
     icon: path.join(__dirname, '../resources/icon.png'),
   });
 
@@ -99,33 +104,33 @@ const createTrayIcon = (): void => {
   const iconPath = path.join(__dirname, '../assets/icons/tray-icon.png');
   tray = new Tray(iconPath);
   tray.setToolTip('PitBox Driver App');
-  
+
   const contextMenu = Menu.buildFromTemplate([
-    { 
-      label: 'Show', 
+    {
+      label: 'Show',
       click: () => {
         if (mainWindow) {
           mainWindow.show();
         }
-      } 
+      }
     },
-    { 
-      label: 'Start Telemetry', 
-      click: () => blackBoxCore.startTelemetry() 
+    {
+      label: 'Start Telemetry',
+      click: () => blackBoxCore.startTelemetry()
     },
-    { 
-      label: 'Stop Telemetry', 
-      click: () => blackBoxCore.stopTelemetry() 
+    {
+      label: 'Stop Telemetry',
+      click: () => blackBoxCore.stopTelemetry()
     },
     { type: 'separator' },
-    { 
-      label: 'Quit', 
-      click: () => app.quit() 
+    {
+      label: 'Quit',
+      click: () => app.quit()
     }
   ]);
-  
+
   tray.setContextMenu(contextMenu);
-  
+
   tray.on('click', () => {
     if (mainWindow) {
       mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
@@ -141,9 +146,9 @@ const createTray = (): void => {
       path.join(app.getAppPath(), 'resources/tray-icon.png'),
       path.join(app.getPath('exe'), '../resources/tray-icon.png')
     ];
-    
+
     let iconPath = '';
-    
+
     // Find the first path that exists
     for (const testPath of possibleIconPaths) {
       if (fs.existsSync(testPath)) {
@@ -152,7 +157,7 @@ const createTray = (): void => {
         break;
       }
     }
-    
+
     if (iconPath) {
       // Create the tray icon with the found path
       const icon = nativeImage.createFromPath(iconPath);
@@ -167,33 +172,33 @@ const createTray = (): void => {
     // Create a simple empty tray icon as fallback
     tray = new Tray(nativeImage.createEmpty());
   }
-  
+
   const contextMenu = Menu.buildFromTemplate([
-    { 
-      label: 'Show App', 
+    {
+      label: 'Show App',
       click: () => {
         mainWindow?.show();
       }
     },
-    { 
+    {
       label: 'Status: Connected',
       enabled: false
     },
     { type: 'separator' },
-    { 
+    {
       label: 'Start Telemetry',
       click: () => {
         blackBoxCore.startTelemetry();
       }
     },
-    { 
+    {
       label: 'Stop Telemetry',
       click: () => {
         blackBoxCore.stopTelemetry();
       }
     },
     { type: 'separator' },
-    { 
+    {
       label: 'Settings',
       click: () => {
         mainWindow?.show();
@@ -201,18 +206,18 @@ const createTray = (): void => {
       }
     },
     { type: 'separator' },
-    { 
-      label: 'Quit', 
+    {
+      label: 'Quit',
       click: () => {
         isQuitting = true;
         app.quit();
       }
     }
   ]);
-  
+
   tray.setToolTip('PitBox Driver App');
   tray.setContextMenu(contextMenu);
-  
+
   tray.on('click', () => {
     if (mainWindow?.isVisible()) {
       mainWindow.hide();
@@ -221,7 +226,7 @@ const createTray = (): void => {
     }
   });
   ipcMain.on('close-window', () => mainWindow?.close());
-  
+
   // File system
   ipcMain.on('open-log-directory', () => {
     const logPath = path.join(app.getPath('userData'), 'logs');
@@ -231,139 +236,61 @@ const createTray = (): void => {
     nativeImage.createFromPath(path.join(__dirname, '../resources/icon.png')).toDataURL();
     shell.openPath(logPath);
   });
-  
-  // Invoke handlers (promise-based)
-  ipcMain.handle('get-config', async () => {
-    return AppConfig.getAll();
-  });
-  
-  ipcMain.handle('get-drivers', async () => {
-    return driverIdentificationService.getAllDrivers();
-  });
-  
-  ipcMain.handle('get-current-driver', async () => {
-    return driverIdentificationService.getCurrentDriver();
-  });
-  
-  // Get app version info
-  ipcMain.handle('get-version', async () => {
-    return {
-      app: app.getVersion(),
-      electron: process.versions.electron,
-      chrome: process.versions.chrome,
-      node: process.versions.node,
-      platform: process.platform,
-      arch: (process as ProcessExtended).arch,
-      version: (process as ProcessExtended).version
-    };
-  });
-  
-  ipcMain.handle('get-system-info', async () => {
-    return {
-      platform: process.platform,
-      arch: (process as ProcessExtended).arch,
-      version: (process as ProcessExtended).version,
-      electronVersion: process.versions.electron,
-      chromeVersion: process.versions.chrome,
-      userDataPath: app.getPath('userData')
-    };
-  });
-  
-  ipcMain.on('stop-telemetry', async (event: any) => {
-    try {
-      await stopTelemetry();
-      event.reply('telemetry-status', { running: false });
-    } catch (error: any) {
-      console.error('Error stopping telemetry:', error);
-      const status = blackBoxCore.getStatus();
-      event.reply('telemetry-status', { 
-        running: status.isRunning, 
-        error: error.message 
-      });
-    }
-  });
-  
-  // Remove video capture IPC handlers
-  // Video capture disabled for lightweight iRacing-only build
-  
-  ipcMain.on('update-settings', async (event: any, settings: any) => {
-    try {
-      await updateSettings(settings);
-      event.reply('settings-updated', { success: true });
-    } catch (error: any) {
-      console.error('Error updating settings:', error);
-      event.reply('settings-updated', { 
-        success: false, 
-        error: error.message 
-      });
-    }
-  });
-  
-  ipcMain.on('reset-settings', async (event: any) => {
-    try {
-      await resetSettings();
-      event.reply('settings-updated', { success: true });
-    } catch (error: any) {
-      console.error('Error resetting settings:', error);
-      event.reply('settings-updated', { 
-        success: false, 
-        error: error.message 
-      });
-    }
-  });
-  
+
+  // IPC handlers moved to registerIpcHandlers()
+
   ipcMain.on('create-driver', async (event: any, driverData: any) => {
     try {
       await createDriver(driverData);
       event.reply('driver-created', { success: true });
     } catch (error: any) {
       console.error('Error creating driver:', error);
-      event.reply('driver-created', { 
-        success: false, 
-        error: error.message 
+      event.reply('driver-created', {
+        success: false,
+        error: error.message
       });
     }
   });
-  
+
   ipcMain.on('update-driver', async (event: any, driverData: any) => {
     try {
       await updateDriver(driverData);
       event.reply('driver-updated', { success: true });
     } catch (error: any) {
       console.error('Error updating driver:', error);
-      event.reply('driver-updated', { 
-        success: false, 
-        error: error.message 
+      event.reply('driver-updated', {
+        success: false,
+        error: error.message
       });
     }
   });
-  
+
   ipcMain.on('delete-driver', async (event: any, driverData: any) => {
     try {
       await deleteDriver(driverData);
       event.reply('driver-deleted', { success: true });
     } catch (error: any) {
       console.error('Error deleting driver:', error);
-      event.reply('driver-deleted', { 
-        success: false, 
-        error: error.message 
+      event.reply('driver-deleted', {
+        success: false,
+        error: error.message
       });
     }
   });
-  
+
   ipcMain.on('select-driver', async (event: any, driverData: any) => {
     try {
       await selectDriver(driverData);
       event.reply('driver-selected', { success: true });
     } catch (error: any) {
       console.error('Error selecting driver:', error);
-      event.reply('driver-selected', { 
-        success: false, 
-        error: error.message 
+      event.reply('driver-selected', {
+        success: false,
+        error: error.message
       });
     }
   });
-  
+
   ipcMain.on('open-log-directory', (event: any) => {
     try {
       const logPath = path.join(app.getPath('userData'), 'logs');
@@ -374,19 +301,19 @@ const createTray = (): void => {
       event.reply('log-directory-opened', { success: true });
     } catch (error: any) {
       console.error('Error opening log directory:', error);
-      event.reply('log-directory-opened', { 
-        success: false, 
-        error: error.message 
+      event.reply('log-directory-opened', {
+        success: false,
+        error: error.message
       });
     }
   });
-  
+
   ipcMain.on('minimize-window', () => {
     if (mainWindow) {
       mainWindow.minimize();
     }
   });
-  
+
   ipcMain.on('maximize-window', () => {
     if (mainWindow) {
       if (mainWindow.isMaximized()) {
@@ -396,118 +323,82 @@ const createTray = (): void => {
       }
     }
   });
-  
+
   ipcMain.on('close-window', () => {
     if (mainWindow) {
       mainWindow.hide();
     }
   });
-  
-  // Handle invoke (promise-based) IPC calls
-  ipcMain.handle('get-config', async () => {
-    return AppConfig.getAll();
-  });
-  
-  ipcMain.handle('get-drivers', async () => {
-    return driverIdentificationService.getAllDrivers();
-  });
-  
-  ipcMain.handle('get-current-driver', async () => {
-    return driverIdentificationService.getCurrentDriver();
-  });
-  
-  ipcMain.handle('get-version', async () => {
-    return app.getVersion();
-  });
-  
-  ipcMain.handle('get-system-info', async () => {
-    return {
-      platform: process.platform,
-      arch: os.arch(),
-      osVersion: os.version(),
-      electronVersion: process.versions.electron,
-      chromeVersion: process.versions.chrome,
-      nodeVersion: process.versions.node
-    };
-  });
-  
-  ipcMain.handle('test-connection', async () => {
-    try {
-      const serverUrl = dataTransmissionService.getServerUrl() || AppConfig.getServerUrl() || 'ws://localhost:3000';
-      const result = await dataTransmissionService.testConnection(serverUrl);
-      return { success: true, result };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
-  });
+
+  // IPC handlers are registered in registerIpcHandlers()
 };
 
 // Update application status
 const updateStatus = (additionalStatus = {}): void => {
   try {
     if (!tray) return;
-    
+
     const status = blackBoxCore.getStatus();
     const isRunning = status.isConnected;
     const isConnected = status.isTransmitting;
     const currentDriver = status.currentDriver;
     const stats = status.telemetryStats;
-    
+
     // Update tray context menu
     const contextMenu = Menu.buildFromTemplate([
-      { 
-        label: 'Show App', 
+      {
+        label: 'Show App',
         click: () => {
           if (mainWindow) {
             mainWindow.show();
           }
-        } 
+        }
       },
       { type: 'separator' },
-      { 
-        label: isRunning ? 'Stop Telemetry' : 'Start Telemetry', 
+      {
+        label: isRunning ? 'Stop Telemetry' : 'Start Telemetry',
         click: () => {
           if (isRunning) {
             stopTelemetry();
           } else {
             startTelemetry();
           }
-        } 
+        }
       },
-      { 
-        label: `Status: ${isRunning ? 'Running' : 'Stopped'}`, 
-        enabled: false 
+      {
+        label: `Status: ${isRunning ? 'Running' : 'Stopped'}`,
+        enabled: false
       },
-      { 
-        label: `Connection: ${isConnected ? 'Connected' : 'Disconnected'}`, 
-        enabled: false 
+      {
+        label: `Connection: ${isConnected ? 'Connected' : 'Disconnected'}`,
+        enabled: false
       },
-      { 
-        label: `Driver: ${currentDriver ? currentDriver.name : 'None'}`, 
-        enabled: false 
+      {
+        label: `Driver: ${currentDriver ? currentDriver.name : 'None'}`,
+        enabled: false
       },
       { type: 'separator' },
-      { 
-        label: 'Settings', 
+      {
+        label: 'Settings',
         click: () => {
           if (mainWindow) {
             mainWindow.webContents.send('show-settings');
             mainWindow.show();
           }
-        } 
+        }
       },
       { type: 'separator' },
-      { 
-        label: 'Quit', 
+      {
+        label: 'Quit',
         click: () => {
           isQuitting = true;
           app.quit();
-        } 
+        }
       }
     ]);
-    
+
     tray.setContextMenu(contextMenu);
-    
+
     // Update window status if exists
     if (mainWindow) {
       mainWindow.webContents.send('status-update', {
@@ -539,13 +430,15 @@ const updateTelemetryStats = (): void => {
 // Start telemetry capture
 const startTelemetry = async (): Promise<void> => {
   try {
-    const success = blackBoxCore.startTelemetry();
+    // Use Python relay service for iRacing telemetry
+    console.log('Starting Python relay agent for iRacing telemetry...');
+    const success = pythonRelayService.start();
     if (success) {
-      updateStatus({ isRunning: true });
-      console.log('Telemetry started');
+      updateStatus({ isRunning: true, simConnected: true, serverConnected: true });
+      console.log('Telemetry started via Python relay agent');
     } else {
-      console.error('Failed to start telemetry service');
-      throw new Error('Failed to start telemetry service');
+      console.error('Failed to start Python relay agent');
+      throw new Error('Failed to start Python relay agent');
     }
   } catch (error) {
     console.error('Error starting telemetry:', error);
@@ -556,7 +449,7 @@ const startTelemetry = async (): Promise<void> => {
 // Stop telemetry capture
 const stopTelemetry = async (): Promise<void> => {
   try {
-    blackBoxCore.stopTelemetry();
+    pythonRelayService.stop();
     updateStatus({ isRunning: false });
     console.log('Telemetry stopped');
   } catch (error) {
@@ -570,30 +463,30 @@ const initializeServices = async (): Promise<void> => {
   try {
     // Initialize PitBoxCore
     await blackBoxCore.initialize();
-    
+
     // Set up event listeners
     blackBoxCore.on('telemetry', (data) => {
       updateTelemetryStats();
     });
-    
+
     blackBoxCore.on('driver_changed', (data) => {
       updateStatus();
     });
-    
+
     blackBoxCore.on('session_started', (data) => {
       console.log('Session started:', data);
       if (mainWindow) {
         mainWindow.webContents.send('session-started', data);
       }
     });
-    
+
     blackBoxCore.on('stint_started', (data) => {
       console.log('Stint started:', data);
       if (mainWindow) {
         mainWindow.webContents.send('stint-started', data);
       }
     });
-    
+
     console.log('Services initialized');
   } catch (error) {
     console.error('Error initializing services:', error);
@@ -606,10 +499,10 @@ const updateSettings = async (settings: any): Promise<void> => {
   try {
     // Update PitBoxCore settings
     blackBoxCore.updateSettings(settings);
-    
+
     // Update config using the public update method
     AppConfig.update(settings);
-    
+
     console.log('Settings updated');
   } catch (error) {
     console.error('Error updating settings:', error);
@@ -622,11 +515,11 @@ const resetSettings = async (): Promise<void> => {
   try {
     // Update configuration
     AppConfig.reset();
-    
+
     // Update services with new settings
     const config = AppConfig.getAll();
     blackBoxCore.updateSettings(config);
-    
+
     console.log('Settings reset');
   } catch (error) {
     console.error('Error resetting settings:', error);
@@ -642,14 +535,14 @@ const createDriver = async (driverData: any): Promise<void> => {
       driverData.email,
       driverData.team
     );
-    
+
     if (mainWindow) {
       mainWindow.webContents.send('driver-created', driver);
     }
   } catch (error: any) {
     console.error('Failed to create driver:', error);
-    mainWindow?.webContents.send('error', { 
-      message: `Failed to create driver: ${error.message}` 
+    mainWindow?.webContents.send('error', {
+      message: `Failed to create driver: ${error.message}`
     });
   }
 };
@@ -659,14 +552,14 @@ const updateDriver = async (driverData: any): Promise<void> => {
   try {
     // Using the correct parameter count for updateDriver
     const updatedDriver = blackBoxCore.updateDriver(driverData.id, driverData);
-    
+
     if (mainWindow) {
       mainWindow.webContents.send('driver-updated', updatedDriver);
     }
   } catch (error: any) {
     console.error('Failed to update driver:', error);
-    mainWindow?.webContents.send('error', { 
-      message: `Failed to update driver: ${error.message}` 
+    mainWindow?.webContents.send('error', {
+      message: `Failed to update driver: ${error.message}`
     });
   }
 };
@@ -690,8 +583,8 @@ const deleteDriver = async (driverData: any): Promise<void> => {
     }
   } catch (error: any) {
     console.error('Failed to delete driver:', error);
-    mainWindow?.webContents.send('error', { 
-      message: `Failed to delete driver: ${error.message}` 
+    mainWindow?.webContents.send('error', {
+      message: `Failed to delete driver: ${error.message}`
     });
   }
 };
@@ -705,14 +598,14 @@ const selectDriver = async (driverData: any): Promise<void> => {
       throw new Error(`Driver with ID ${driverData.id} not found`);
     }
     updateStatus();
-    
+
     if (mainWindow) {
       mainWindow.webContents.send('driver-selected', driverData);
     }
   } catch (error: any) {
     console.error('Failed to select driver:', error);
-    mainWindow?.webContents.send('error', { 
-      message: `Failed to select driver: ${error.message}` 
+    mainWindow?.webContents.send('error', {
+      message: `Failed to select driver: ${error.message}`
     });
   }
 };
@@ -732,13 +625,13 @@ const registerIpcHandlers = (): void => {
       event.reply('telemetry-status', { running: true });
     } catch (error: any) {
       console.error('Error starting telemetry:', error);
-      event.reply('telemetry-status', { 
-        running: false, 
-        error: error.message 
+      event.reply('telemetry-status', {
+        running: false,
+        error: error.message
       });
     }
   });
-  
+
   ipcMain.on('stop-telemetry', async (event: any) => {
     try {
       await stopTelemetry();
@@ -746,30 +639,30 @@ const registerIpcHandlers = (): void => {
     } catch (error: any) {
       console.error('Error stopping telemetry:', error);
       const status = blackBoxCore.getStatus();
-      event.reply('telemetry-status', { 
-        running: status.isConnected, 
-        error: error.message 
+      event.reply('telemetry-status', {
+        running: status.isConnected,
+        error: error.message
       });
     }
   });
-  
+
   // Remove video capture IPC handlers
   // ipcMain.on('start-video', ...);
   // ipcMain.on('stop-video', ...);
-  
+
   ipcMain.on('update-settings', async (event: any, settings: any) => {
     try {
       await updateSettings(settings);
       event.reply('settings-updated', { success: true });
     } catch (error: any) {
       console.error('Error updating settings:', error);
-      event.reply('settings-updated', { 
-        success: false, 
-        error: error.message 
+      event.reply('settings-updated', {
+        success: false,
+        error: error.message
       });
     }
   });
-  
+
   // Add new IPC handlers for session and stint management
   ipcMain.on('reset-session', async (event: any) => {
     try {
@@ -777,41 +670,71 @@ const registerIpcHandlers = (): void => {
       event.reply('session-reset', { success: true });
     } catch (error: any) {
       console.error('Error resetting session:', error);
-      event.reply('session-reset', { 
-        success: false, 
-        error: error.message 
+      event.reply('session-reset', {
+        success: false,
+        error: error.message
       });
     }
   });
-  
+
   ipcMain.handle('get-status', async () => {
     return blackBoxCore.getStatus();
   });
-  
+
   ipcMain.handle('get-drivers', async () => {
     return blackBoxCore.getAllDrivers();
   });
-  
-  // Other IPC handlers omitted for brevity
+
+  // Other IPC handlers
+  ipcMain.on('minimize-window', () => mainWindow?.minimize());
+  ipcMain.on('maximize-window', () => {
+    if (mainWindow) {
+      if (mainWindow.isMaximized()) mainWindow.unmaximize();
+      else mainWindow.maximize();
+    }
+  });
+
+  ipcMain.handle('get-config', async () => AppConfig.getAll());
+
+  ipcMain.handle('get-current-driver', async () => {
+    return blackBoxCore.getAllDrivers().find(d => d.id === blackBoxCore.getStatus().currentDriver?.id) || null;
+  });
+
+  ipcMain.handle('get-version', async () => app.getVersion());
+
+  ipcMain.handle('test-connection', async () => {
+    return { success: false, error: "Not implemented in simplified build" };
+  });
+
+  ipcMain.handle('get-system-info', async () => {
+    return {
+      platform: process.platform,
+      arch: (process as ProcessExtended).arch,
+      version: (process as ProcessExtended).version,
+      electronVersion: process.versions.electron,
+      chromeVersion: process.versions.chrome,
+      userDataPath: app.getPath('userData')
+    };
+  });
 };
 
 // Initialize app when ready
 app.whenReady().then(() => {
   // Create window
   createWindow();
-  
+
   // Load configuration
   AppConfig.load();
-  
+
   // Initialize services
   initializeServices();
-  
+
   // Register IPC handlers
   registerIpcHandlers();
-  
+
   // Create tray icon
   createTray();
-  
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();

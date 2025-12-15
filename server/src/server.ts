@@ -162,12 +162,70 @@ app.get('/sessions', apiLimiter, authenticateToken, async (_req, res) => {
 
 // Socket.IO basic rooms per session
 io.on('connection', (socket) => {
+  console.log(`[Socket.IO] Client connected: ${socket.id}`);
+
   socket.on('join_session', (sessionId: string) => {
     socket.join(`session:${sessionId}`);
+    console.log(`[Socket.IO] Client ${socket.id} joined session:${sessionId}`);
   });
 
   socket.on('leave_session', (sessionId: string) => {
     socket.leave(`session:${sessionId}`);
+    console.log(`[Socket.IO] Client ${socket.id} left session:${sessionId}`);
+  });
+
+  // ========================
+  // Relay Agent Event Handlers
+  // These receive data from relay agents and broadcast to all dashboards
+  // ========================
+
+  // Handle session metadata from relay agent
+  socket.on('session_metadata', (data: any) => {
+    console.log(`[Relay] Session metadata received: ${data?.trackName || data?.sessionId || 'unknown'}`);
+    // Broadcast to all clients (dashboard viewers)
+    socket.broadcast.emit('session_metadata', data);
+    // Also emit to any session-specific room if sessionId is present
+    if (data?.sessionId) {
+      socket.join(`session:${data.sessionId}`);
+      io.to(`session:${data.sessionId}`).emit('session_metadata', data);
+    }
+  });
+
+  // Handle telemetry from relay agent
+  socket.on('telemetry', (data: any) => {
+    // Broadcast to all clients for live dashboard updates
+    socket.broadcast.emit('telemetry', data);
+    // Also send to session room
+    if (data?.sessionId) {
+      io.to(`session:${data.sessionId}`).emit('telemetry_update', data);
+    }
+  });
+
+  // Handle race events (flag changes, cautions, etc)
+  socket.on('race_event', (data: any) => {
+    console.log(`[Relay] Race event: ${data?.flag || data?.eventType || 'unknown'}`);
+    socket.broadcast.emit('race_event', data);
+    if (data?.sessionId) {
+      io.to(`session:${data.sessionId}`).emit('race_event', data);
+    }
+  });
+
+  // Handle incidents
+  socket.on('incident', (data: any) => {
+    console.log(`[Relay] Incident: ${data?.driverName || 'unknown'} - ${data?.description || ''}`);
+    socket.broadcast.emit('incident', data);
+    if (data?.sessionId) {
+      io.to(`session:${data.sessionId}`).emit('incident', data);
+    }
+  });
+
+  // Handle driver updates (join/leave)
+  socket.on('driver_update', (data: any) => {
+    console.log(`[Relay] Driver update: ${data?.driverName || 'unknown'} - ${data?.action || ''}`);
+    socket.broadcast.emit('driver_update', data);
+    if (data?.sessionId) {
+      io.to(`session:${data.sessionId}`).emit('driver_update', data);
+    }
   });
 
   // Relay video frames
@@ -177,6 +235,10 @@ io.on('connection', (socket) => {
     if (data && data.sessionId && data.image) {
       socket.to(`session:${data.sessionId}`).emit('video_data', data.image);
     }
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`[Socket.IO] Client disconnected: ${socket.id}`);
   });
 });
 
