@@ -35,48 +35,28 @@ interface TrackConditions {
   forecast: string;
 }
 
-const TrackPage: React.FC<TrackPageProps> = ({ 
-  telemetryData, 
+const TrackPage: React.FC<TrackPageProps> = ({
+  telemetryData,
   competitorData,
-  trackName = 'Silverstone' 
+  trackName = ''
 }) => {
   const [selectedCorner, setSelectedCorner] = useState<string | null>(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'corners' | 'conditions' | 'ai'>('overview');
 
   // Track definition
-  const trackDef: TrackDefinition = useMemo(() => {
+  const trackDef: TrackDefinition | undefined = useMemo(() => {
+    if (!trackName) return undefined;
     const staticData = trackAssetService.getStaticTrackData(trackName);
-    return staticData || tracks['Silverstone'];
+    return staticData || tracks[trackName];
   }, [trackName]);
 
-  const viewBoxParts = trackDef.viewBox.split(' ').map(Number);
-  const centerX = viewBoxParts[2] / 2;
-  const centerY = viewBoxParts[3] / 2;
-  const radius = Math.min(centerX, centerY) * 0.6;
-
-  // Sample corner analysis data
-  const cornerAnalysis: CornerAnalysis[] = [
-    { id: '1', name: 'Abbey', type: 'fast', optimalSpeed: 245, brakingPoint: 120, apexSpeed: 195, exitSpeed: 230, gear: 5, difficulty: 'medium', aiTip: 'Late apex for better exit onto Wellington Straight' },
-    { id: '2', name: 'Farm', type: 'medium', optimalSpeed: 180, brakingPoint: 85, apexSpeed: 145, exitSpeed: 175, gear: 4, difficulty: 'easy', aiTip: 'Standard racing line, focus on smooth throttle application' },
-    { id: '3', name: 'Village', type: 'slow', optimalSpeed: 140, brakingPoint: 95, apexSpeed: 85, exitSpeed: 130, gear: 2, difficulty: 'hard', aiTip: 'Tricky off-camber exit, be patient with throttle' },
-    { id: '4', name: 'The Loop', type: 'hairpin', optimalSpeed: 95, brakingPoint: 110, apexSpeed: 65, exitSpeed: 95, gear: 2, difficulty: 'hard', aiTip: 'Trail brake deep, rotate car before apex' },
-    { id: '5', name: 'Aintree', type: 'fast', optimalSpeed: 220, brakingPoint: 60, apexSpeed: 185, exitSpeed: 210, gear: 5, difficulty: 'medium', aiTip: 'Lift and coast, no braking needed in dry conditions' },
-    { id: '6', name: 'Brooklands', type: 'slow', optimalSpeed: 130, brakingPoint: 100, apexSpeed: 75, exitSpeed: 120, gear: 2, difficulty: 'hard', aiTip: 'Heavy braking zone, watch for lockups' },
-    { id: '7', name: 'Luffield', type: 'hairpin', optimalSpeed: 110, brakingPoint: 90, apexSpeed: 60, exitSpeed: 105, gear: 2, difficulty: 'medium', aiTip: 'Double apex, prioritize exit speed for Woodcote' },
-    { id: '8', name: 'Woodcote', type: 'fast', optimalSpeed: 260, brakingPoint: 40, apexSpeed: 220, exitSpeed: 255, gear: 6, difficulty: 'easy', aiTip: 'Flat out in qualifying, slight lift in race with fuel' },
-    { id: '9', name: 'Copse', type: 'fast', optimalSpeed: 280, brakingPoint: 30, apexSpeed: 245, exitSpeed: 275, gear: 7, difficulty: 'hard', aiTip: 'Commitment corner - flat or lift, no in-between' },
-    { id: '10', name: 'Maggots', type: 'chicane', optimalSpeed: 265, brakingPoint: 0, apexSpeed: 240, exitSpeed: 260, gear: 6, difficulty: 'hard', aiTip: 'Flow through the complex, minimal steering input' },
-    { id: '11', name: 'Becketts', type: 'chicane', optimalSpeed: 230, brakingPoint: 0, apexSpeed: 195, exitSpeed: 225, gear: 5, difficulty: 'hard', aiTip: 'Set up for Hangar Straight, sacrifice entry for exit' },
-    { id: '12', name: 'Chapel', type: 'fast', optimalSpeed: 285, brakingPoint: 0, apexSpeed: 265, exitSpeed: 290, gear: 7, difficulty: 'medium', aiTip: 'Full throttle, use all the track on exit' },
-    { id: '13', name: 'Stowe', type: 'medium', optimalSpeed: 195, brakingPoint: 130, apexSpeed: 155, exitSpeed: 185, gear: 4, difficulty: 'medium', aiTip: 'Good overtaking spot, late braking possible' },
-    { id: '14', name: 'Vale', type: 'slow', optimalSpeed: 125, brakingPoint: 85, apexSpeed: 80, exitSpeed: 115, gear: 2, difficulty: 'easy', aiTip: 'Straightforward corner, set up for Club' },
-    { id: '15', name: 'Club', type: 'medium', optimalSpeed: 165, brakingPoint: 70, apexSpeed: 120, exitSpeed: 160, gear: 3, difficulty: 'medium', aiTip: 'Two-part corner, nail the exit for pit straight' },
-  ];
+  // Sample corner analysis data - Should be fetched from API based on track
+  const cornerAnalysis: CornerAnalysis[] = [];
 
   // Track conditions - use weather data from telemetry if available
   const conditions: TrackConditions = {
-    trackTemp: 42, // Would come from session info
+    trackTemp: 42,
     airTemp: 28,
     humidity: 65,
     windSpeed: telemetryData?.weather?.windSpeed || 12,
@@ -87,27 +67,14 @@ const TrackPage: React.FC<TrackPageProps> = ({
     forecast: 'Dry conditions expected for next 2 hours'
   };
 
-  // AI Track Insights
-  const aiInsights = [
-    { type: 'warning', title: 'Tire Degradation Zone', message: 'High track temp causing increased rear tire wear through Maggots-Becketts complex. Consider 2% less rear wing.' },
-    { type: 'tip', title: 'Optimal Racing Line', message: 'Current grip levels favor a wider entry into Copse. Move braking reference 5m later.' },
-    { type: 'alert', title: 'Track Evolution', message: 'Grip improving in Sector 2. Expect 0.3s faster lap times in next 15 minutes.' },
-    { type: 'strategy', title: 'Overtaking Opportunity', message: 'Stowe corner showing high overtake success rate (67%) this session. Target for passes.' },
-    { type: 'tip', title: 'Fuel Saving Zone', message: 'Lift-and-coast through Abbey saves 0.15L/lap with only 0.1s time loss.' },
-  ];
+  // AI Track Insights - populated from live data
+  const aiInsights: { type: string, title: string, message: string }[] = [];
 
   // Vehicle positions for map
   const vehicles = useMemo(() => {
-    const baseCompetitors = competitorData || [
-      { position: 1, driver: 'VERSTAPPEN', gap: 'LEADER', lastLap: '1:27.654' },
-      { position: 2, driver: 'HAMILTON', gap: '+2.576s', lastLap: '1:27.892' },
-      { position: 3, driver: 'YOU', gap: '+3.821s', lastLap: '1:28.456' },
-      { position: 4, driver: 'LECLERC', gap: '+6.697s', lastLap: '1:28.234' },
-      { position: 5, driver: 'NORRIS', gap: '+8.455s', lastLap: '1:28.789' },
-    ];
-
+    const baseCompetitors = competitorData || [];
     const playerTrackPos = telemetryData?.trackPosition || 0.5;
-    
+
     return baseCompetitors.map((comp, index) => {
       let trackPos = playerTrackPos;
       if (comp.driver === 'YOU') {
@@ -127,6 +94,20 @@ const TrackPage: React.FC<TrackPageProps> = ({
       };
     });
   }, [competitorData, telemetryData]);
+
+  // Handle missing track data - AFTER all hooks
+  if (!trackDef) {
+    return (
+      <div className="track-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <div style={{ color: '#888' }}>Waiting for track data...</div>
+      </div>
+    );
+  }
+
+  const viewBoxParts = trackDef.viewBox.split(' ').map(Number);
+  const centerX = viewBoxParts[2] / 2;
+  const centerY = viewBoxParts[3] / 2;
+  const radius = Math.min(centerX, centerY) * 0.6;
 
   const getCarCoordinates = (trackPos: number) => {
     const angle = trackPos * Math.PI * 2 - Math.PI / 2;
@@ -152,15 +133,15 @@ const TrackPage: React.FC<TrackPageProps> = ({
         <div className="map-header">
           <h2>{trackName}</h2>
           <div className="map-controls">
-            <button 
-              className={showHeatmap ? 'active' : ''} 
+            <button
+              className={showHeatmap ? 'active' : ''}
               onClick={() => setShowHeatmap(!showHeatmap)}
             >
               Heatmap
             </button>
           </div>
         </div>
-        
+
         <div className="map-container">
           <svg
             viewBox={trackDef.viewBox}
@@ -198,17 +179,17 @@ const TrackPage: React.FC<TrackPageProps> = ({
             {trackDef.corners.map(corner => {
               const analysis = cornerAnalysis.find(c => c.id === corner.id);
               const isSelected = selectedCorner === corner.id;
-              
+
               return (
-                <g 
-                  key={corner.id} 
+                <g
+                  key={corner.id}
                   transform={`translate(${corner.x}, ${corner.y})`}
                   style={{ cursor: 'pointer' }}
                   onClick={() => setSelectedCorner(isSelected ? null : corner.id)}
                 >
-                  <circle 
-                    r={isSelected ? 20 : 15} 
-                    fill={isSelected ? getDifficultyColor(analysis?.difficulty || 'medium') : 'rgba(0,0,0,0.7)'} 
+                  <circle
+                    r={isSelected ? 20 : 15}
+                    fill={isSelected ? getDifficultyColor(analysis?.difficulty || 'medium') : 'rgba(0,0,0,0.7)'}
                     stroke={getDifficultyColor(analysis?.difficulty || 'medium')}
                     strokeWidth="2"
                     opacity={isSelected ? 1 : 0.8}
@@ -262,7 +243,7 @@ const TrackPage: React.FC<TrackPageProps> = ({
           </div>
           <div className="stat-item">
             <span className="stat-label">Lap Record</span>
-            <span className="stat-value">1:27.097</span>
+            <span className="stat-value">--:--.---</span>
           </div>
         </div>
       </div>
@@ -380,8 +361,8 @@ const TrackPage: React.FC<TrackPageProps> = ({
             <div className="corners-tab">
               <div className="corners-list">
                 {cornerAnalysis.map(corner => (
-                  <div 
-                    key={corner.id} 
+                  <div
+                    key={corner.id}
                     className={`corner-item ${selectedCorner === corner.id ? 'selected' : ''}`}
                     onClick={() => setSelectedCorner(corner.id)}
                   >
@@ -485,10 +466,7 @@ const TrackPage: React.FC<TrackPageProps> = ({
               <div className="ai-summary">
                 <h4>📊 Track Summary</h4>
                 <p>
-                  {trackName} is a high-speed circuit that rewards commitment and precision. 
-                  Key areas for time gain are the Maggots-Becketts complex and the exit of Club corner.
-                  Current conditions favor aggressive driving with good grip levels.
-                  Watch tire temperatures through the fast corners in Sector 2.
+                  {trackName ? `${trackName} is a circuit that rewards precision and commitment. Monitor conditions for optimal performance.` : 'Waiting for track data...'}
                 </p>
               </div>
             </div>

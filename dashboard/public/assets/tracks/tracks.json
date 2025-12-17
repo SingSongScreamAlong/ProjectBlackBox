@@ -1,0 +1,26 @@
+{
+    "spa": {
+        "name": "Spa-Francorchamps",
+        "svgUrl": "/assets/tracks/spa.svg",
+        "length": 7004,
+        "viewBox": "0 0 1415 875"
+    },
+    "monza": {
+        "name": "Autodromo Nazionale Monza",
+        "svgUrl": "/assets/tracks/monza.svg",
+        "length": 5793,
+        "viewBox": "0 0 1000 1000"
+    },
+    "suzuka": {
+        "name": "Suzuka International Racing Course",
+        "svgUrl": "/assets/tracks/suzuka.svg",
+        "length": 5807,
+        "viewBox": "0 0 1000 1000"
+    },
+    "redbullring": {
+        "name": "Red Bull Ring",
+        "svgUrl": "/assets/tracks/redbullring.svg",
+        "length": 4318,
+        "viewBox": "0 0 680 510"
+    }
+}

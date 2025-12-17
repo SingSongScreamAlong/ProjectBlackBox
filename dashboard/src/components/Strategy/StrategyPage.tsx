@@ -41,12 +41,12 @@ interface PitStop {
   fuelToAdd: number;
 }
 
-const StrategyPage: React.FC<StrategyPageProps> = ({ 
-  telemetryData, 
+const StrategyPage: React.FC<StrategyPageProps> = ({
+  telemetryData,
   competitorData,
   strategyData,
   totalLaps = 52,
-  currentLap = 1 
+  currentLap = 1
 }) => {
   const [selectedDriver, setSelectedDriver] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'pit' | 'tire' | 'fuel' | 'weather' | 'setup'>('pit');
@@ -55,52 +55,36 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
 
   // Generate detailed driver data
   const drivers: DriverDetail[] = useMemo(() => {
-    const baseDrivers = [
-      { driver: 'VERSTAPPEN', team: 'Red Bull Racing', iRating: 8500, safetyRating: 4.2 },
-      { driver: 'HAMILTON', team: 'Mercedes AMG', iRating: 8200, safetyRating: 4.5 },
-      { driver: 'YOU', team: 'Your Team', iRating: 5500, safetyRating: 3.8 },
-      { driver: 'LECLERC', team: 'Scuderia Ferrari', iRating: 7800, safetyRating: 3.9 },
-      { driver: 'NORRIS', team: 'McLaren F1', iRating: 7500, safetyRating: 4.1 },
-      { driver: 'SAINZ', team: 'Scuderia Ferrari', iRating: 7400, safetyRating: 4.3 },
-      { driver: 'RUSSELL', team: 'Mercedes AMG', iRating: 7200, safetyRating: 4.4 },
-      { driver: 'PIASTRI', team: 'McLaren F1', iRating: 6800, safetyRating: 4.0 },
-      { driver: 'ALONSO', team: 'Aston Martin', iRating: 7600, safetyRating: 4.6 },
-      { driver: 'STROLL', team: 'Aston Martin', iRating: 5200, safetyRating: 3.5 },
-    ];
+    if (!competitorData) return [];
 
-    const compounds: ('soft' | 'medium' | 'hard')[] = ['medium', 'hard', 'soft', 'medium', 'hard', 'soft', 'medium', 'hard', 'medium', 'soft'];
-    const aggressions: ('low' | 'medium' | 'high')[] = ['high', 'medium', 'low', 'high', 'medium', 'low', 'medium', 'high', 'low', 'high'];
-
-    return baseDrivers.map((d, i) => {
-      const position = i + 1;
-      const gap = position === 1 ? 'LEADER' : `+${(position * 2.5 + Math.random() * 2).toFixed(3)}s`;
-      const interval = position === 1 ? '-' : `+${(1.5 + Math.random() * 2).toFixed(3)}s`;
-      
+    return competitorData.map((d, i) => {
+      // Map real competitor data to rich driver detail format
+      // Fallback relative data since API might not provide all fields yet
       return {
-        position,
+        position: d.position,
         driver: d.driver,
-        team: d.team,
-        gap,
-        interval,
-        lastLap: `1:${27 + Math.floor(Math.random() * 2)}.${(Math.random() * 999).toFixed(0).padStart(3, '0')}`,
-        bestLap: `1:${27 + Math.floor(Math.random() * 1)}.${(Math.random() * 500).toFixed(0).padStart(3, '0')}`,
-        tireCompound: compounds[i],
-        tireAge: Math.floor(Math.random() * 15) + 5,
-        tireWear: Math.floor(Math.random() * 30) + 60,
-        fuelLoad: 80 - (currentLap * 2.5) + Math.random() * 10,
-        pitStops: Math.floor(Math.random() * 2),
-        speed: 280 + Math.random() * 30,
-        incidents: Math.floor(Math.random() * 4),
-        iRating: d.iRating,
-        safetyRating: d.safetyRating,
-        aggression: aggressions[i],
-        consistency: 85 + Math.random() * 15,
-        overtakes: Math.floor(Math.random() * 5),
-        defenseMoves: Math.floor(Math.random() * 3),
-        trackPosition: (i * 0.08 + (telemetryData?.trackPosition ?? 0)) % 1
+        team: 'Unknown Team', // API doesn't provide team yet
+        gap: d.gap,
+        interval: '-', // Need previous car gap to calc
+        lastLap: d.lastLap,
+        bestLap: d.lastLap, // Placeholder
+        tireCompound: 'medium', // Unknown
+        tireAge: 0,
+        tireWear: 100,
+        fuelLoad: 0,
+        pitStops: 0,
+        speed: 0,
+        incidents: 0,
+        iRating: 0,
+        safetyRating: 0,
+        aggression: 'medium',
+        consistency: 0,
+        overtakes: 0,
+        defenseMoves: 0,
+        trackPosition: 0
       };
     });
-  }, [competitorData, telemetryData, currentLap]);
+  }, [competitorData]);
 
   const selectedDriverData = selectedDriver ? drivers.find(d => d.driver === selectedDriver) : null;
 
@@ -115,7 +99,7 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
   const calculatePitWindows = () => {
     const windows: PitStop[] = [];
     const stintLength = Math.floor(remainingLaps / (numStops + 1));
-    
+
     for (let i = 0; i < numStops; i++) {
       const pitLap = currentLap + stintLength * (i + 1);
       windows.push({
@@ -155,7 +139,7 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
           <h3>Race Standings</h3>
           <span className="lap-badge">Lap {currentLap}/{totalLaps}</span>
         </div>
-        
+
         <div className="standings-table">
           <div className="table-header">
             <span className="col-pos">POS</span>
@@ -164,10 +148,10 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
             <span className="col-tire">TIRE</span>
             <span className="col-stops">PIT</span>
           </div>
-          
+
           <div className="table-body">
             {drivers.map(driver => (
-              <div 
+              <div
                 key={driver.driver}
                 className={`driver-row ${driver.driver === 'YOU' ? 'player' : ''} ${selectedDriver === driver.driver ? 'selected' : ''}`}
                 onClick={() => setSelectedDriver(selectedDriver === driver.driver ? null : driver.driver)}
@@ -219,8 +203,8 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
                   <label>Next Compound</label>
                   <div className="compound-buttons">
                     {(['soft', 'medium', 'hard'] as const).map(c => (
-                      <button 
-                        key={c} 
+                      <button
+                        key={c}
                         className={`${c} ${selectedCompound === c ? 'active' : ''}`}
                         onClick={() => setSelectedCompound(c)}
                       >
@@ -280,13 +264,13 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
                 <div className="analysis-cards">
                   <div className="analysis-card undercut">
                     <span className="card-title">Undercut</span>
-                    <span className="card-value">+0.8s gain</span>
-                    <span className="card-note">Pit lap {currentLap + 3}</span>
+                    <span className="card-value">--</span>
+                    <span className="card-note">Waiting for data...</span>
                   </div>
                   <div className="analysis-card overcut">
                     <span className="card-title">Overcut</span>
-                    <span className="card-value">+0.3s gain</span>
-                    <span className="card-note">Pit lap {currentLap + 8}</span>
+                    <span className="card-value">--</span>
+                    <span className="card-note">Waiting for data...</span>
                   </div>
                 </div>
               </div>
@@ -301,11 +285,11 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
                   {['FL', 'FR', 'RL', 'RR'].map(pos => (
                     <div key={pos} className="tire-card">
                       <span className="tire-pos">{pos}</span>
-                      <div className="tire-temp">{Math.floor(85 + Math.random() * 15)}°C</div>
+                      <div className="tire-temp">--°C</div>
                       <div className="tire-wear-bar">
-                        <div className="wear-fill" style={{ width: `${75 + Math.random() * 20}%` }}></div>
+                        <div className="wear-fill" style={{ width: '0%' }}></div>
                       </div>
-                      <span className="tire-wear-pct">{Math.floor(75 + Math.random() * 20)}%</span>
+                      <span className="tire-wear-pct">--%</span>
                     </div>
                   ))}
                 </div>
@@ -341,10 +325,10 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
                 <div className="gauge-visual">
                   <svg viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" />
-                    <circle 
-                      cx="50" cy="50" r="45" 
-                      fill="none" 
-                      stroke="#00d4ff" 
+                    <circle
+                      cx="50" cy="50" r="45"
+                      fill="none"
+                      stroke="#00d4ff"
                       strokeWidth="8"
                       strokeDasharray={`${(currentFuel / 110) * 283} 283`}
                       transform="rotate(-90 50 50)"
@@ -549,13 +533,13 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
               <div className="detail-section">
                 <h4>📊 Assessment</h4>
                 <p className="ai-assessment">
-                  {selectedDriverData.driver === 'YOU' 
+                  {selectedDriverData.driver === 'YOU'
                     ? 'Focus on consistent lap times. Current pace is competitive. Watch tire wear in sector 2.'
                     : selectedDriverData.aggression === 'high'
-                    ? `${selectedDriverData.driver} is driving aggressively. Expect late braking into corners. Leave space to avoid contact.`
-                    : selectedDriverData.aggression === 'low'
-                    ? `${selectedDriverData.driver} is driving conservatively. Good opportunity for overtake at Stowe.`
-                    : `${selectedDriverData.driver} is maintaining steady pace. May attempt undercut strategy.`
+                      ? `${selectedDriverData.driver} is driving aggressively. Expect late braking into corners. Leave space to avoid contact.`
+                      : selectedDriverData.aggression === 'low'
+                        ? `${selectedDriverData.driver} is driving conservatively. Good opportunity for overtake at Stowe.`
+                        : `${selectedDriverData.driver} is maintaining steady pace. May attempt undercut strategy.`
                   }
                 </p>
               </div>

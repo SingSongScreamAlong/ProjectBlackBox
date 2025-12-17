@@ -131,7 +131,7 @@ const TelemetryAnalysis: React.FC<TelemetryAnalysisProps> = ({ telemetryData }) 
     data.forEach((val, i) => {
       const x = padding + (width - 2 * padding) * (i / (data.length - 1));
       const y = height - padding - ((val / maxVal) * (height - 2 * padding));
-      
+
       if (i === 0) {
         ctx.moveTo(x, y);
       } else {
@@ -164,7 +164,7 @@ const TelemetryAnalysis: React.FC<TelemetryAnalysisProps> = ({ telemetryData }) 
       ctx.font = 'bold 24px Roboto Mono';
       ctx.textAlign = 'right';
       ctx.fillText(currentVal.toFixed(1), width - padding, padding + 20);
-      
+
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '12px Roboto Mono';
       ctx.fillText(selectedMetric.toUpperCase(), width - padding, padding + 35);
@@ -172,16 +172,10 @@ const TelemetryAnalysis: React.FC<TelemetryAnalysisProps> = ({ telemetryData }) 
 
   }, [telemetryHistory, selectedMetric]);
 
-  // Generate sample lap data if none exists
-  const displayLapHistory = lapHistory.length > 0 ? lapHistory : [
-    { lapNumber: 1, lapTime: 89.234, sectors: [28.1, 32.5, 28.6], avgSpeed: 198, maxSpeed: 312, fuelUsed: 2.8, tireWearStart: 100, tireWearEnd: 97 },
-    { lapNumber: 2, lapTime: 88.567, sectors: [27.9, 32.1, 28.5], avgSpeed: 201, maxSpeed: 315, fuelUsed: 2.7, tireWearStart: 97, tireWearEnd: 94 },
-    { lapNumber: 3, lapTime: 88.123, sectors: [27.8, 31.9, 28.4], avgSpeed: 203, maxSpeed: 318, fuelUsed: 2.8, tireWearStart: 94, tireWearEnd: 91 },
-    { lapNumber: 4, lapTime: 88.456, sectors: [27.9, 32.0, 28.5], avgSpeed: 202, maxSpeed: 316, fuelUsed: 2.9, tireWearStart: 91, tireWearEnd: 88 },
-    { lapNumber: 5, lapTime: 88.789, sectors: [28.0, 32.2, 28.5], avgSpeed: 200, maxSpeed: 314, fuelUsed: 2.8, tireWearStart: 88, tireWearEnd: 85 },
-  ];
+  // Use actual lap history - no mock data
+  const displayLapHistory = lapHistory;
 
-  const bestLap = displayLapHistory.reduce((best, lap) => 
+  const bestLap = displayLapHistory.reduce((best, lap) =>
     lap.lapTime < best.lapTime ? lap : best, displayLapHistory[0]);
 
   const formatLapTime = (seconds: number): string => {
@@ -208,9 +202,9 @@ const TelemetryAnalysis: React.FC<TelemetryAnalysisProps> = ({ telemetryData }) 
             ))}
           </div>
         </div>
-        <canvas 
-          ref={canvasRef} 
-          width={800} 
+        <canvas
+          ref={canvasRef}
+          width={800}
           height={200}
           className="telemetry-canvas"
         />
@@ -220,51 +214,60 @@ const TelemetryAnalysis: React.FC<TelemetryAnalysisProps> = ({ telemetryData }) 
       <div className="analysis-section">
         <div className="section-header">
           <h3>🏁 Lap History</h3>
-          <div className="best-lap-badge">
-            Best: {formatLapTime(bestLap?.lapTime || 0)} (Lap {bestLap?.lapNumber})
-          </div>
-        </div>
-        
-        <div className="lap-table">
-          <div className="lap-header">
-            <span>LAP</span>
-            <span>TIME</span>
-            <span>S1</span>
-            <span>S2</span>
-            <span>S3</span>
-            <span>AVG SPD</span>
-            <span>MAX SPD</span>
-            <span>FUEL</span>
-            <span>TIRE</span>
-          </div>
-          {displayLapHistory.slice(-10).reverse().map(lap => (
-            <div 
-              key={lap.lapNumber} 
-              className={`lap-row ${lap.lapNumber === bestLap?.lapNumber ? 'best' : ''} ${selectedLap === lap.lapNumber ? 'selected' : ''}`}
-              onClick={() => setSelectedLap(lap.lapNumber === selectedLap ? null : lap.lapNumber)}
-            >
-              <span className="lap-num">{lap.lapNumber}</span>
-              <span className={`lap-time ${lap.lapNumber === bestLap?.lapNumber ? 'purple' : ''}`}>
-                {formatLapTime(lap.lapTime)}
-              </span>
-              <span className={lap.sectors[0] <= Math.min(...displayLapHistory.map(l => l.sectors[0])) ? 'purple' : ''}>
-                {lap.sectors[0].toFixed(1)}
-              </span>
-              <span className={lap.sectors[1] <= Math.min(...displayLapHistory.map(l => l.sectors[1])) ? 'purple' : ''}>
-                {lap.sectors[1].toFixed(1)}
-              </span>
-              <span className={lap.sectors[2] <= Math.min(...displayLapHistory.map(l => l.sectors[2])) ? 'purple' : ''}>
-                {lap.sectors[2].toFixed(1)}
-              </span>
-              <span>{lap.avgSpeed.toFixed(0)} km/h</span>
-              <span>{lap.maxSpeed.toFixed(0)} km/h</span>
-              <span>{lap.fuelUsed.toFixed(1)}L</span>
-              <span className={lap.tireWearEnd < 50 ? 'warning' : ''}>
-                {lap.tireWearEnd.toFixed(0)}%
-              </span>
+          {displayLapHistory.length > 0 && (
+            <div className="best-lap-badge">
+              Best: {formatLapTime(bestLap?.lapTime || 0)} (Lap {bestLap?.lapNumber})
             </div>
-          ))}
+          )}
         </div>
+
+        {displayLapHistory.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+            Waiting for lap data...
+          </div>
+        ) : (
+
+          <div className="lap-table">
+            <div className="lap-header">
+              <span>LAP</span>
+              <span>TIME</span>
+              <span>S1</span>
+              <span>S2</span>
+              <span>S3</span>
+              <span>AVG SPD</span>
+              <span>MAX SPD</span>
+              <span>FUEL</span>
+              <span>TIRE</span>
+            </div>
+            {displayLapHistory.slice(-10).reverse().map(lap => (
+              <div
+                key={lap.lapNumber}
+                className={`lap-row ${lap.lapNumber === bestLap?.lapNumber ? 'best' : ''} ${selectedLap === lap.lapNumber ? 'selected' : ''}`}
+                onClick={() => setSelectedLap(lap.lapNumber === selectedLap ? null : lap.lapNumber)}
+              >
+                <span className="lap-num">{lap.lapNumber}</span>
+                <span className={`lap-time ${lap.lapNumber === bestLap?.lapNumber ? 'purple' : ''}`}>
+                  {formatLapTime(lap.lapTime)}
+                </span>
+                <span className={lap.sectors[0] <= Math.min(...displayLapHistory.map(l => l.sectors[0])) ? 'purple' : ''}>
+                  {lap.sectors[0].toFixed(1)}
+                </span>
+                <span className={lap.sectors[1] <= Math.min(...displayLapHistory.map(l => l.sectors[1])) ? 'purple' : ''}>
+                  {lap.sectors[1].toFixed(1)}
+                </span>
+                <span className={lap.sectors[2] <= Math.min(...displayLapHistory.map(l => l.sectors[2])) ? 'purple' : ''}>
+                  {lap.sectors[2].toFixed(1)}
+                </span>
+                <span>{lap.avgSpeed.toFixed(0)} km/h</span>
+                <span>{lap.maxSpeed.toFixed(0)} km/h</span>
+                <span>{lap.fuelUsed.toFixed(1)}L</span>
+                <span className={lap.tireWearEnd < 50 ? 'warning' : ''}>
+                  {lap.tireWearEnd.toFixed(0)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Performance Summary */}
@@ -272,36 +275,42 @@ const TelemetryAnalysis: React.FC<TelemetryAnalysisProps> = ({ telemetryData }) 
         <div className="section-header">
           <h3>📈 Session Summary</h3>
         </div>
-        <div className="summary-grid">
-          <div className="summary-card">
-            <span className="summary-label">Total Laps</span>
-            <span className="summary-value">{displayLapHistory.length}</span>
+        {displayLapHistory.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+            Waiting for session data...
           </div>
-          <div className="summary-card">
-            <span className="summary-label">Best Lap</span>
-            <span className="summary-value purple">{formatLapTime(bestLap?.lapTime || 0)}</span>
+        ) : (
+          <div className="summary-grid">
+            <div className="summary-card">
+              <span className="summary-label">Total Laps</span>
+              <span className="summary-value">{displayLapHistory.length}</span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Best Lap</span>
+              <span className="summary-value purple">{formatLapTime(bestLap?.lapTime || 0)}</span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Avg Lap Time</span>
+              <span className="summary-value">
+                {formatLapTime(displayLapHistory.reduce((sum, l) => sum + l.lapTime, 0) / displayLapHistory.length)}
+              </span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Consistency</span>
+              <span className="summary-value">
+                ±{(Math.max(...displayLapHistory.map(l => l.lapTime)) - Math.min(...displayLapHistory.map(l => l.lapTime))).toFixed(2)}s
+              </span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Top Speed</span>
+              <span className="summary-value">{Math.max(...displayLapHistory.map(l => l.maxSpeed)).toFixed(0)} km/h</span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Fuel Used</span>
+              <span className="summary-value">{displayLapHistory.reduce((sum, l) => sum + l.fuelUsed, 0).toFixed(1)}L</span>
+            </div>
           </div>
-          <div className="summary-card">
-            <span className="summary-label">Avg Lap Time</span>
-            <span className="summary-value">
-              {formatLapTime(displayLapHistory.reduce((sum, l) => sum + l.lapTime, 0) / displayLapHistory.length)}
-            </span>
-          </div>
-          <div className="summary-card">
-            <span className="summary-label">Consistency</span>
-            <span className="summary-value">
-              ±{(Math.max(...displayLapHistory.map(l => l.lapTime)) - Math.min(...displayLapHistory.map(l => l.lapTime))).toFixed(2)}s
-            </span>
-          </div>
-          <div className="summary-card">
-            <span className="summary-label">Top Speed</span>
-            <span className="summary-value">{Math.max(...displayLapHistory.map(l => l.maxSpeed)).toFixed(0)} km/h</span>
-          </div>
-          <div className="summary-card">
-            <span className="summary-label">Fuel Used</span>
-            <span className="summary-value">{displayLapHistory.reduce((sum, l) => sum + l.fuelUsed, 0).toFixed(1)}L</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

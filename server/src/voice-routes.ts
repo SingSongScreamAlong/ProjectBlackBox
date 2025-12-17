@@ -14,6 +14,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import multer from 'multer';
 import { pool } from './db.js';
 import { elevenLabsService } from './elevenlabs-service.js';
+import DriverContextService, { DriverContext } from './services/DriverContextService.js';
 
 const router = express.Router();
 
@@ -73,6 +74,7 @@ interface EngineerContext {
   inPit: boolean;
   flagStatus: string;
   timestamp: number;
+  driverContext?: DriverContext | null; // Added contextual awareness
 }
 
 interface ConversationMessage {
@@ -118,6 +120,9 @@ router.post('/session/init', authenticateToken, async (req, res) => {
 
     const driverName = driverResult.rows[0]?.username || 'Driver';
 
+    // Fetch driver context (Skills + Goals)
+    const driverContext = await DriverContextService.getDriverContext(driverId);
+
     // Initialize session context
     const context: EngineerContext = {
       sessionId,
@@ -136,7 +141,8 @@ router.post('/session/init', authenticateToken, async (req, res) => {
       currentGear: 0,
       inPit: false,
       flagStatus: 'green',
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      driverContext: driverContext // Store in session state
     };
 
     activeSessions.set(sessionId, {
@@ -530,8 +536,8 @@ async function generateEngineerResponse(
  * Helper: Build engineer system prompt with race context
  */
 function buildEngineerPrompt(context: EngineerContext): string {
-  return `You are a professional race engineer for ${context.driverName} at ${context.trackName}.
-
+  const basePrompt = `You are a professional race engineer for ${context.driverName} at ${context.trackName}.
+  
 Current Race Status:
 - Lap: ${context.currentLap}
 - Position: P${context.position}
@@ -542,8 +548,21 @@ Current Race Status:
 - Fuel: ${context.fuelLevel.toFixed(1)}L
 - Tire temps: LF=${context.tireTemps.LF.toFixed(0)}°C, RF=${context.tireTemps.RF.toFixed(0)}°C, LR=${context.tireTemps.LR.toFixed(0)}°C, RR=${context.tireTemps.RR.toFixed(0)}°C
 - Flag: ${context.flagStatus}
-- In pit: ${context.inPit}
+- In pit: ${context.inPit}`;
 
+  let contextSection = '';
+  if (context.driverContext) {
+    const { skills, goals } = context.driverContext;
+    contextSection = `
+Driver Context:
+- Consistency Skill: Level ${skills.consistency.level}
+- Safety Skill: Level ${skills.safety.level}
+- Active Goals: ${goals.length > 0 ? goals.join(', ') : 'None'}
+`;
+  }
+
+  return `${basePrompt}
+${contextSection}
 Instructions:
 - Provide clear, concise responses (1-2 sentences max)
 - Be supportive and professional like a real F1/IndyCar engineer
@@ -552,6 +571,7 @@ Instructions:
 - If asked about something you don't have data for, be honest
 - Use racing terminology (delta, stint, deg, undercut, etc.)
 - Keep responses brief - driver needs to focus on driving
+- If the driver has active goals (e.g. braking), TRY to relate advice to those goals where relevant.
 
 Examples:
 Driver: "How are my tires?"

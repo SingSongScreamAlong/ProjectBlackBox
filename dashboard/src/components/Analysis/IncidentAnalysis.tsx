@@ -22,84 +22,11 @@ const IncidentAnalysis: React.FC<IncidentAnalysisProps> = ({ sessionId }) => {
   const [selectedIncident, setSelectedIncident] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
 
-  // Sample incident data - would come from backend /api/incidents/analyze
-  const incidents: Incident[] = useMemo(() => [
-    {
-      id: '1',
-      lap: 3,
-      sector: 2,
-      type: 'lockup',
-      severity: 'minor',
-      timeLost: 0.342,
-      corner: 'Stowe',
-      description: 'Front-left lockup under heavy braking. Flat spot created on tire.',
-      prevention: 'Reduce initial brake pressure by 5-10%. Trail brake more gradually into the corner.',
-      incidentPoints: 0
-    },
-    {
-      id: '2',
-      lap: 7,
-      sector: 1,
-      type: 'off-track',
-      severity: 'moderate',
-      timeLost: 1.856,
-      corner: 'Copse',
-      description: 'Two wheels off track on exit. Lost traction on kerb.',
-      prevention: 'Use less kerb on exit. Apply throttle more progressively after apex.',
-      incidentPoints: 1
-    },
-    {
-      id: '3',
-      lap: 12,
-      sector: 3,
-      type: 'oversteer',
-      severity: 'minor',
-      timeLost: 0.523,
-      corner: 'Club',
-      description: 'Rear stepped out on corner entry. Quick correction saved spin.',
-      prevention: 'Reduce entry speed by 3-5 km/h. Brake earlier and release smoothly.',
-      incidentPoints: 0
-    },
-    {
-      id: '4',
-      lap: 18,
-      sector: 2,
-      type: 'contact',
-      severity: 'major',
-      timeLost: 3.245,
-      corner: 'Becketts',
-      description: 'Light contact with competitor. Front wing damage.',
-      prevention: 'Leave more space when overtaking through high-speed corners.',
-      incidentPoints: 2
-    },
-    {
-      id: '5',
-      lap: 24,
-      sector: 1,
-      type: 'spin',
-      severity: 'major',
-      timeLost: 8.432,
-      corner: 'Village',
-      description: 'Full 360° spin after cold tire lockup. Rejoined safely.',
-      prevention: 'Warm tires properly before pushing. Reduce brake pressure on cold tires.',
-      incidentPoints: 0
-    },
-    {
-      id: '6',
-      lap: 31,
-      sector: 3,
-      type: 'understeer',
-      severity: 'minor',
-      timeLost: 0.287,
-      corner: 'Luffield',
-      description: 'Pushed wide on entry due to understeer.',
-      prevention: 'Reduce entry speed. Consider brake bias adjustment +1% forward.',
-      incidentPoints: 0
-    }
-  ], []);
+  // Incident data - would come from backend /api/incidents/analyze
+  const incidents: Incident[] = useMemo(() => [], []);
 
-  const filteredIncidents = filterType === 'all' 
-    ? incidents 
+  const filteredIncidents = filterType === 'all'
+    ? incidents
     : incidents.filter(i => i.type === filterType);
 
   const summary = useMemo(() => {
@@ -138,8 +65,8 @@ const IncidentAnalysis: React.FC<IncidentAnalysisProps> = ({ sessionId }) => {
     }
   };
 
-  const selectedIncidentData = selectedIncident 
-    ? incidents.find(i => i.id === selectedIncident) 
+  const selectedIncidentData = selectedIncident
+    ? incidents.find(i => i.id === selectedIncident)
     : null;
 
   return (
@@ -166,16 +93,16 @@ const IncidentAnalysis: React.FC<IncidentAnalysisProps> = ({ sessionId }) => {
 
       {/* Filter Tabs */}
       <div className="incident-filters">
-        <button 
-          className={filterType === 'all' ? 'active' : ''} 
+        <button
+          className={filterType === 'all' ? 'active' : ''}
           onClick={() => setFilterType('all')}
         >
           All ({summary.total})
         </button>
         {Object.entries(summary.byType).map(([type, count]) => (
-          <button 
+          <button
             key={type}
-            className={filterType === type ? 'active' : ''} 
+            className={filterType === type ? 'active' : ''}
             onClick={() => setFilterType(type)}
           >
             {getTypeIcon(type)} {type} ({count})
@@ -187,7 +114,7 @@ const IncidentAnalysis: React.FC<IncidentAnalysisProps> = ({ sessionId }) => {
         {/* Incident List */}
         <div className="incident-list">
           {filteredIncidents.map(incident => (
-            <div 
+            <div
               key={incident.id}
               className={`incident-item ${selectedIncident === incident.id ? 'selected' : ''}`}
               onClick={() => setSelectedIncident(incident.id)}
@@ -196,7 +123,7 @@ const IncidentAnalysis: React.FC<IncidentAnalysisProps> = ({ sessionId }) => {
               <div className="incident-info">
                 <div className="incident-header">
                   <span className="incident-type">{incident.type}</span>
-                  <span 
+                  <span
                     className="incident-severity"
                     style={{ color: getSeverityColor(incident.severity) }}
                   >
@@ -230,7 +157,7 @@ const IncidentAnalysis: React.FC<IncidentAnalysisProps> = ({ sessionId }) => {
                     Lap {selectedIncidentData.lap} • {selectedIncidentData.corner || `Sector ${selectedIncidentData.sector}`}
                   </span>
                 </div>
-                <span 
+                <span
                   className="detail-severity"
                   style={{ background: getSeverityColor(selectedIncidentData.severity) }}
                 >

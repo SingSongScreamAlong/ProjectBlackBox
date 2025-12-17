@@ -30,89 +30,12 @@ const SessionBrowser: React.FC<SessionBrowserProps> = ({ isOpen, onClose, onSele
   const [sortBy, setSortBy] = useState<'date' | 'track' | 'bestLap'>('date');
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
 
-  // Mock data - in production this would fetch from backend
   useEffect(() => {
     if (isOpen) {
       setLoading(true);
-      // Simulate API call
+      // TODO: Fetch real sessions from backend
       setTimeout(() => {
-        setSessions([
-          {
-            id: '1',
-            name: 'Silverstone Practice',
-            track: 'Silverstone',
-            car: 'Ferrari SF24',
-            date: Date.now() - 86400000,
-            duration: 45,
-            laps: 22,
-            bestLap: '1:28.234',
-            avgLap: '1:29.567',
-            incidents: 0,
-            position: 3,
-            totalDrivers: 20,
-            sessionType: 'practice'
-          },
-          {
-            id: '2',
-            name: 'Silverstone Qualifying',
-            track: 'Silverstone',
-            car: 'Ferrari SF24',
-            date: Date.now() - 82800000,
-            duration: 15,
-            laps: 8,
-            bestLap: '1:27.891',
-            avgLap: '1:28.456',
-            incidents: 0,
-            position: 5,
-            totalDrivers: 20,
-            sessionType: 'qualifying'
-          },
-          {
-            id: '3',
-            name: 'Silverstone Race',
-            track: 'Silverstone',
-            car: 'Ferrari SF24',
-            date: Date.now() - 79200000,
-            duration: 90,
-            laps: 52,
-            bestLap: '1:28.567',
-            avgLap: '1:29.234',
-            incidents: 2,
-            position: 4,
-            totalDrivers: 20,
-            sessionType: 'race'
-          },
-          {
-            id: '4',
-            name: 'Spa Practice',
-            track: 'Spa-Francorchamps',
-            car: 'Ferrari SF24',
-            date: Date.now() - 172800000,
-            duration: 60,
-            laps: 18,
-            bestLap: '1:45.123',
-            avgLap: '1:46.789',
-            incidents: 1,
-            position: 6,
-            totalDrivers: 22,
-            sessionType: 'practice'
-          },
-          {
-            id: '5',
-            name: 'Monza Qualifying',
-            track: 'Monza',
-            car: 'Ferrari SF24',
-            date: Date.now() - 259200000,
-            duration: 15,
-            laps: 10,
-            bestLap: '1:21.456',
-            avgLap: '1:22.123',
-            incidents: 0,
-            position: 2,
-            totalDrivers: 20,
-            sessionType: 'qualifying'
-          },
-        ]);
+        setSessions([]);
         setLoading(false);
       }, 500);
     }
@@ -140,8 +63,8 @@ const SessionBrowser: React.FC<SessionBrowserProps> = ({ isOpen, onClose, onSele
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -188,7 +111,7 @@ const SessionBrowser: React.FC<SessionBrowserProps> = ({ isOpen, onClose, onSele
               <div className="no-sessions">No sessions found</div>
             ) : (
               filteredSessions.map(session => (
-                <div 
+                <div
                   key={session.id}
                   className={`session-card ${selectedSession === session.id ? 'selected' : ''}`}
                   onClick={() => setSelectedSession(session.id)}
@@ -266,7 +189,7 @@ const SessionBrowser: React.FC<SessionBrowserProps> = ({ isOpen, onClose, onSele
                 </div>
 
                 <div className="detail-actions">
-                  <button 
+                  <button
                     className="action-primary"
                     onClick={() => onSelectSession(selectedSessionData.id)}
                   >

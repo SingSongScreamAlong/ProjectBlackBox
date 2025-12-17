@@ -63,11 +63,11 @@ class TrainingService {
                 title: g.title,
                 description: g.description,
                 category: g.type, // type -> category
-                priority: 'medium', // Default for now
+                priority: g.priority || 'medium',
                 progress: parseFloat(g.progress) * 100, // 0.5 -> 50%
                 targetValue: g.targetValue,
                 currentValue: g.currentValue,
-                xpReward: 100, // placeholder
+                xpReward: g.xpReward || 0,
                 metrics: g.metrics
             }));
         } catch (e) {

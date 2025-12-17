@@ -1,6 +1,6 @@
 import React from 'react';
 import { TelemetryData } from '../../services/WebSocketService';
-import SimulationControl from '../SimulationControl/SimulationControl';
+
 import './TelemetryCockpit.css';
 
 interface TelemetryProps {
@@ -12,23 +12,19 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
     return (
       <div className="panel telemetry-panel">
         <div className="panel-content">
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             justifyContent: 'center',
-            padding: '2rem', 
+            padding: '2rem',
             gap: '1.5rem',
             minHeight: '300px'
           }}>
             <div style={{ color: '#888', fontSize: '14px' }}>
-              No telemetry data available
+              Waiting for telemetry connection...
             </div>
-            <SimulationControl />
-            <div style={{ color: '#666', fontSize: '12px', textAlign: 'center', maxWidth: '400px' }}>
-              Start the simulation above to test the UI with mock data, 
-              or connect iRacing with the relay agent for live telemetry.
-            </div>
+            <div className="loading-spinner"></div>
           </div>
         </div>
       </div>

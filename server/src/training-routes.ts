@@ -6,6 +6,29 @@ import { authenticateToken } from './auth.js';
 
 const router = Router();
 
+import LearningEngineService from './services/LearningEngineService.js';
+
+// --- LEARNING ENGINE ---
+
+/**
+ * Trigger learning engine processing for a session
+ * POST /api/training/process/:sessionId
+ */
+router.post('/process/:sessionId', authenticateToken, async (req: any, res) => {
+    const { sessionId } = req.params;
+
+    try {
+        // Trigger async processing (fire and forget? or wait?)
+        // Waiting is better for immediate feedback in UI
+        await LearningEngineService.processSession(sessionId);
+
+        res.json({ message: 'Session processed and skills updated' });
+    } catch (error) {
+        console.error('Error processing session:', error);
+        res.status(500).json({ error: 'Failed to process session' });
+    }
+});
+
 // --- GOALS ---
 
 // Get active goals for a driver

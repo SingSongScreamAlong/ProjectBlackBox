@@ -32,9 +32,10 @@ function loadDashboardConfig(): DashboardConfig {
 
     return {
         // Backend Services
-        BACKEND_URL: env.REACT_APP_BACKEND_URL || 'http://localhost:3000',
-        RELAY_AGENT_URL: env.REACT_APP_RELAY_AGENT_URL || 'ws://localhost:8765',
-        WEBSOCKET_URL: env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:8765',
+        // Use ternary to allow empty string (relative path)
+        BACKEND_URL: env.REACT_APP_BACKEND_URL !== undefined ? env.REACT_APP_BACKEND_URL : 'http://localhost:3000',
+        RELAY_AGENT_URL: env.REACT_APP_RELAY_AGENT_URL !== undefined ? env.REACT_APP_RELAY_AGENT_URL : 'ws://localhost:8765',
+        WEBSOCKET_URL: env.REACT_APP_WEBSOCKET_URL !== undefined ? env.REACT_APP_WEBSOCKET_URL : 'ws://localhost:8765',
 
         // Feature Flags
         ENABLE_AI_COACHING: env.REACT_APP_ENABLE_AI_COACHING !== 'false',

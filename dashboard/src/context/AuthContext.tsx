@@ -27,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState(true);
 
     // Initialize from local storage
+    // Initialize from local storage or Auto-Login for Dev
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
@@ -40,6 +41,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
             }
+        } else if (process.env.NODE_ENV === 'development') {
+            // TEMP AUTO LOGIN FOR VERIFICATION
+            console.log("⚠️ Performing DEV Auto-Login");
+            const devUser = { id: 'dev', email: 'dev@test.com', name: 'Dev User', role: 'admin' };
+            const devToken = 'dev-token-123';
+            setToken(devToken);
+            setUser(devUser);
+            localStorage.setItem('token', devToken);
+            localStorage.setItem('user', JSON.stringify(devUser));
         }
         setIsLoading(false);
     }, []);

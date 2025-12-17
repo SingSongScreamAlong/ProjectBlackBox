@@ -42,34 +42,34 @@ const Dashboard: React.FC = () => {
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showSessionBrowser, setShowSessionBrowser] = useState<boolean>(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState<boolean>(false);
-  
+
   // Hooks for new features
   const { notifications, dismissNotification, notifyFastestLap, notifyPitWindow } = useNotifications();
   const { settings, updateSettings } = useSettings();
   // Create a compatible SessionInfo state that matches the interface
   const [sessionInfo, setSessionInfo] = useState<SessionInfo>({
-    track: 'Silverstone',
-    session: 'RACE',
-    driver: 'PLAYER',
-    car: 'Ferrari SF24',
+    track: '',
+    session: '',
+    driver: '',
+    car: '',
     weather: {
-      temperature: 28,
-      trackTemperature: 42,
-      windSpeed: 12,
-      windDirection: 'NW',
-      humidity: 65,
-      trackGrip: 95
+      temperature: 0,
+      trackTemperature: 0,
+      windSpeed: 0,
+      windDirection: '',
+      humidity: 0,
+      trackGrip: 0
     },
-    totalLaps: 52,
+    totalLaps: 0,
     sessionTime: 0,
-    remainingTime: 3600
+    remainingTime: 0
   });
 
 
   const [displayInfo, setDisplayInfo] = useState({
-    trackName: 'Silverstone',
-    sessionType: 'RACE',
-    lapCount: 12
+    trackName: '',
+    sessionType: '',
+    lapCount: 0
   });
   const [connected, setConnected] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -142,8 +142,8 @@ const Dashboard: React.FC = () => {
             setSessionInfo(prev => ({
               ...prev,
               session: 'RACE',
-              track: latest.track || 'Silverstone',
-              driver: latest.name || 'Sim Driver'
+              track: latest.track || 'Unknown Track',
+              driver: latest.name || 'Unknown Driver'
             }));
           }
         }
@@ -253,26 +253,26 @@ const Dashboard: React.FC = () => {
             </div>
           </>
         );
-      
+
       case 'TRACK':
         // TRACK MODE: Full track visualization with all vehicles
         // Corner analysis, insights, track conditions
         return (
           <div style={{ gridColumn: '1 / -1', height: '100%' }}>
-            <TrackPage 
+            <TrackPage
               telemetryData={telemetryData}
               competitorData={competitorData}
               trackName={sessionInfo.track || 'Unknown Track'}
             />
           </div>
         );
-      
+
       case 'STRATEGY':
         // STRATEGY MODE: Comprehensive race strategy
         // Driver standings, pit strategy, tire/fuel management
         return (
           <div style={{ gridColumn: '1 / -1', height: '100%' }}>
-            <StrategyPage 
+            <StrategyPage
               telemetryData={telemetryData}
               competitorData={competitorData}
               strategyData={strategyData}
@@ -281,7 +281,7 @@ const Dashboard: React.FC = () => {
             />
           </div>
         );
-      
+
       case 'ANALYSIS':
         // ANALYSIS MODE: Comprehensive session review
         // Telemetry graphs, incident analysis, lap comparison, driver comparison
@@ -290,7 +290,7 @@ const Dashboard: React.FC = () => {
             <AnalysisPage telemetryData={telemetryData} />
           </div>
         );
-      
+
       default:
         // Default to RACE mode
         return (
@@ -367,9 +367,9 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Notifications */}
-      <NotificationSystem 
-        notifications={notifications} 
-        onDismiss={dismissNotification} 
+      <NotificationSystem
+        notifications={notifications}
+        onDismiss={dismissNotification}
       />
 
       {/* Settings Panel */}

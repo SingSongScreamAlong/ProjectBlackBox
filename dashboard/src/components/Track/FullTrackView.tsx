@@ -21,58 +21,40 @@ interface FullTrackViewProps {
   trackName?: string;
 }
 
-const FullTrackView: React.FC<FullTrackViewProps> = ({ 
-  telemetryData, 
+const FullTrackView: React.FC<FullTrackViewProps> = ({
+  telemetryData,
   competitorData,
-  trackName = 'Silverstone' 
+  trackName = ''
 }) => {
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [showSectors, setShowSectors] = useState(true);
   const [showCorners, setShowCorners] = useState(true);
 
   // Find track definition
-  const trackDef: TrackDefinition = useMemo(() => {
+  const trackDef: TrackDefinition | undefined = useMemo(() => {
+    if (!trackName) return undefined;
     const staticData = trackAssetService.getStaticTrackData(trackName);
-    return staticData || tracks['Silverstone'];
+    return staticData || tracks[trackName];
   }, [trackName]);
-
-  const viewBoxParts = trackDef.viewBox.split(' ').map(Number);
-  const centerX = viewBoxParts[2] / 2;
-  const centerY = viewBoxParts[3] / 2;
-  const radius = Math.min(centerX, centerY) * 0.6;
 
   // Generate vehicle positions from competitor data
   const vehicles: VehiclePosition[] = useMemo(() => {
-    const baseCompetitors = competitorData || [
-      { position: 1, driver: 'VERSTAPPEN', gap: 'LEADER', lastLap: '1:27.654' },
-      { position: 2, driver: 'HAMILTON', gap: '+2.576s', lastLap: '1:27.892' },
-      { position: 3, driver: 'YOU', gap: '+3.821s', lastLap: '1:28.456' },
-      { position: 4, driver: 'LECLERC', gap: '+6.697s', lastLap: '1:28.234' },
-      { position: 5, driver: 'NORRIS', gap: '+8.455s', lastLap: '1:28.789' },
-      { position: 6, driver: 'SAINZ', gap: '+12.234s', lastLap: '1:28.901' },
-      { position: 7, driver: 'RUSSELL', gap: '+15.567s', lastLap: '1:29.012' },
-      { position: 8, driver: 'PIASTRI', gap: '+18.890s', lastLap: '1:29.123' },
-    ];
-
+    const baseCompetitors = competitorData || [];
     const colors = ['#ffeb3b', '#c0c0c0', '#ff6b35', '#e10600', '#ff8700', '#e10600', '#27f4d2', '#ff8700'];
-    
+
     return baseCompetitors.map((comp, index) => {
-      // Simulate track positions based on race position and gaps
-      // Leader is at player's track position + offset based on gap
       const playerTrackPos = telemetryData?.trackPosition || 0.5;
       let trackPos = playerTrackPos;
-      
+
       if (comp.driver === 'YOU') {
         trackPos = playerTrackPos;
       } else if (comp.gap === 'LEADER') {
-        // Leader is ahead
         const playerPos = baseCompetitors.find(c => c.driver === 'YOU')?.position || 3;
-        const gapLaps = (playerPos - 1) * 0.02; // Approximate gap in track position
+        const gapLaps = (playerPos - 1) * 0.02;
         trackPos = (playerTrackPos + gapLaps) % 1;
       } else {
-        // Calculate position based on gap
         const gapSeconds = parseFloat(comp.gap.replace('+', '').replace('s', '')) || 0;
-        const gapAsTrackPos = gapSeconds / 90; // Assume 90 second lap
+        const gapAsTrackPos = gapSeconds / 90;
         trackPos = (playerTrackPos - gapAsTrackPos + 1) % 1;
       }
 
@@ -88,6 +70,20 @@ const FullTrackView: React.FC<FullTrackViewProps> = ({
       };
     });
   }, [competitorData, telemetryData]);
+
+  // Handle missing track data - AFTER all hooks
+  if (!trackDef) {
+    return (
+      <div className="full-track-view" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <div style={{ color: '#888' }}>Waiting for track data...</div>
+      </div>
+    );
+  }
+
+  const viewBoxParts = trackDef.viewBox.split(' ').map(Number);
+  const centerX = viewBoxParts[2] / 2;
+  const centerY = viewBoxParts[3] / 2;
+  const radius = Math.min(centerX, centerY) * 0.6;
 
   // Calculate car position on track
   const getCarCoordinates = (trackPos: number) => {
@@ -114,14 +110,14 @@ const FullTrackView: React.FC<FullTrackViewProps> = ({
           <span className="track-length">{trackDef.length}m</span>
         </div>
         <div className="track-toggles">
-          <button 
-            className={showSectors ? 'active' : ''} 
+          <button
+            className={showSectors ? 'active' : ''}
             onClick={() => setShowSectors(!showSectors)}
           >
             Sectors
           </button>
-          <button 
-            className={showCorners ? 'active' : ''} 
+          <button
+            className={showCorners ? 'active' : ''}
             onClick={() => setShowCorners(!showCorners)}
           >
             Corners
@@ -207,10 +203,10 @@ const FullTrackView: React.FC<FullTrackViewProps> = ({
             {vehicles.map(vehicle => {
               const coords = getCarCoordinates(vehicle.trackPosition);
               const isSelected = selectedVehicle === vehicle.id;
-              
+
               return (
-                <g 
-                  key={vehicle.id} 
+                <g
+                  key={vehicle.id}
                   transform={`translate(${coords.x}, ${coords.y})`}
                   style={{ cursor: 'pointer' }}
                   onClick={() => setSelectedVehicle(isSelected ? null : vehicle.id)}
@@ -221,7 +217,7 @@ const FullTrackView: React.FC<FullTrackViewProps> = ({
                       <animate attributeName="r" values="20;28;20" dur="1s" repeatCount="indefinite" />
                     </circle>
                   )}
-                  
+
                   {/* Player pulse effect */}
                   {vehicle.isPlayer && (
                     <circle r="18" fill={vehicle.color} opacity="0.3">
@@ -229,15 +225,15 @@ const FullTrackView: React.FC<FullTrackViewProps> = ({
                       <animate attributeName="opacity" values="0.3;0.1;0.3" dur="1.5s" repeatCount="indefinite" />
                     </circle>
                   )}
-                  
+
                   {/* Car marker */}
-                  <circle 
-                    r={vehicle.isPlayer ? 12 : 8} 
-                    fill={vehicle.color} 
-                    stroke="#000" 
+                  <circle
+                    r={vehicle.isPlayer ? 12 : 8}
+                    fill={vehicle.color}
+                    stroke="#000"
                     strokeWidth="2"
                   />
-                  
+
                   {/* Position number */}
                   <text
                     y={vehicle.isPlayer ? 4 : 3}
@@ -252,9 +248,9 @@ const FullTrackView: React.FC<FullTrackViewProps> = ({
                   {/* Driver name label (on hover/select) */}
                   {(isSelected || vehicle.isPlayer) && (
                     <g transform="translate(0, -25)">
-                      <rect 
-                        x="-40" y="-12" 
-                        width="80" height="20" 
+                      <rect
+                        x="-40" y="-12"
+                        width="80" height="20"
                         rx="4"
                         fill="rgba(0,0,0,0.8)"
                       />
@@ -281,10 +277,10 @@ const FullTrackView: React.FC<FullTrackViewProps> = ({
             <h3>Live Positions</h3>
             <span className="lap-info">Lap {telemetryData?.lap || 1}</span>
           </div>
-          
+
           <div className="vehicle-list">
             {vehicles.map(vehicle => (
-              <div 
+              <div
                 key={vehicle.id}
                 className={`vehicle-item ${vehicle.isPlayer ? 'player' : ''} ${selectedVehicle === vehicle.id ? 'selected' : ''}`}
                 onClick={() => setSelectedVehicle(selectedVehicle === vehicle.id ? null : vehicle.id)}

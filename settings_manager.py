@@ -6,7 +6,10 @@ In-program configuration for all settings
 import json
 import os
 from typing import Dict, Optional, List
-import pygame
+try:
+    import pygame
+except ImportError:
+    pygame = None
 from dataclasses import dataclass, asdict
 from pathlib import Path
 

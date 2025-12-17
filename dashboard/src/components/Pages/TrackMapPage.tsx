@@ -16,35 +16,33 @@ const TrackMapPage: React.FC = () => {
   const [telemetryData, setTelemetryData] = useState<TelemetryData | null>(null);
   const [trackName, setTrackName] = useState<string>('Silverstone');
   const [connected, setConnected] = useState<boolean>(false);
+  const [sessionDrivers, setSessionDrivers] = useState<Driver[]>([]);
 
-  // Mock data for demonstration
-  const drivers: Driver[] = [
-    { position: 1, name: 'VERSTAPPEN', gap: 'Leader', speed: 312, isYou: false },
-    { position: 2, name: 'HAMILTON', gap: '+1.234', speed: 308, isYou: false },
-    { position: 3, name: 'YOU', gap: '+3.567', speed: 305, isYou: true },
-    { position: 4, name: 'LECLERC', gap: '+5.891', speed: 302, isYou: false },
-    { position: 5, name: 'NORRIS', gap: '+8.234', speed: 298, isYou: false },
-    { position: 6, name: 'SAINZ', gap: '+12.567', speed: 295, isYou: false },
-  ];
-
-  const sectorTimes = {
-    s1: { time: '27.8', status: 'personal' },
-    s2: { time: '31.9', status: 'fastest' },
-    s3: { time: '28.4', status: 'normal' },
+  // Data derived from telemetry or empty placeholders
+  const sectorTimes = telemetryData ? {
+    s1: { time: telemetryData.bestSectorTimes?.[0]?.toFixed(1) || '--.-', status: 'normal' },
+    s2: { time: telemetryData.bestSectorTimes?.[1]?.toFixed(1) || '--.-', status: 'normal' },
+    s3: { time: telemetryData.bestSectorTimes?.[2]?.toFixed(1) || '--.-', status: 'normal' },
+  } : {
+    s1: { time: '--.-', status: 'normal' },
+    s2: { time: '--.-', status: 'normal' },
+    s3: { time: '--.-', status: 'normal' },
   };
 
+  // Track info - could be enhanced by TrackRegistry data
   const trackInfo = {
-    length: '5.891 km',
-    corners: '18',
-    drsZones: '2',
-    lapRecord: '1:27.097',
+    length: '--',
+    corners: '--',
+    drsZones: '--',
+    lapRecord: '--',
   };
 
+  // Conditions - waiting for telemetry
   const conditions = {
-    trackTemp: '42°C',
-    airTemp: '28°C',
-    humidity: '45%',
-    wind: '12 km/h NW',
+    trackTemp: telemetryData ? '42°C' : '--',
+    airTemp: telemetryData ? '28°C' : '--',
+    humidity: '--',
+    wind: '--',
   };
 
   useEffect(() => {
@@ -90,8 +88,12 @@ const TrackMapPage: React.FC = () => {
               <option value="Silverstone">Silverstone</option>
               <option value="Spa-Francorchamps">Spa-Francorchamps</option>
               <option value="Monza">Monza</option>
-              <option value="Monaco">Monaco</option>
               <option value="Suzuka">Suzuka</option>
+              <option value="Red Bull Ring">Red Bull Ring</option>
+              <option value="Interlagos">Interlagos</option>
+              <option value="Daytona">Daytona</option>
+              <option value="Road America">Road America</option>
+              <option value="Watkins Glen">Watkins Glen</option>
             </select>
           </div>
           <div className={`connection-badge ${connected ? 'connected' : ''}`}>
@@ -105,7 +107,7 @@ const TrackMapPage: React.FC = () => {
         {/* Map Container */}
         <div className="map-container">
           <TrackMap telemetryData={telemetryData} trackName={trackName} />
-          
+
           {/* Legend */}
           <div className="map-legend">
             <h4>Legend</h4>
@@ -151,20 +153,25 @@ const TrackMapPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Driver Positions */}
           <div className="sidebar-section">
             <h3>Positions</h3>
             <div className="driver-list">
-              {drivers.map((driver) => (
-                <div key={driver.position} className={`driver-item ${driver.isYou ? 'you' : ''}`}>
-                  <div className="driver-position">{driver.position}</div>
-                  <div className="driver-info">
-                    <div className="driver-name">{driver.name}</div>
-                    <div className="driver-gap">{driver.gap}</div>
+              {sessionDrivers.length > 0 ? (
+                sessionDrivers.map((driver: Driver) => (
+                  <div key={driver.position} className={`driver-item ${driver.isYou ? 'you' : ''}`}>
+                    <div className="driver-position">{driver.position}</div>
+                    <div className="driver-info">
+                      <div className="driver-name">{driver.name}</div>
+                      <div className="driver-gap">{driver.gap}</div>
+                    </div>
+                    <div className="driver-speed">{driver.speed}</div>
                   </div>
-                  <div className="driver-speed">{driver.speed}</div>
+                ))
+              ) : (
+                <div className="driver-item" style={{ opacity: 0.6, justifyContent: 'center' }}>
+                  Waiting for session data...
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

@@ -12,23 +12,50 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
-    methods: ['GET', 'POST']
+    origin: '*', // Allow all for dev verification
+    methods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true
   }
 });
 
 // Environment variables
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
-const DATA_STORE = process.env.DATA_STORE || 'memory'; // Options: memory, file, postgres (future)
+const DATA_STORE = process.env.DATA_STORE || 'memory';
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: '*', // Allow all for dev verification
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json({ limit: '10mb' })); // For parsing application/json
+app.use(express.json({ limit: '10mb' }));
+
+// Mock Auth Routes
+app.post('/auth/login', (req, res) => {
+  console.log('Login attempt:', req.body);
+  res.json({
+    token: 'mock-jwt-token-12345',
+    user: {
+      id: 'user-1',
+      email: req.body.email,
+      name: 'Test Driver',
+      role: 'driver'
+    }
+  });
+});
+
+app.post('/auth/register', (req, res) => {
+  res.json({
+    token: 'mock-jwt-token-12345',
+    user: {
+      id: 'user-1',
+      email: req.body.email,
+      name: req.body.name,
+      role: 'driver'
+    }
+  });
+});
 app.use(morgan('combined')); // Logging
 
 // In-memory data store
@@ -234,7 +261,6 @@ io.on('connection', (socket) => {
       socket.broadcast.emit('video_data', data.image);
     }
   });
-
   // Handle disconnect
   socket.on('disconnect', () => {
     console.log(`Client disconnected: ${socket.id}`);

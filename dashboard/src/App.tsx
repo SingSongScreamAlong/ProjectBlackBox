@@ -14,7 +14,6 @@ import VoiceEngineerPage from './components/Pages/VoiceEngineerPage';
 import { multiDriverService } from './services/MultiDriverService';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
-import { initializeMockDriverData } from './utils/mockDriverData';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Protected Route Component
@@ -79,11 +78,6 @@ function AppContent() {
   // Initialize MultiDriverService only when app starts (could be moved inside authenticated layout if desired)
   useEffect(() => {
     multiDriverService.initialize();
-
-    // Initialize mock driver data for development/debugging
-    if (process.env.NODE_ENV === 'development') {
-      initializeMockDriverData();
-    }
   }, []);
 
   return (

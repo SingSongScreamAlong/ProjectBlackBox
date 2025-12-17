@@ -15,9 +15,11 @@ import base64
 try:
     import pyaudio
     import wave
-import config
 except ImportError:
     pyaudio = None
+
+import config
+
 
 try:
     import sounddevice as sd

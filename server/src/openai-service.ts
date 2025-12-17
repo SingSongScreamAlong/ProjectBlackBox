@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import DriverContextService, { DriverContext } from './services/DriverContextService.js';
 
 export interface CoachingAnalysis {
   sessionId: string;
@@ -40,7 +41,9 @@ export class OpenAIService {
     sessionInfo: { track?: string; sessionId: string },
     driverInfo: { id: string; name?: string }
   ): Promise<CoachingAnalysis> {
-    const systemPrompt = `You are an expert racing coach analyzing telemetry data from a professional racing session.
+    const context = await DriverContextService.getDriverContext(driverInfo.id);
+
+    let systemPrompt = `You are an expert racing coach analyzing telemetry data from a professional racing session.
 Provide detailed analysis focusing on:
 1. Driver performance assessment
 2. Technical recommendations for improvement
@@ -48,6 +51,19 @@ Provide detailed analysis focusing on:
 4. Key insights from the data patterns
 
 Be specific, actionable, and professional in your analysis. Focus on data-driven insights.`;
+
+    if (context) {
+      const { skills, goals } = context;
+      systemPrompt += `
+
+DRIVER CONTEXT:
+The driver has the following profile:
+- Consistency Skill: Level ${skills.consistency.level}
+- Safety Skill: Level ${skills.safety.level}
+- Active Goals: ${goals.length > 0 ? goals.join(', ') : 'None'}
+
+Please tailor your analysis to help the driver achieve their active goals and improve their skill levels.`;
+    }
 
     const telemetrySummary = this.summarizeTelemetryData(telemetryData);
 
