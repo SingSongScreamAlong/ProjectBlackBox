@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { WebSocketServer, WebSocket } from 'ws';
 import multer from 'multer';
 import { pool } from './db.js';
+import { elevenLabsService } from './elevenlabs-service.js';
 
 const router = express.Router();
 
@@ -459,46 +460,22 @@ router.get('/profiles', authenticateToken, async (req, res) => {
 /**
  * Helper: Transcribe audio using OpenAI Whisper
  */
+/**
+ * Helper: Transcribe audio using OpenAI Whisper via ElevenLabsService
+ */
 async function transcribeAudio(audioFilePath: string): Promise<string | null> {
-  return new Promise((resolve) => {
-    const pythonScript = join(__dirname, '../../relay_agent/voice_race_engineer.py');
+  try {
+    const audioBuffer = readFileSync(audioFilePath);
+    const result = await elevenLabsService.transcribeAudio(audioBuffer);
 
-    // Call Python transcription
-    const python = spawn('python3', [
-      '-c',
-      `
-import asyncio
-import sys
-sys.path.append('${join(__dirname, '../../relay_agent')}')
-from voice_race_engineer import VoiceRaceEngineer
-
-async def transcribe():
-    engineer = VoiceRaceEngineer()
-    result = await engineer.transcribe_audio('${audioFilePath}')
-    print(result or '')
-
-asyncio.run(transcribe())
-      `
-    ]);
-
-    let output = '';
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-
-    python.on('close', (code) => {
-      if (code === 0 && output.trim()) {
-        resolve(output.trim());
-      } else {
-        resolve(null);
-      }
-    });
-
-    setTimeout(() => {
-      python.kill();
-      resolve(null);
-    }, 30000);
-  });
+    if (result && result.text && !result.text.startsWith('[Transcription failed]')) {
+      return result.text;
+    }
+    return null;
+  } catch (error) {
+    console.error('Transcription error:', error);
+    return null;
+  }
 }
 
 /**
