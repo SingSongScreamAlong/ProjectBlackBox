@@ -135,6 +135,7 @@ app.use(sanitizeInputs); // SQL injection protection
 
 // Authentication routes (public) - with brute force protection
 app.use('/auth', authLimiter, authRoutes);
+app.use('/api/auth', authLimiter, authRoutes); // Also mount at /api/auth for DO routing
 
 // Export routes (authenticated) - telemetry data exports
 app.use('/api/export', exportRoutes);
