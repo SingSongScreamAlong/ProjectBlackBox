@@ -19,7 +19,7 @@ services:
       repo: SingSongScreamAlong/ProjectBlackBox
       branch: main
       deploy_on_push: true
-    source_dir: /blackbox-cloud
+    source_dir: /server
     build_command: npm install && npm run build
     run_command: npm start
     http_port: 3000
