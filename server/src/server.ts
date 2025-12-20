@@ -201,6 +201,27 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Handle v2 Baseline Telemetry
+  socket.on('telemetry:baseline', (data: any) => {
+    // Unpack payload if wrapped (Relay sends { type, payload: {...} })
+    const telemetry = data.payload || data;
+
+    // Broadcast as standard 'telemetry' for current dashboards
+    socket.broadcast.emit('telemetry', telemetry);
+    if (data?.sessionId) {
+      io.to(`session:${data.sessionId}`).emit('telemetry_update', telemetry);
+    }
+  });
+
+  // Handle v2 Controls Telemetry
+  socket.on('telemetry:controls', (data: any) => {
+    const telemetry = data.payload || data;
+    socket.broadcast.emit('telemetry', telemetry);
+    if (data?.sessionId) {
+      io.to(`session:${data.sessionId}`).emit('telemetry_update', telemetry);
+    }
+  });
+
   // Handle race events (flag changes, cautions, etc)
   socket.on('race_event', (data: any) => {
     console.log(`[Relay] Race event: ${data?.flag || data?.eventType || 'unknown'}`);

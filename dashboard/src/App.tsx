@@ -81,7 +81,7 @@ function AppContent() {
   }, []);
 
   return (
-    <Router>
+    <Router basename={process.env.PUBLIC_URL}>
       <Routes>
         {/* Public Routes */}
         <Route path="/landing" element={<LandingPage />} />
