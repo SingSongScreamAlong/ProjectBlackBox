@@ -1,5 +1,6 @@
 import express from 'express';
 import { createServer } from 'node:http';
+import path from 'path';
 import cors from 'cors';
 import { Server as SocketIOServer } from 'socket.io';
 import { WebSocketServer } from 'ws';
@@ -77,6 +78,24 @@ const app = express();
 // EARLY BYPASS: Simple ping endpoint before any middleware to verify server responsiveness
 app.get('/ping', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
+});
+
+// Public download route for Relay Agent
+app.get('/download-relay', (req, res) => {
+  const filePath = path.join(process.cwd(), 'downloads', 'relay-agent.zip');
+  res.download(filePath, 'blackbox-relay-agent.zip', (err) => {
+    if (err) {
+      console.error('[Download] Error downloading relay agent:', err);
+      // Fallback relative path for some deployment environments
+      const fallbackPath = path.join(__dirname, '..', 'downloads', 'relay-agent.zip');
+      res.download(fallbackPath, 'blackbox-relay-agent.zip', (err2) => {
+        if (err2) {
+          console.error('[Download] Fallback error:', err2);
+          res.status(404).send('Download not found. Please verify deployment.');
+        }
+      });
+    }
+  });
 });
 const server = createServer(app);
 const io = new SocketIOServer(server, {
