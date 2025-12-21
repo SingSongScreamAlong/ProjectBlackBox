@@ -14,7 +14,7 @@ envs:
 
 services:
   # Backend API + Socket.IO Server
-  - name: api
+  - name: server
     github:
       repo: SingSongScreamAlong/ProjectBlackBox
       branch: main
@@ -68,10 +68,10 @@ static_sites:
     envs:
       - key: REACT_APP_BACKEND_URL
         scope: BUILD_TIME
-        value: "${api.PUBLIC_URL}"
+        value: "${server.PUBLIC_URL}"
       - key: REACT_APP_RELAY_AGENT_URL
         scope: BUILD_TIME
-        value: "${api.PUBLIC_URL}"
+        value: "${server.PUBLIC_URL}"
       - key: REACT_APP_WEBSOCKET_URL
         scope: BUILD_TIME
-        value: "${api.PUBLIC_URL}"
+        value: "${server.PUBLIC_URL}"
