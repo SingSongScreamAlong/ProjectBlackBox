@@ -80,6 +80,12 @@ function AppContent() {
         <Route path="/voice-engineer" element={<VoiceEngineerPage />} />
         <Route path="/track-map" element={<TrackMapPage />} />
         <Route path="/training" element={<TrainingDashboard />} />
+        {/* Live Dashboard - Direct access without auth */}
+        <Route path="/live" element={
+          <AppLayout>
+            <Dashboard />
+          </AppLayout>
+        } />
 
         {/* Protected Routes */}
         <Route path="/" element={
