@@ -20,7 +20,7 @@ services:
       branch: main
       deploy_on_push: true
     source_dir: /server
-    build_command: npm install && npm run build
+    build_command: rm -rf dist && npm install && npm run build
     run_command: npm start
     http_port: 3000
     instance_count: 1
