@@ -24,7 +24,7 @@ export interface TranscriptionResult {
 // Helper function to convert stream/async iterable to buffer
 async function streamToBuffer(stream: Readable | AsyncIterable<Uint8Array>): Promise<Buffer> {
   const chunks: Buffer[] = [];
-  
+
   if (Symbol.asyncIterator in stream) {
     // Handle async iterable
     for await (const chunk of stream as AsyncIterable<Uint8Array>) {
@@ -32,7 +32,7 @@ async function streamToBuffer(stream: Readable | AsyncIterable<Uint8Array>): Pro
     }
     return Buffer.concat(chunks);
   }
-  
+
   // Handle readable stream
   return new Promise((resolve, reject) => {
     (stream as Readable).on('data', (chunk) => chunks.push(Buffer.from(chunk)));
