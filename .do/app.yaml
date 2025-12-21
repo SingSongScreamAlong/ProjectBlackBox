@@ -48,8 +48,20 @@ services:
       - key: OPENAI_API_KEY
         scope: RUN_TIME
         type: SECRET
+      - key: JWT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
       - key: PORT
         value: "3000"
+      - key: SERVER_URL
+        scope: RUN_TIME
+        value: "${APP_URL}"
+      - key: BACKEND_URL
+        scope: RUN_TIME
+        value: "${APP_URL}"
 
 # Removed blackbox-web service - using dashboard as main frontend
 
