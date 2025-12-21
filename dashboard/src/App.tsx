@@ -11,6 +11,7 @@ import RegisterPage from './components/Pages/RegisterPage';
 import TrackMapPage from './components/Pages/TrackMapPage';
 import TrainingDashboard from './components/Training/TrainingDashboard';
 import VoiceEngineerPage from './components/Pages/VoiceEngineerPage';
+import { TeamDashboard } from './components/Team';
 import { multiDriverService } from './services/MultiDriverService';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
@@ -77,9 +78,25 @@ function AppContent() {
         <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/voice-engineer" element={<VoiceEngineerPage />} />
-        <Route path="/track-map" element={<TrackMapPage />} />
-        <Route path="/training" element={<TrainingDashboard />} />
+        <Route path="/voice-engineer" element={
+          <AppLayout><VoiceEngineerPage /></AppLayout>
+        } />
+        <Route path="/track-map" element={
+          <AppLayout><TrackMapPage /></AppLayout>
+        } />
+        <Route path="/training" element={
+          <AppLayout><TrainingDashboard /></AppLayout>
+        } />
+
+        {/* Team Dashboard - Compare drivers and view team performance */}
+        <Route path="/team" element={
+          <PrivateRoute>
+            <AppLayout>
+              <TeamDashboard />
+            </AppLayout>
+          </PrivateRoute>
+        } />
+
         {/* Live Dashboard - Direct access without auth */}
         <Route path="/live" element={
           <AppLayout>
