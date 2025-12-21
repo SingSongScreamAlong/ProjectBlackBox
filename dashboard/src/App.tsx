@@ -14,22 +14,11 @@ import VoiceEngineerPage from './components/Pages/VoiceEngineerPage';
 import { multiDriverService } from './services/MultiDriverService';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
-import { initializeMockDriverData } from './utils/mockDriverData';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-// Protected Route Component
+// Protected Route Component - AUTH DISABLED FOR TESTING
 const PrivateRoute = ({ children }: { children: React.ReactElement }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
-
-  if (isLoading) {
-    return <div style={{ color: '#fff', textAlign: 'center', marginTop: '50px' }}>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/landing" state={{ from: location }} replace />;
-  }
-
+  // Auth check disabled - always allow access
   return children;
 };
 
