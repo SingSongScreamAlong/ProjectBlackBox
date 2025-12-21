@@ -68,11 +68,6 @@ function AppContent() {
   // Initialize MultiDriverService only when app starts (could be moved inside authenticated layout if desired)
   useEffect(() => {
     multiDriverService.initialize();
-
-    // Initialize mock driver data for development/debugging
-    if (process.env.NODE_ENV === 'development') {
-      initializeMockDriverData();
-    }
   }, []);
 
   return (
