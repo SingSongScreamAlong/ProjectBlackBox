@@ -51,27 +51,10 @@ services:
       - key: PORT
         value: "3000"
 
-  # Frontend Dashboard (Next.js)
-  - name: web
-    github:
-      repo: SingSongScreamAlong/ProjectBlackBox
-      branch: main
-      deploy_on_push: true
-    source_dir: /blackbox-web
-    build_command: npm install && npm run build
-    run_command: npm start
-    http_port: 3000
-    instance_count: 1
-    instance_size_slug: basic-xxs
-    routes:
-      - path: /
-    envs:
-      - key: NEXT_PUBLIC_CLOUD_URL
-        scope: BUILD_TIME
-        value: "${api.PUBLIC_URL}"
+# Removed blackbox-web service - using dashboard as main frontend
 
 static_sites:
-  # Telemetry Dashboard (React) - Static Site
+  # Telemetry Dashboard (React) - Now at root path
   - name: dashboard
     github:
       repo: SingSongScreamAlong/ProjectBlackBox
@@ -81,7 +64,7 @@ static_sites:
     build_command: npm install && npm run build
     output_dir: build
     routes:
-      - path: /live
+      - path: /
     envs:
       - key: REACT_APP_BACKEND_URL
         scope: BUILD_TIME
