@@ -16,19 +16,9 @@ import { Provider } from 'react-redux';
 import { store } from './redux/store';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-// Protected Route Component
+// Protected Route Component - TEMPORARILY DISABLED FOR DEVELOPMENT
 const PrivateRoute = ({ children }: { children: React.ReactElement }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
-
-  if (isLoading) {
-    return <div style={{ color: '#fff', textAlign: 'center', marginTop: '50px' }}>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/landing" state={{ from: location }} replace />;
-  }
-
+  // Auth check temporarily disabled - always allow access
   return children;
 };
 
