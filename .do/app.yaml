@@ -70,7 +70,8 @@ services:
         scope: BUILD_TIME
         value: "${api.PUBLIC_URL}"
 
-  # Telemetry Dashboard (React) - ADDED
+static_sites:
+  # Telemetry Dashboard (React) - Static Site
   - name: dashboard
     github:
       repo: SingSongScreamAlong/ProjectBlackBox
@@ -78,10 +79,7 @@ services:
       deploy_on_push: true
     source_dir: /dashboard
     build_command: npm install && npm run build
-    run_command: npm start
-    http_port: 3000
-    instance_count: 1
-    instance_size_slug: basic-xxs
+    output_dir: build
     routes:
       - path: /live
     envs:
