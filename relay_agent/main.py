@@ -28,6 +28,8 @@ from data_mapper import (
     map_race_event,
     map_incident
 )
+from voice_recognition import VoiceRecognition
+from overlay import PTTOverlay
 
 # ========================
 # Logging Setup

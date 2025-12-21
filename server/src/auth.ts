@@ -2,15 +2,26 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { config } from './config/environment.js';
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
+// User payload attached to authenticated requests
+export interface AuthUser {
+  id: string;
+  email: string;
+  role: string;
 }
 
-export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction): void => {
+// Extend Express Request interface globally
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUser;
+    }
+  }
+}
+
+// Type alias for backward compatibility
+export type AuthRequest = Request;
+
+export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 

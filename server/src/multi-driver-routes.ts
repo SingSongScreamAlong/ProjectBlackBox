@@ -1,6 +1,6 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { pool } from './db.js';
-import { authenticateToken, AuthRequest } from './auth.js';
+import { authenticateToken } from './auth.js';
 import { logApiRequest, logUserAction, logError } from './logger.js';
 
 const router = express.Router();
@@ -27,7 +27,7 @@ interface MultiDriver {
 }
 
 // Create multi-driver session
-router.post('/sessions', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/sessions', authenticateToken, async (req: Request, res) => {
   const startTime = Date.now();
 
   try {
@@ -88,7 +88,7 @@ router.post('/sessions', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Get multi-driver sessions
-router.get('/sessions', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/sessions', authenticateToken, async (req: Request, res) => {
   const startTime = Date.now();
 
   try {
@@ -132,7 +132,7 @@ router.get('/sessions', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Get specific multi-driver session
-router.get('/sessions/:sessionId', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/sessions/:sessionId', authenticateToken, async (req: Request, res) => {
   const startTime = Date.now();
 
   try {
@@ -214,7 +214,7 @@ router.get('/sessions/:sessionId', authenticateToken, async (req: AuthRequest, r
 });
 
 // Switch active driver
-router.post('/sessions/:sessionId/switch', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/sessions/:sessionId/switch', authenticateToken, async (req: Request, res) => {
   const startTime = Date.now();
 
   try {
@@ -276,7 +276,7 @@ router.post('/sessions/:sessionId/switch', authenticateToken, async (req: AuthRe
 });
 
 // Update driver status
-router.patch('/sessions/:sessionId/drivers/:driverId', authenticateToken, async (req: AuthRequest, res) => {
+router.patch('/sessions/:sessionId/drivers/:driverId', authenticateToken, async (req: Request, res) => {
   const startTime = Date.now();
 
   try {
