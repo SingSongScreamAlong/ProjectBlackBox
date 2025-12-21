@@ -41,15 +41,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
             }
-        } else if (process.env.NODE_ENV === 'development') {
-            // TEMP AUTO LOGIN FOR VERIFICATION
-            console.log("⚠️ Performing DEV Auto-Login");
-            const devUser = { id: 'dev', email: 'dev@test.com', name: 'Dev User', role: 'admin' };
-            const devToken = 'dev-token-123';
-            setToken(devToken);
-            setUser(devUser);
-            localStorage.setItem('token', devToken);
-            localStorage.setItem('user', JSON.stringify(devUser));
+        } else {
+            // AUTO LOGIN - TEMPORARILY ENABLED FOR ALL ENVIRONMENTS
+            console.log("⚠️ Performing AUTO-LOGIN (auth temporarily disabled)");
+            const guestUser = { id: 'guest', email: 'guest@pitbox.racing', name: 'Guest User', role: 'viewer' };
+            const guestToken = 'auto-guest-token';
+            setToken(guestToken);
+            setUser(guestUser);
+            localStorage.setItem('token', guestToken);
+            localStorage.setItem('user', JSON.stringify(guestUser));
         }
         setIsLoading(false);
     }, []);
