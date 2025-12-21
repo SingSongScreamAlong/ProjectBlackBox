@@ -13,11 +13,14 @@ import { AuthProvider } from './context/AuthContext';
 function AppContent() {
   useEffect(() => {
     multiDriverService.initialize();
-    console.log('🔧 Dashboard App initialized (simplified mode)');
+    console.log('🔧 Dashboard App initialized (simplified mode) - Build: Dec 21 2024 06:15');
   }, []);
 
   return (
     <div className="App">
+      <div style={{ background: '#1a1a2e', padding: '10px', color: '#0f0', fontSize: '12px', fontFamily: 'monospace' }}>
+        ✅ SIMPLIFIED BUILD - Dec 21 2024 06:15 - No Routing
+      </div>
       <Dashboard />
     </div>
   );
