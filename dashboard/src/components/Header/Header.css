@@ -36,11 +36,31 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #f44336;
+  background-color: #888;
+  /* default gray */
 }
 
 .status-indicator.connected {
   background-color: #4caf50;
+  /* green for live */
+}
+
+.status-indicator.standby {
+  background-color: #ff9800;
+  /* amber for standby/awaiting iRacing */
+  animation: pulse-standby 2s ease-in-out infinite;
+}
+
+@keyframes pulse-standby {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .header-center {

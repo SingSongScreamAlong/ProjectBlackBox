@@ -57,7 +57,7 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
       {isOffline && (
         <div className="offline-banner">
           <span className="offline-icon">⏱️</span>
-          <span>Awaiting Telemetry Connection</span>
+          <span>Awaiting iRacing Session</span>
         </div>
       )}
       {/* --- LEFT COLUMN: VEHICLE STATUS --- */}

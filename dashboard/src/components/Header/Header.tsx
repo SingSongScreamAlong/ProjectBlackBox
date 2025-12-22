@@ -44,8 +44,8 @@ const Header: React.FC<HeaderProps> = ({
     <div className="dashboard-header">
       <div className="header-left">
         <div className="connection-status">
-          <div className={`status-indicator ${connected ? 'connected' : ''}`}></div>
-          {connected ? 'LIVE' : 'OFFLINE'}
+          <div className={`status-indicator ${connected ? 'connected' : 'standby'}`}></div>
+          {connected ? 'LIVE' : 'STANDBY'}
         </div>
 
         {/* Mode Switcher - 4 Distinct Modes */}
@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({
           <span className="logo-tagline">OK, Box Box</span>
           <span className="logo-main">Project: <span>PitBox</span></span>
         </div>
-        
+
         {/* Quick Action Buttons */}
         <div className="header-quick-actions">
           {onChatClick && (
