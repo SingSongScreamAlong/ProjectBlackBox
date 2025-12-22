@@ -10,7 +10,7 @@ import TrackPage from '../Track/TrackPage';
 import StrategyPage from '../Strategy/StrategyPage';
 import AICoaching from '../AICoaching/AICoaching';
 import VideoPanel from '../VideoPanel/VideoPanel';
-import IncidentReplayPanel, { ReplayIncident } from '../IncidentReplay/IncidentReplayPanel';
+// NOTE: IncidentReplayPanel shelved for beta - component files kept in IncidentReplay/
 import { TimingTower } from '../TimingTower/TimingTower';
 import TeamChat from '../TeamChat/TeamChat';
 import { NotificationSystem, useNotifications } from '../Notifications/NotificationSystem';
@@ -44,69 +44,6 @@ const Dashboard: React.FC = () => {
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showSessionBrowser, setShowSessionBrowser] = useState<boolean>(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState<boolean>(false);
-
-  // Incident replay state - for demo, starts with a mock incident
-  const [selectedIncident, setSelectedIncident] = useState<ReplayIncident | null>(() => {
-    // Mock incident at Silverstone - spin at Abbey (Turn 1)
-    // Silverstone viewBox: 0 0 800 800, Abbey corner at x:220, y:230
-    return {
-      id: 'demo-incident-1',
-      lap: 3,
-      sector: 1,
-      type: 'spin',
-      severity: 'moderate',
-      timeLost: 4.2,
-      corner: 'Abbey (T1)',
-      trackPosition: 0.08,
-      snapshots: [
-        // Using real Silverstone SVG coordinates - player approaching Abbey
-        {
-          timestamp: -3000, playerPosition: { x: 140, y: 270, trackPosition: 0.05 }, competitorPositions: [
-            { driver: 'VER', position: { x: 120, y: 280, trackPosition: 0.03 } },
-            { driver: 'HAM', position: { x: 110, y: 285, trackPosition: 0.02 } }
-          ]
-        },
-        {
-          timestamp: -2000, playerPosition: { x: 180, y: 250, trackPosition: 0.06 }, competitorPositions: [
-            { driver: 'VER', position: { x: 150, y: 265, trackPosition: 0.045 } },
-            { driver: 'HAM', position: { x: 130, y: 275, trackPosition: 0.035 } }
-          ]
-        },
-        {
-          timestamp: -1000, playerPosition: { x: 210, y: 235, trackPosition: 0.075 }, competitorPositions: [
-            { driver: 'VER', position: { x: 175, y: 252, trackPosition: 0.058 } },
-            { driver: 'HAM', position: { x: 155, y: 262, trackPosition: 0.048 } }
-          ]
-        },
-        // Incident moment - player spins at Abbey
-        {
-          timestamp: 0, playerPosition: { x: 220, y: 230, trackPosition: 0.08 }, competitorPositions: [
-            { driver: 'VER', position: { x: 200, y: 240, trackPosition: 0.07 } },
-            { driver: 'HAM', position: { x: 180, y: 250, trackPosition: 0.06 } }
-          ]
-        },
-        // After spin - competitors passing
-        {
-          timestamp: 1000, playerPosition: { x: 225, y: 225, trackPosition: 0.082 }, competitorPositions: [
-            { driver: 'VER', position: { x: 260, y: 218, trackPosition: 0.10 } },
-            { driver: 'HAM', position: { x: 230, y: 228, trackPosition: 0.085 } }
-          ]
-        },
-        {
-          timestamp: 2000, playerPosition: { x: 240, y: 220, trackPosition: 0.09 }, competitorPositions: [
-            { driver: 'VER', position: { x: 320, y: 210, trackPosition: 0.13 } },
-            { driver: 'HAM', position: { x: 280, y: 215, trackPosition: 0.11 } }
-          ]
-        },
-        {
-          timestamp: 3000, playerPosition: { x: 270, y: 215, trackPosition: 0.10 }, competitorPositions: [
-            { driver: 'VER', position: { x: 380, y: 205, trackPosition: 0.16 } },
-            { driver: 'HAM', position: { x: 340, y: 208, trackPosition: 0.14 } }
-          ]
-        }
-      ]
-    };
-  });
 
   // Hooks for new features
   const { notifications, dismissNotification, notifyFastestLap, notifyPitWindow } = useNotifications();
@@ -310,14 +247,6 @@ const Dashboard: React.FC = () => {
               <div className="video-container-main" style={{ marginBottom: '8px' }}>
                 <VideoPanel driverCamActive={connected} />
               </div>
-              {/* Incident Replay - Replaces spotter camera */}
-              <div className="incident-replay-container" style={{ marginBottom: '8px' }}>
-                <IncidentReplayPanel
-                  incident={selectedIncident}
-                  trackName={sessionInfo.track || 'Unknown Track'}
-                  onClose={() => setSelectedIncident(null)}
-                />
-              </div>
               {/* Race Insights - AI analysis */}
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
             </div>
@@ -379,14 +308,6 @@ const Dashboard: React.FC = () => {
               {/* Live Video Feed - Primary view */}
               <div className="video-container-main" style={{ marginBottom: '8px' }}>
                 <VideoPanel driverCamActive={connected} />
-              </div>
-              {/* Incident Replay */}
-              <div className="incident-replay-container" style={{ marginBottom: '8px' }}>
-                <IncidentReplayPanel
-                  incident={selectedIncident}
-                  trackName={sessionInfo.track || 'Unknown Track'}
-                  onClose={() => setSelectedIncident(null)}
-                />
               </div>
               {/* Race Insights - AI analysis */}
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
