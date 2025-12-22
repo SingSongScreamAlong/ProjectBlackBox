@@ -219,9 +219,10 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
 
 // Sub-components for cleaner code
 const InputBar: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
-  <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '4px', height: '40px', position: 'relative', overflow: 'hidden' }}>
-    <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: `${value * 100}%`, background: color, transition: 'height 0.05s' }} />
-    <div style={{ position: 'absolute', bottom: 2, left: 0, width: '100%', textAlign: 'center', fontSize: '10px', fontWeight: 'bold', textShadow: '0 1px 2px black', color: '#fff' }}>{label}</div>
+  <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '6px', height: '80px', position: 'relative', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+    <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: `${value * 100}%`, background: color, transition: 'height 0.05s', boxShadow: `0 0 10px ${color}` }} />
+    <div style={{ position: 'absolute', bottom: 6, left: 0, width: '100%', textAlign: 'center', fontSize: '14px', fontWeight: 'bold', textShadow: '0 1px 3px black', color: '#fff' }}>{label}</div>
+    <div style={{ position: 'absolute', top: 6, left: 0, width: '100%', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', textShadow: '0 1px 3px black', color: '#fff' }}>{Math.round(value * 100)}%</div>
   </div>
 );
 
@@ -239,10 +240,10 @@ const TireDisplay: React.FC<TireDisplayProps> = ({ position, temp, wear, pressur
   };
 
   return (
-    <div style={{ background: '#161b22', borderRadius: '4px', padding: '6px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#666', marginBottom: '2px' }}>{position}</div>
-      <div style={{ fontSize: '14px', fontWeight: 'bold', color: temp > 105 ? '#ff3b3b' : '#fff' }}>{Math.round(temp)}°</div>
-      <div style={{ fontSize: '10px', color: parseInt(String(wear)) < 50 ? '#ffd700' : '#888' }}>{Math.round(wear)}%</div>
+    <div style={{ background: '#161b22', borderRadius: '6px', padding: '10px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#888', marginBottom: '4px' }}>{position}</div>
+      <div style={{ fontSize: '22px', fontWeight: 'bold', color: temp > 105 ? '#ff3b3b' : '#fff' }}>{Math.round(temp)}°</div>
+      <div style={{ fontSize: '14px', color: parseInt(String(wear)) < 50 ? '#ffd700' : '#8b949e', marginTop: '2px' }}>{Math.round(wear)}%</div>
     </div>
   );
 };
