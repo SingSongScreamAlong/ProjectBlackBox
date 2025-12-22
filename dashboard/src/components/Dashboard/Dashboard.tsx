@@ -216,7 +216,10 @@ const Dashboard: React.FC = () => {
     const unsubscribeSessionInfo = wsService.on('session_info', handleSessionUpdate).unsubscribe;
 
     // Connect to WebSocket server on backend port
-    wsService.connect(BACKEND_URL);
+    // Strip /api suffix if present - Socket.IO is at root, not at /api namespace
+    const wsUrl = BACKEND_URL.replace(/\/api\/?$/, '');
+    console.log('Connecting WebSocket to:', wsUrl);
+    wsService.connect(wsUrl);
 
     // Clean up
     return () => {
