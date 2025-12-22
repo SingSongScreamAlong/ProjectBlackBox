@@ -122,8 +122,8 @@ class RelayAgent:
         self.running = True
         self.start_time = time.time()
         
-        # Video encoder starts later (after session is established)
-        # self.video_encoder.start()
+        # Video encoder flag - starts after session is established
+        self.video_started = False
         
         # Start Overlay
         self.overlay.start()
