@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { tracks, TrackDefinition } from '../../data/tracks/TrackRegistry';
 import './IncidentReplayPanel.css';
 
 // Types for incident replay data
@@ -44,9 +45,27 @@ const IncidentReplayPanel: React.FC<IncidentReplayPanelProps> = ({
     const [isPlaying, setIsPlaying] = useState(false);
     const [playbackSpeed, setPlaybackSpeed] = useState(1);
     const [currentTime, setCurrentTime] = useState(0); // Current playback time in ms
-    const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
     const lastFrameTime = useRef<number>(0);
+
+    // Get track definition for SVG rendering
+    const trackDef: TrackDefinition | undefined = useMemo(() => {
+        if (!trackName) return undefined;
+        // Try exact match first, then fuzzy match
+        if (tracks[trackName]) return tracks[trackName];
+        const key = Object.keys(tracks).find(k =>
+            k.toLowerCase().includes(trackName.toLowerCase()) ||
+            trackName.toLowerCase().includes(k.toLowerCase())
+        );
+        return key ? tracks[key] : undefined;
+    }, [trackName]);
+
+    // Parse viewBox for coordinate mapping
+    const viewBox = useMemo(() => {
+        if (!trackDef?.viewBox) return { minX: 0, minY: 0, width: 800, height: 800 };
+        const parts = trackDef.viewBox.split(' ').map(Number);
+        return { minX: parts[0], minY: parts[1], width: parts[2], height: parts[3] };
+    }, [trackDef]);
 
     // Get time bounds from snapshots
     const timeRange = incident?.snapshots ? {
@@ -54,7 +73,7 @@ const IncidentReplayPanel: React.FC<IncidentReplayPanelProps> = ({
         max: Math.max(...incident.snapshots.map(s => s.timestamp))
     } : { min: -5000, max: 5000 };
 
-    // Interpolate positions between snapshots
+    // Interpolate positions between snapshots and convert to SVG coords
     const getInterpolatedPositions = useCallback((time: number) => {
         if (!incident?.snapshots || incident.snapshots.length < 2) return null;
 
@@ -76,7 +95,7 @@ const IncidentReplayPanel: React.FC<IncidentReplayPanelProps> = ({
         const range = after.timestamp - before.timestamp;
         const t = range === 0 ? 0 : (time - before.timestamp) / range;
 
-        // Interpolate player position
+        // Interpolate player position (x, y are in viewBox coordinates)
         const playerPos = {
             x: before.playerPosition.x + (after.playerPosition.x - before.playerPosition.x) * t,
             y: before.playerPosition.y + (after.playerPosition.y - before.playerPosition.y) * t,
@@ -101,97 +120,8 @@ const IncidentReplayPanel: React.FC<IncidentReplayPanelProps> = ({
         return { playerPos, competitorPositions };
     }, [incident]);
 
-    // Draw the track and cars
-    const draw = useCallback(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const width = canvas.width;
-        const height = canvas.height;
-        const centerX = width / 2;
-        const centerY = height / 2;
-        const radius = Math.min(width, height) * 0.35;
-
-        // Clear
-        ctx.fillStyle = '#0d1117';
-        ctx.fillRect(0, 0, width, height);
-
-        // Draw simple oval track
-        ctx.strokeStyle = '#30363d';
-        ctx.lineWidth = 20;
-        ctx.beginPath();
-        ctx.ellipse(centerX, centerY, radius * 1.2, radius * 0.8, 0, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Draw track surface
-        ctx.strokeStyle = '#1a1f26';
-        ctx.lineWidth = 18;
-        ctx.stroke();
-
-        // Mark incident location
-        if (incident) {
-            const incidentAngle = incident.trackPosition * Math.PI * 2 - Math.PI / 2;
-            const incidentX = centerX + Math.cos(incidentAngle) * radius * 1.2;
-            const incidentY = centerY + Math.sin(incidentAngle) * radius * 0.8;
-
-            // Pulsing incident marker
-            const pulseSize = 8 + Math.sin(Date.now() / 200) * 3;
-            ctx.fillStyle = '#ff3b3b';
-            ctx.beginPath();
-            ctx.arc(incidentX, incidentY, pulseSize, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Incident icon
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 10px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('⚠', incidentX, incidentY);
-        }
-
-        // Get interpolated positions and draw cars
-        const positions = getInterpolatedPositions(currentTime);
-        if (positions) {
-            // Draw competitors first
-            positions.competitorPositions.forEach(comp => {
-                const angle = comp.position.trackPosition * Math.PI * 2 - Math.PI / 2;
-                const x = centerX + Math.cos(angle) * radius * 1.2;
-                const y = centerY + Math.sin(angle) * radius * 0.8;
-
-                ctx.fillStyle = '#666';
-                ctx.beginPath();
-                ctx.arc(x, y, 6, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Draw player on top
-            const playerAngle = positions.playerPos.trackPosition * Math.PI * 2 - Math.PI / 2;
-            const playerX = centerX + Math.cos(playerAngle) * radius * 1.2;
-            const playerY = centerY + Math.sin(playerAngle) * radius * 0.8;
-
-            ctx.fillStyle = '#00d4ff';
-            ctx.beginPath();
-            ctx.arc(playerX, playerY, 8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Player glow
-            ctx.shadowColor = '#00d4ff';
-            ctx.shadowBlur = 10;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-
-        // Draw time indicator
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 14px monospace';
-        ctx.textAlign = 'center';
-        const timeStr = currentTime >= 0 ? `+${(currentTime / 1000).toFixed(1)}s` : `${(currentTime / 1000).toFixed(1)}s`;
-        ctx.fillText(timeStr, centerX, height - 10);
-
-    }, [currentTime, incident, getInterpolatedPositions]);
+    // Get current interpolated positions
+    const positions = useMemo(() => getInterpolatedPositions(currentTime), [currentTime, getInterpolatedPositions]);
 
     // Animation loop
     useEffect(() => {
@@ -226,11 +156,6 @@ const IncidentReplayPanel: React.FC<IncidentReplayPanelProps> = ({
             lastFrameTime.current = 0;
         };
     }, [isPlaying, playbackSpeed, incident, timeRange.max]);
-
-    // Redraw when time changes
-    useEffect(() => {
-        draw();
-    }, [draw, currentTime]);
 
     // Reset when incident changes
     useEffect(() => {
@@ -307,14 +232,161 @@ const IncidentReplayPanel: React.FC<IncidentReplayPanelProps> = ({
                 </span>
             </div>
 
-            {/* Track Visualization */}
-            <div className="replay-canvas-container">
-                <canvas
-                    ref={canvasRef}
-                    width={300}
-                    height={200}
-                    className="replay-canvas"
-                />
+            {/* Track Visualization - SVG Based */}
+            <div className="replay-svg-container">
+                <svg
+                    viewBox={trackDef?.viewBox || "0 0 800 800"}
+                    className="replay-track-svg"
+                    preserveAspectRatio="xMidYMid meet"
+                >
+                    {/* Track outline */}
+                    {trackDef?.path ? (
+                        <path
+                            d={trackDef.path}
+                            fill="none"
+                            stroke={trackDef.style?.strokeColor || '#4facfe'}
+                            strokeWidth="16"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            opacity="0.6"
+                        />
+                    ) : (
+                        // Fallback oval if no track data
+                        <ellipse
+                            cx={viewBox.width / 2}
+                            cy={viewBox.height / 2}
+                            rx={viewBox.width * 0.4}
+                            ry={viewBox.height * 0.3}
+                            fill="none"
+                            stroke="#30363d"
+                            strokeWidth="16"
+                        />
+                    )}
+
+                    {/* Track surface (thinner line on top) */}
+                    {trackDef?.path && (
+                        <path
+                            d={trackDef.path}
+                            fill="none"
+                            stroke="#1a1f26"
+                            strokeWidth="14"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    )}
+
+                    {/* Corner markers */}
+                    {trackDef?.corners?.map(corner => (
+                        <g key={corner.id}>
+                            <circle
+                                cx={corner.x}
+                                cy={corner.y}
+                                r="12"
+                                fill="rgba(255,255,255,0.1)"
+                            />
+                            <text
+                                x={corner.x}
+                                y={corner.y + 4}
+                                textAnchor="middle"
+                                fontSize="10"
+                                fill="#666"
+                            >
+                                {corner.id}
+                            </text>
+                        </g>
+                    ))}
+
+                    {/* Incident location marker */}
+                    {incident && trackDef?.corners && trackDef.corners.length > 0 && (
+                        <g>
+                            {/* Pulsing incident marker at a corner near the incident */}
+                            <circle
+                                cx={trackDef.corners[0].x}
+                                cy={trackDef.corners[0].y}
+                                r="20"
+                                fill="rgba(255, 59, 59, 0.3)"
+                                className="pulse-marker"
+                            />
+                            <circle
+                                cx={trackDef.corners[0].x}
+                                cy={trackDef.corners[0].y}
+                                r="8"
+                                fill="#ff3b3b"
+                            />
+                            <text
+                                x={trackDef.corners[0].x}
+                                y={trackDef.corners[0].y + 3}
+                                textAnchor="middle"
+                                fontSize="8"
+                                fill="#fff"
+                                fontWeight="bold"
+                            >
+                                ⚠
+                            </text>
+                        </g>
+                    )}
+
+                    {/* Competitor cars */}
+                    {positions?.competitorPositions.map((comp, i) => (
+                        <g key={`comp-${i}`}>
+                            <circle
+                                cx={comp.position.x}
+                                cy={comp.position.y}
+                                r="10"
+                                fill="#555"
+                                stroke="#888"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x={comp.position.x}
+                                y={comp.position.y + 3}
+                                textAnchor="middle"
+                                fontSize="8"
+                                fill="#fff"
+                            >
+                                {i + 2}
+                            </text>
+                        </g>
+                    ))}
+
+                    {/* Player car - on top */}
+                    {positions && (
+                        <g className="player-car">
+                            <circle
+                                cx={positions.playerPos.x}
+                                cy={positions.playerPos.y}
+                                r="14"
+                                fill="#00d4ff"
+                                stroke="#fff"
+                                strokeWidth="2"
+                                filter="drop-shadow(0 0 6px rgba(0, 212, 255, 0.8))"
+                            />
+                            <text
+                                x={positions.playerPos.x}
+                                y={positions.playerPos.y + 4}
+                                textAnchor="middle"
+                                fontSize="10"
+                                fill="#fff"
+                                fontWeight="bold"
+                            >
+                                P
+                            </text>
+                        </g>
+                    )}
+
+                    {/* Time indicator */}
+                    <text
+                        x={viewBox.width / 2}
+                        y={viewBox.height - 20}
+                        textAnchor="middle"
+                        fontSize="24"
+                        fill="#fff"
+                        fontFamily="monospace"
+                        fontWeight="bold"
+                    >
+                        {currentTime >= 0 ? `+${(currentTime / 1000).toFixed(1)}s` : `${(currentTime / 1000).toFixed(1)}s`}
+                    </text>
+                </svg>
             </div>
 
             {/* Timeline Scrubber */}

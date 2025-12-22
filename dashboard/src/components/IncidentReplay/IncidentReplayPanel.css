@@ -97,20 +97,47 @@
     font-family: monospace;
 }
 
-/* Canvas container */
-.replay-canvas-container {
+/* SVG container */
+.replay-svg-container {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 8px;
-    min-height: 150px;
+    min-height: 180px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    margin: 0 8px;
 }
 
-.replay-canvas {
+.replay-track-svg {
     max-width: 100%;
     max-height: 100%;
-    border-radius: 4px;
+    width: 100%;
+    height: auto;
+}
+
+/* Pulse animation for incident marker */
+.pulse-marker {
+    animation: pulse-incident 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-incident {
+
+    0%,
+    100% {
+        opacity: 0.3;
+        r: 18;
+    }
+
+    50% {
+        opacity: 0.6;
+        r: 24;
+    }
+}
+
+.player-car {
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.8));
 }
 
 /* Timeline */

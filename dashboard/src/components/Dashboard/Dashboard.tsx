@@ -47,7 +47,8 @@ const Dashboard: React.FC = () => {
 
   // Incident replay state - for demo, starts with a mock incident
   const [selectedIncident, setSelectedIncident] = useState<ReplayIncident | null>(() => {
-    // Mock incident data for demo - shows spin at turn 1
+    // Mock incident at Silverstone - spin at Abbey (Turn 1)
+    // Silverstone viewBox: 0 0 800 800, Abbey corner at x:220, y:230
     return {
       id: 'demo-incident-1',
       lap: 3,
@@ -55,49 +56,52 @@ const Dashboard: React.FC = () => {
       type: 'spin',
       severity: 'moderate',
       timeLost: 4.2,
-      corner: 'Turn 1',
-      trackPosition: 0.15, // 15% around track
+      corner: 'Abbey (T1)',
+      trackPosition: 0.08,
       snapshots: [
+        // Using real Silverstone SVG coordinates - player approaching Abbey
         {
-          timestamp: -3000, playerPosition: { x: 0.12, y: 0.5, trackPosition: 0.12 }, competitorPositions: [
-            { driver: 'Driver 2', position: { x: 0.10, y: 0.5, trackPosition: 0.10 } },
-            { driver: 'Driver 3', position: { x: 0.08, y: 0.5, trackPosition: 0.08 } }
+          timestamp: -3000, playerPosition: { x: 140, y: 270, trackPosition: 0.05 }, competitorPositions: [
+            { driver: 'VER', position: { x: 120, y: 280, trackPosition: 0.03 } },
+            { driver: 'HAM', position: { x: 110, y: 285, trackPosition: 0.02 } }
           ]
         },
         {
-          timestamp: -2000, playerPosition: { x: 0.14, y: 0.5, trackPosition: 0.14 }, competitorPositions: [
-            { driver: 'Driver 2', position: { x: 0.12, y: 0.5, trackPosition: 0.12 } },
-            { driver: 'Driver 3', position: { x: 0.10, y: 0.5, trackPosition: 0.10 } }
+          timestamp: -2000, playerPosition: { x: 180, y: 250, trackPosition: 0.06 }, competitorPositions: [
+            { driver: 'VER', position: { x: 150, y: 265, trackPosition: 0.045 } },
+            { driver: 'HAM', position: { x: 130, y: 275, trackPosition: 0.035 } }
           ]
         },
         {
-          timestamp: -1000, playerPosition: { x: 0.15, y: 0.5, trackPosition: 0.15 }, competitorPositions: [
-            { driver: 'Driver 2', position: { x: 0.14, y: 0.5, trackPosition: 0.14 } },
-            { driver: 'Driver 3', position: { x: 0.12, y: 0.5, trackPosition: 0.12 } }
+          timestamp: -1000, playerPosition: { x: 210, y: 235, trackPosition: 0.075 }, competitorPositions: [
+            { driver: 'VER', position: { x: 175, y: 252, trackPosition: 0.058 } },
+            { driver: 'HAM', position: { x: 155, y: 262, trackPosition: 0.048 } }
+          ]
+        },
+        // Incident moment - player spins at Abbey
+        {
+          timestamp: 0, playerPosition: { x: 220, y: 230, trackPosition: 0.08 }, competitorPositions: [
+            { driver: 'VER', position: { x: 200, y: 240, trackPosition: 0.07 } },
+            { driver: 'HAM', position: { x: 180, y: 250, trackPosition: 0.06 } }
+          ]
+        },
+        // After spin - competitors passing
+        {
+          timestamp: 1000, playerPosition: { x: 225, y: 225, trackPosition: 0.082 }, competitorPositions: [
+            { driver: 'VER', position: { x: 260, y: 218, trackPosition: 0.10 } },
+            { driver: 'HAM', position: { x: 230, y: 228, trackPosition: 0.085 } }
           ]
         },
         {
-          timestamp: 0, playerPosition: { x: 0.15, y: 0.5, trackPosition: 0.15 }, competitorPositions: [
-            { driver: 'Driver 2', position: { x: 0.16, y: 0.5, trackPosition: 0.16 } },
-            { driver: 'Driver 3', position: { x: 0.14, y: 0.5, trackPosition: 0.14 } }
+          timestamp: 2000, playerPosition: { x: 240, y: 220, trackPosition: 0.09 }, competitorPositions: [
+            { driver: 'VER', position: { x: 320, y: 210, trackPosition: 0.13 } },
+            { driver: 'HAM', position: { x: 280, y: 215, trackPosition: 0.11 } }
           ]
         },
         {
-          timestamp: 1000, playerPosition: { x: 0.16, y: 0.5, trackPosition: 0.16 }, competitorPositions: [
-            { driver: 'Driver 2', position: { x: 0.20, y: 0.5, trackPosition: 0.20 } },
-            { driver: 'Driver 3', position: { x: 0.18, y: 0.5, trackPosition: 0.18 } }
-          ]
-        },
-        {
-          timestamp: 2000, playerPosition: { x: 0.17, y: 0.5, trackPosition: 0.17 }, competitorPositions: [
-            { driver: 'Driver 2', position: { x: 0.24, y: 0.5, trackPosition: 0.24 } },
-            { driver: 'Driver 3', position: { x: 0.22, y: 0.5, trackPosition: 0.22 } }
-          ]
-        },
-        {
-          timestamp: 3000, playerPosition: { x: 0.18, y: 0.5, trackPosition: 0.18 }, competitorPositions: [
-            { driver: 'Driver 2', position: { x: 0.28, y: 0.5, trackPosition: 0.28 } },
-            { driver: 'Driver 3', position: { x: 0.26, y: 0.5, trackPosition: 0.26 } }
+          timestamp: 3000, playerPosition: { x: 270, y: 215, trackPosition: 0.10 }, competitorPositions: [
+            { driver: 'VER', position: { x: 380, y: 205, trackPosition: 0.16 } },
+            { driver: 'HAM', position: { x: 340, y: 208, trackPosition: 0.14 } }
           ]
         }
       ]
