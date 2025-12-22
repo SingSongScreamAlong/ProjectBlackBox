@@ -139,14 +139,16 @@ class RelayAgent:
         """Callback when PTT binding is changed via HUD settings"""
         logger.info(f"🎯 PTT binding changed: type={ptt_type}, key={ptt_key}, button={joystick_button}")
         
-        # Update VoiceRecognition with new binding
-        self.vr.ptt_type = ptt_type
-        if ptt_type == 'keyboard':
-            self.vr.ptt_key = ptt_key
-        else:
-            self.vr.joystick_button = joystick_button
+        # Update VoiceRecognition with new binding and re-initialize devices
+        # Joystick ID assumes 0 for now as we don't fully support multi-joystick selection in UI yet
+        self.vr.reconfigure(
+            ptt_type=ptt_type,
+            ptt_key=ptt_key,
+            joystick_id=0,
+            joystick_button=joystick_button
+        )
         
-        logger.info(f"✅ VoiceRecognition updated with new PTT binding")
+        logger.info(f"✅ VoiceRecognition reconfigured with new PTT binding")
 
     def _setup_motec_channels(self):
         """Configure MoTeC channels"""

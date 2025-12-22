@@ -33,8 +33,30 @@ class VoiceRecognition:
         
         self.setup()
         
+    def reconfigure(self, ptt_type, ptt_key, joystick_id=0, joystick_button=0):
+        """Update configuration and re-initialize devices"""
+        logger.info(f"🔄 Reconfiguring VoiceRecognition: {ptt_type} (Key: {ptt_type}, JoyID: {joystick_id}, Btn: {joystick_button})")
+        
+        # Close existing joystick if switching or changing IDs
+        if self.joystick and (ptt_type != 'joystick' or joystick_id != self.joystick_id):
+            try:
+                self.joystick.quit()
+            except:
+                pass
+            self.joystick = None
+            
+        self.ptt_type = ptt_type
+        self.ptt_key = ptt_key
+        self.joystick_id = joystick_id
+        self.joystick_button = joystick_button
+        self._initialized = False
+        
+        self.setup()
+
     def setup(self):
         """Initialize input devices"""
+        self._initialized = False
+        
         if self.ptt_type == 'joystick':
             if not pygame:
                 logger.error("pygame not installed. Cannot use joystick PTT.")
@@ -46,11 +68,21 @@ class VoiceRecognition:
                 if not pygame.joystick.get_init():
                     pygame.joystick.init()
                 
+                # Force re-scan of devices
+                try:
+                    pygame.joystick.quit()
+                    pygame.joystick.init()
+                except:
+                    pass
+                
                 count = pygame.joystick.get_count()
+                logger.info(f"🎮 Found {count} joystick devices")
+                
                 if count > self.joystick_id:
                     self.joystick = pygame.joystick.Joystick(self.joystick_id)
                     self.joystick.init()
                     logger.info(f"✅ Joystick PTT initialized: {self.joystick.get_name()} (Button {self.joystick_button})")
+                    self._initialized = True
                 else:
                     logger.error(f"❌ Joystick ID {self.joystick_id} not found. Found {count} devices.")
             except Exception as e:
@@ -61,26 +93,48 @@ class VoiceRecognition:
                 logger.error("keyboard lib not installed. Cannot use keyboard PTT.")
                 return
             logger.info(f"✅ Keyboard PTT initialized: Key '{self.ptt_key}'")
+            self._initialized = True
             
-        self._initialized = True
+        self._last_debug_log = 0
 
     def is_pressed(self) -> bool:
         """Check if PTT button/key is currently pressed"""
         if not self._initialized:
-            return False
+            # Try to setup again if failed previously
+            if time.time() - getattr(self, '_last_setup_attempt', 0) > 5:
+                self._last_setup_attempt = time.time()
+                self.setup()
+            if not self._initialized:
+                return False
             
+        is_active = False
         try:
             if self.ptt_type == 'keyboard' and keyboard:
-                return keyboard.is_pressed(self.ptt_key)
+                try:
+                    is_active = keyboard.is_pressed(self.ptt_key)
+                except:
+                    # Keyboard library error (e.g. no admin)
+                    pass
                 
             elif self.ptt_type == 'joystick' and self.joystick:
-                pygame.event.pump() # Process event queue
-                return self.joystick.get_button(self.joystick_button)
-                
+                try:
+                    pygame.event.pump() # Process event queue
+                    is_active = self.joystick.get_button(self.joystick_button)
+                except Exception as e:
+                    # Joystick disconnected?
+                    if time.time() - self._last_debug_log > 5:
+                        logger.error(f"Joystick read error: {e}")
+                        self._last_debug_log = time.time()
+                    self._initialized = False # Force re-init next time
         except Exception:
-            return False
+            pass
             
-        return False
+        # Debug logging (throttled)
+        if is_active and time.time() - self._last_debug_log > 1.0:
+            logger.info(f"🎤 PTT ACTIVE ({self.ptt_type})")
+            self._last_debug_log = time.time()
+            
+        return is_active
 
     def list_devices(self):
         """List available joystick devices"""
