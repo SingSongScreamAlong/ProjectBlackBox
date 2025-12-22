@@ -78,15 +78,17 @@ class PitBoxClient:
             return True
         
         try:
+            print(f"🔌 Connecting to: {self.url}")
             logger.info(f"🔌 Connecting to PitBox Server at {self.url}...")
             self.sio.connect(
                 self.url,
-                transports=['websocket'],
                 wait=True,
-                wait_timeout=10
+                wait_timeout=15
             )
+            print(f"✅ Connected: {self.connected}")
             return self.connected
         except Exception as e:
+            print(f"❌ Connection FAILED: {e}")
             logger.error(f"Failed to connect: {e}")
             return False
     
