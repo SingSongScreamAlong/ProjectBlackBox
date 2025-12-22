@@ -29,6 +29,7 @@ import { corsMiddleware, logCorsConfiguration } from './middleware/cors-config.j
 import { securityHeaders, customSecurityHeaders, logSecurityConfiguration } from './middleware/security-headers.js';
 
 import { fileURLToPath } from 'url';
+import { existsSync } from 'node:fs';
 
 // ESM compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -556,20 +557,39 @@ app.get('/sessions/:id/telemetry', telemetryLimiter, authenticateToken, async (r
 
 // --- 404 & Static File Handling ---
 
-// Serve React static files (JS, CSS, etc)
-// Adjust path relative to: server/src/server.ts -> server/dist/server.js
-// Build is in: project/dashboard/build
-const buildPath = path.join(__dirname, '../../dashboard/build');
-app.use(express.static(buildPath));
+// Robust path resolution using CWD
+const rootDir = process.cwd();
+// Assuming we are in /server (via cd server && npm start)
+// And dashboard is in ../dashboard/build
+const buildPath = path.join(rootDir, '../dashboard/build');
 
-console.log(`Serving static files from: ${buildPath}`);
+console.log(`[Static] CWD: ${rootDir}`);
+console.log(`[Static] Build Path: ${buildPath}`);
+console.log(`[Static] Build Exists: ${existsSync(buildPath)}`);
+console.log(`[Static] Index Exists: ${existsSync(path.join(buildPath, 'index.html'))}`);
+
+app.get('/debug-config', (req, res) => {
+  res.json({
+    cwd: rootDir,
+    dirname: __dirname,
+    buildPath: buildPath,
+    buildExists: existsSync(buildPath),
+    indexExists: existsSync(path.join(buildPath, 'index.html')),
+    env: process.env.NODE_ENV
+  });
+});
+
+app.use(express.static(buildPath));
 
 // Catch-all: For any request that isn't an API route or static file,
 // send back index.html so React Router can handle it.
 app.get('*', (req, res) => {
-  // Don't intercept API 404s if possible, but route order matters.
-  // Ideally this is last.
-  res.sendFile(path.join(buildPath, 'index.html'));
+  const indexPath = path.join(buildPath, 'index.html');
+  if (existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send(`Dashboard build not found at ${buildPath}. Check /debug-config.`);
+  }
 });
 
 server.listen(config.PORT, () => {
