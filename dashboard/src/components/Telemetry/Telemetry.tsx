@@ -63,13 +63,15 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
       {/* --- LEFT COLUMN: VEHICLE STATUS --- */}
       <div className="cockpit-column">
         {/* Tires */}
+        {/* Tires */}
         <div className="cockpit-card">
           <div className="cockpit-card-title">Tires (Temp/Wear)</div>
           <div className="tire-box">
-            <TireDisplay position="FL" {...data.tires.frontLeft} />
-            <TireDisplay position="FR" {...data.tires.frontRight} />
-            <TireDisplay position="RL" {...data.tires.rearLeft} />
-            <TireDisplay position="RR" {...data.tires.rearRight} />
+            {/* Safe Access for tires to prevent crash if data is partial */}
+            <TireDisplay position="FL" {...(data.tires?.frontLeft || { temp: 0, wear: 0, pressure: 0 })} />
+            <TireDisplay position="FR" {...(data.tires?.frontRight || { temp: 0, wear: 0, pressure: 0 })} />
+            <TireDisplay position="RL" {...(data.tires?.rearLeft || { temp: 0, wear: 0, pressure: 0 })} />
+            <TireDisplay position="RR" {...(data.tires?.rearRight || { temp: 0, wear: 0, pressure: 0 })} />
           </div>
         </div>
 

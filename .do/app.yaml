@@ -20,8 +20,8 @@ services:
       branch: main
       deploy_on_push: true
     source_dir: /
-    # Build Frontend first, then Backend
-    build_command: cd dashboard && npm install && npm run build && cd ../server && rm -rf dist && npm install && npm run build
+    # Build Frontend locally and commit (bypass remote OOM)
+    build_command: cd server && rm -rf dist && npm install && npm run build
     run_command: cd server && npm start
     http_port: 3000
     instance_count: 1

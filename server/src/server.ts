@@ -579,13 +579,24 @@ app.get('/debug-config', (req, res) => {
   });
 });
 
-app.use(express.static(buildPath));
+// Aggressive No-Cache for static files to ensure updates apply immediately
+app.use(express.static(buildPath, {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+}));
 
 // Catch-all: For any request that isn't an API route or static file,
 // send back index.html so React Router can handle it.
 app.get('*', (req, res) => {
   const indexPath = path.join(buildPath, 'index.html');
   if (existsSync(indexPath)) {
+    // Force no-cache on index.html too
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.sendFile(indexPath);
   } else {
     res.status(404).send(`Dashboard build not found at ${buildPath}. Check /debug-config.`);
