@@ -58,6 +58,11 @@ class DriverHUD:
         self.response_timestamp = 0
         self.response_display_duration = 8  # seconds
         
+        # Drag state
+        self._drag_start_x = 0
+        self._drag_start_y = 0
+        self._is_dragging = False
+        
     def start(self):
         """Start the HUD in a separate thread"""
         if self.running:
@@ -132,6 +137,11 @@ class DriverHUD:
         )
         self.canvas.pack(fill='both', expand=True)
         
+        # Enable drag functionality
+        self.canvas.bind("<Button-1>", self._on_drag_start)
+        self.canvas.bind("<B1-Motion>", self._on_drag_motion)
+        self.canvas.bind("<ButtonRelease-1>", self._on_drag_end)
+        
         # Initial draw
         self._redraw()
         
@@ -139,6 +149,29 @@ class DriverHUD:
         self._periodic_update()
         
         self.root.mainloop()
+    
+    def _on_drag_start(self, event):
+        """Start dragging the window"""
+        self._is_dragging = True
+        self._drag_start_x = event.x
+        self._drag_start_y = event.y
+    
+    def _on_drag_motion(self, event):
+        """Handle drag motion"""
+        if self._is_dragging and self.root:
+            # Calculate new position
+            x = self.root.winfo_x() + (event.x - self._drag_start_x)
+            y = self.root.winfo_y() + (event.y - self._drag_start_y)
+            self.root.geometry(f"+{x}+{y}")
+            # Update internal offset for reference
+            self.x_offset = x
+            self.y_offset = y
+    
+    def _on_drag_end(self, event):
+        """End dragging"""
+        self._is_dragging = False
+        if self.root:
+            logger.debug(f"HUD moved to position ({self.x_offset}, {self.y_offset})")
     
     def _periodic_update(self):
         """Periodic update for time-based elements"""
