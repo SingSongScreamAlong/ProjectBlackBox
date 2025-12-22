@@ -215,14 +215,71 @@ class DriverHUD:
         self._binding_label.config(text="Listening... Press any key or button", fg="#ffaa00")
         self._listen_button.config(state='disabled', text="⏳ Waiting...")
         
-        # Start keyboard listener
+        # Start keyboard listener - bind to dialog and force focus
         if self._settings_dialog:
+            # Bind to the dialog itself
             self._settings_dialog.bind('<Key>', self._on_keyboard_bind)
-            self._settings_dialog.focus_set()
+            self._settings_dialog.bind('<KeyPress>', self._on_keyboard_bind)
+            # Force focus to the dialog
+            self._settings_dialog.focus_force()
+            self._settings_dialog.grab_set()
+            # Also try using a global keyboard hook via after()
+            self._poll_keyboard()
+            logger.info("🎹 Keyboard listener started, dialog focused")
         
         # Start joystick polling in a thread
         if PYGAME_AVAILABLE:
             threading.Thread(target=self._poll_joystick_for_binding, daemon=True).start()
+    
+    def _poll_keyboard(self):
+        """Poll for keyboard input as fallback (using keyboard library if available)"""
+        if not getattr(self, '_binding_active', False):
+            return
+        
+        try:
+            import keyboard
+            # Check if any key is pressed
+            for key in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+                       'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+                       '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                       'space', 'tab', 'shift', 'ctrl', 'alt']:
+                if keyboard.is_pressed(key):
+                    self._binding_active = False
+                    self._complete_keyboard_binding(key)
+                    return
+        except ImportError:
+            pass
+        except Exception as e:
+            logger.debug(f"Keyboard poll error: {e}")
+        
+        # Continue polling
+        if self._settings_dialog and getattr(self, '_binding_active', False):
+            self._settings_dialog.after(50, self._poll_keyboard)
+    
+    def _complete_keyboard_binding(self, key: str):
+        """Complete keyboard binding (can be called from polling or event)"""
+        # Save the binding
+        new_config = {
+            'ptt_type': 'keyboard',
+            'ptt_key': key,
+            'joystick_id': self._current_ptt_config.get('joystick_id', 0),
+            'joystick_button': self._current_ptt_config.get('joystick_button', 0)
+        }
+        self._save_ptt_config(new_config)
+        
+        # Update UI
+        if hasattr(self, '_status_label') and self._status_label.winfo_exists():
+            self._status_label.config(text=f"✓ Bound to keyboard [{key.upper()}]", fg="#00ff88")
+        if hasattr(self, '_binding_label') and self._binding_label.winfo_exists():
+            self._binding_label.config(text="Click below, then press a key\nor wheel button to bind", fg="#cccccc")
+        if hasattr(self, '_listen_button') and self._listen_button.winfo_exists():
+            self._listen_button.config(state='normal', text="🎯 Press to Bind")
+        
+        # Notify callback
+        if self._ptt_binding_callback:
+            self._ptt_binding_callback('keyboard', key, -1)
+        
+        logger.info(f"✅ PTT bound to keyboard key: {key}")
     
     def _on_keyboard_bind(self, event):
         """Handle keyboard key press for binding"""

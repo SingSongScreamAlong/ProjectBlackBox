@@ -382,6 +382,29 @@ class WebSocketService {
     this.socket.on('track_position', (data) => this.handleSocketIOMessage('track_position', data));
     this.socket.on('video_data', (data) => this.handleSocketIOMessage('video_data', data));
 
+    // Engineer voice audio from relay agent (played automatically for spectators)
+    this.socket.on('engineer_audio', (data: { text: string; audio_b64?: string; transcription?: string }) => {
+      console.log('🎙️ Engineer audio received:', data.text);
+      // Auto-play the audio if available
+      if (data.audio_b64) {
+        try {
+          const audioData = atob(data.audio_b64);
+          const audioArray = new Uint8Array(audioData.length);
+          for (let i = 0; i < audioData.length; i++) {
+            audioArray[i] = audioData.charCodeAt(i);
+          }
+          const audioBlob = new Blob([audioArray], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+          audio.play().catch(e => console.warn('Auto-play blocked:', e));
+        } catch (e) {
+          console.warn('Failed to play engineer audio:', e);
+        }
+      }
+      // Also trigger the event for UI updates
+      this.handleSocketIOMessage('engineer_audio', data);
+    });
+
     // Multi-driver events
     this.socket.on('driver_update', (data) => this.handleSocketIOMessage('driver_update', data));
     this.socket.on('driver_list', (data) => this.handleSocketIOMessage('driver_list', data));

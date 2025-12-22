@@ -13,6 +13,7 @@ import aiRoutes from './ai-routes.js';
 import trackMapRoutes from './track-map-routes.js';
 import trackCalibrationRoutes from './track-calibration-routes.js';
 import voiceRoutes, { setupVoiceWebSocket } from './voice-routes.js';
+import { elevenLabsService } from './elevenlabs-service.js';
 import strategyRoutes from './strategy-routes.js';
 import trainingRoutes from './training-routes.js';
 import reportRoutes from './report-routes.js';
@@ -287,6 +288,93 @@ io.on('connection', (socket) => {
     // Bridge to 'video_data' event which Dashboard expects
     if (data && data.sessionId && data.image) {
       socket.to(`session:${data.sessionId}`).emit('video_data', data.image);
+    }
+  });
+
+  // Handle voice commands from relay agent (PTT voice input)
+  socket.on('voice_command', async (data: { sessionId?: string; audio_b64?: string; text?: string; trackName?: string; driverName?: string }) => {
+    try {
+      console.log(`[Voice] Received voice command from ${socket.id}`);
+
+      let transcribedText = data.text || '';
+
+      // If audio provided, transcribe it
+      if (data.audio_b64 && !transcribedText) {
+        const audioBuffer = Buffer.from(data.audio_b64, 'base64');
+        const transcription = await elevenLabsService.transcribeAudio(audioBuffer);
+        transcribedText = transcription?.text || '';
+        console.log(`[Voice] Transcribed: "${transcribedText}"`);
+      }
+
+      if (!transcribedText) {
+        socket.emit('voice_response', { error: 'No speech detected', text: '' });
+        return;
+      }
+
+      // Generate AI response (simplified - use OpenAI)
+      const openaiKey = process.env.OPENAI_API_KEY;
+      let engineerResponse = 'Race engineer offline.';
+
+      if (openaiKey) {
+        const systemPrompt = `You are a professional race engineer for ${data.driverName || 'the driver'} at ${data.trackName || 'the track'}.
+          Keep responses brief (1-2 sentences max), clear, and professional like a real F1 engineer.
+          Use racing terminology. Be supportive and concise - the driver needs to focus.`;
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: transcribedText }
+            ],
+            max_tokens: 80,
+            temperature: 0.6
+          })
+        });
+
+        const aiData = await response.json();
+        engineerResponse = aiData.choices?.[0]?.message?.content || engineerResponse;
+        console.log(`[Voice] AI Response: "${engineerResponse}"`);
+      }
+
+      // Generate TTS audio via ElevenLabs
+      let audioB64: string | null = null;
+      try {
+        const audioResponse = await elevenLabsService.generateSpeech({ text: engineerResponse });
+        if (audioResponse && audioResponse.audioData) {
+          audioB64 = audioResponse.audioData.toString('base64');
+          console.log(`[Voice] TTS generated: ${audioResponse.audioData.length} bytes`);
+        }
+      } catch (ttsError) {
+        console.warn('[Voice] TTS generation failed, sending text only:', ttsError);
+      }
+
+      // Prepare response payload
+      const voiceResponse = {
+        text: engineerResponse,
+        transcription: transcribedText,
+        audio_b64: audioB64,
+        timestamp: Date.now()
+      };
+
+      // Send response back to requesting relay agent
+      socket.emit('voice_response', voiceResponse);
+
+      // ALSO broadcast to dashboard viewers so they can hear the engineer
+      if (data.sessionId) {
+        io.to(`session:${data.sessionId}`).emit('engineer_audio', voiceResponse);
+      }
+      // Broadcast to all connected dashboard clients
+      socket.broadcast.emit('engineer_audio', voiceResponse);
+
+    } catch (error) {
+      console.error('[Voice] Error processing voice command:', error);
+      socket.emit('voice_response', { error: 'Voice processing failed', text: 'Engineer offline.' });
     }
   });
 
