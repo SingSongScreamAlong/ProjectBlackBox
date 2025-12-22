@@ -383,10 +383,12 @@ class WebSocketService {
     this.socket.on('video_data', (data) => this.handleSocketIOMessage('video_data', data));
 
     // Engineer voice audio from relay agent (played automatically for spectators)
-    this.socket.on('engineer_audio', (data: { text: string; audio_b64?: string; transcription?: string }) => {
-      console.log('🎙️ Engineer audio received:', data.text);
-      // Auto-play the audio if available
-      if (data.audio_b64) {
+    // Updated to support streaming audio
+    this.socket.on('engineer_audio', (data: { text: string; audio_b64?: string; transcription?: string; streaming?: boolean }) => {
+      console.log('🎙️ Engineer response:', data.text);
+
+      // If audio_b64 is present (non-streaming fallback), play it directly
+      if (data.audio_b64 && !data.streaming) {
         try {
           const audioData = atob(data.audio_b64);
           const audioArray = new Uint8Array(audioData.length);
@@ -401,8 +403,50 @@ class WebSocketService {
           console.warn('Failed to play engineer audio:', e);
         }
       }
-      // Also trigger the event for UI updates
+
+      // If streaming, audio will come via audio_chunk events - just show text
       this.handleSocketIOMessage('engineer_audio', data);
+    });
+
+    // Streaming audio chunks - buffer and play progressively
+    let audioChunks: Uint8Array[] = [];
+    let isPlaying = false;
+
+    this.socket.on('audio_chunk', (data: { index: number; data: string; format: string }) => {
+      try {
+        // Decode base64 chunk
+        const chunkData = atob(data.data);
+        const chunkArray = new Uint8Array(chunkData.length);
+        for (let i = 0; i < chunkData.length; i++) {
+          chunkArray[i] = chunkData.charCodeAt(i);
+        }
+        audioChunks[data.index] = chunkArray;
+
+        // Start playback after first few chunks arrive (lower latency)
+        if (!isPlaying && audioChunks.length >= 3) {
+          isPlaying = true;
+          this.playBufferedAudio(audioChunks);
+        }
+      } catch (e) {
+        console.warn('Failed to process audio chunk:', e);
+      }
+    });
+
+    this.socket.on('audio_complete', (data: { complete: boolean; totalChunks?: number; error?: string }) => {
+      if (data.error) {
+        console.warn('Audio streaming failed:', data.error);
+      } else {
+        console.log(`🔊 Audio streaming complete: ${data.totalChunks} chunks`);
+      }
+
+      // If we haven't started playing yet (very short response), play now
+      if (!isPlaying && audioChunks.length > 0) {
+        this.playBufferedAudio(audioChunks);
+      }
+
+      // Reset for next audio stream
+      audioChunks = [];
+      isPlaying = false;
     });
 
     // Multi-driver events
@@ -414,6 +458,35 @@ class WebSocketService {
     this.socket.on('team_message', (data) => this.handleSocketIOMessage('team_message', data));
     this.socket.on('request_comparison', (data) => this.handleSocketIOMessage('request_comparison', data));
     this.socket.on('comparison_result', (data) => this.handleSocketIOMessage('comparison_result', data));
+  }
+
+  /**
+   * Play buffered audio chunks as a single audio stream
+   */
+  private playBufferedAudio(chunks: Uint8Array[]): void {
+    try {
+      // Combine all chunks into single buffer
+      const totalLength = chunks.reduce((acc, chunk) => acc + (chunk?.length || 0), 0);
+      const combined = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        if (chunk) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+      }
+
+      // Create audio blob and play
+      const audioBlob = new Blob([combined], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.play().catch(e => console.warn('Auto-play blocked:', e));
+
+      // Cleanup URL after playback
+      audio.onended = () => URL.revokeObjectURL(audioUrl);
+    } catch (e) {
+      console.warn('Failed to play buffered audio:', e);
+    }
   }
 
   private handleSocketIOMessage(eventType: string, data: any): void {

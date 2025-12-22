@@ -106,6 +106,48 @@ export class ElevenLabsService {
     }
   }
 
+  /**
+   * Generate speech with streaming - yields audio chunks as they're generated
+   * for lower latency playback
+   */
+  async *generateSpeechStream(message: VoiceMessage): AsyncGenerator<Buffer, void, unknown> {
+    if (!this.client) {
+      throw new Error('ElevenLabs service not configured');
+    }
+
+    const voiceId = message.voiceId || this.defaultVoiceId;
+    const model = message.model || 'eleven_turbo_v2_5'; // Use fastest model for streaming
+
+    console.log(`[ElevenLabs] Starting streaming TTS for: "${message.text.substring(0, 50)}..."`);
+
+    try {
+      // Generate speech using ElevenLabs API - returns async iterable stream
+      const audioStream = await this.client.generate({
+        voice: voiceId,
+        text: message.text,
+        model_id: model,
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75, // Higher for clearer voice
+        },
+      });
+
+      // Yield chunks as they arrive
+      let chunkCount = 0;
+      for await (const chunk of audioStream as AsyncIterable<Uint8Array>) {
+        chunkCount++;
+        const buffer = Buffer.from(chunk);
+        yield buffer;
+      }
+
+      console.log(`[ElevenLabs] Streaming complete: ${chunkCount} chunks`);
+
+    } catch (error) {
+      console.error('ElevenLabs streaming TTS error:', error);
+      throw new Error(`Failed to stream speech: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   async transcribeAudio(audioData: Buffer, options?: {
     language?: string;
     model?: string;

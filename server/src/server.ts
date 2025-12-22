@@ -342,35 +342,62 @@ io.on('connection', (socket) => {
         console.log(`[Voice] AI Response: "${engineerResponse}"`);
       }
 
-      // Generate TTS audio via ElevenLabs
-      let audioB64: string | null = null;
-      try {
-        const audioResponse = await elevenLabsService.generateSpeech({ text: engineerResponse });
-        if (audioResponse && audioResponse.audioData) {
-          audioB64 = audioResponse.audioData.toString('base64');
-          console.log(`[Voice] TTS generated: ${audioResponse.audioData.length} bytes`);
-        }
-      } catch (ttsError) {
-        console.warn('[Voice] TTS generation failed, sending text only:', ttsError);
-      }
-
-      // Prepare response payload
-      const voiceResponse = {
+      // Send text response immediately (before audio for lowest latency)
+      const textResponse = {
         text: engineerResponse,
         transcription: transcribedText,
-        audio_b64: audioB64,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        streaming: true
       };
 
-      // Send response back to requesting relay agent
-      socket.emit('voice_response', voiceResponse);
+      // Send text to relay agent immediately
+      socket.emit('voice_response', textResponse);
 
-      // ALSO broadcast to dashboard viewers so they can hear the engineer
+      // Broadcast text to dashboard immediately
       if (data.sessionId) {
-        io.to(`session:${data.sessionId}`).emit('engineer_audio', voiceResponse);
+        io.to(`session:${data.sessionId}`).emit('engineer_audio', textResponse);
       }
-      // Broadcast to all connected dashboard clients
-      socket.broadcast.emit('engineer_audio', voiceResponse);
+      socket.broadcast.emit('engineer_audio', textResponse);
+
+      // Generate TTS audio via ElevenLabs STREAMING
+      try {
+        console.log('[Voice] Starting streaming TTS...');
+        let chunkIndex = 0;
+
+        for await (const chunk of elevenLabsService.generateSpeechStream({ text: engineerResponse })) {
+          const chunkB64 = chunk.toString('base64');
+
+          // Emit chunk to relay agent
+          socket.emit('audio_chunk', {
+            index: chunkIndex,
+            data: chunkB64,
+            format: 'mp3'
+          });
+
+          // Broadcast chunk to dashboard viewers
+          const audioChunk = { index: chunkIndex, data: chunkB64, format: 'mp3' };
+          if (data.sessionId) {
+            io.to(`session:${data.sessionId}`).emit('audio_chunk', audioChunk);
+          }
+          socket.broadcast.emit('audio_chunk', audioChunk);
+
+          chunkIndex++;
+        }
+
+        // Signal streaming complete
+        const completeSignal = { complete: true, totalChunks: chunkIndex };
+        socket.emit('audio_complete', completeSignal);
+        if (data.sessionId) {
+          io.to(`session:${data.sessionId}`).emit('audio_complete', completeSignal);
+        }
+        socket.broadcast.emit('audio_complete', completeSignal);
+
+        console.log(`[Voice] Streaming TTS complete: ${chunkIndex} chunks sent`);
+
+      } catch (ttsError) {
+        console.warn('[Voice] Streaming TTS failed:', ttsError);
+        socket.emit('audio_complete', { complete: true, error: 'TTS failed' });
+      }
 
     } catch (error) {
       console.error('[Voice] Error processing voice command:', error);

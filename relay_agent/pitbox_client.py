@@ -76,12 +76,14 @@ class PitBoxClient:
         
         @self.sio.on('voice_response')
         def on_voice_response(data):
-            """Receive TTS audio response from server"""
+            """Receive TTS audio response from server (streaming mode sends text first)"""
             logger.info("🔊 Received voice response from engineer")
-            audio_b64 = data.get('audio')
             text = data.get('text', '')
+            streaming = data.get('streaming', False)
             
-            if audio_b64 and self.on_voice_response:
+            # Handle non-streaming audio (fallback)
+            audio_b64 = data.get('audio_b64') or data.get('audio')
+            if audio_b64 and not streaming and self.on_voice_response:
                 try:
                     audio_bytes = base64.b64decode(audio_b64)
                     self.on_voice_response(audio_bytes)
@@ -91,6 +93,49 @@ class PitBoxClient:
             if text and self.on_engineer_text:
                 self.on_engineer_text(text)
         
+        # Streaming audio support
+        self._audio_chunks = []
+        self._is_playing = False
+        
+        @self.sio.on('audio_chunk')
+        def on_audio_chunk(data):
+            """Receive streaming audio chunk"""
+            try:
+                chunk_b64 = data.get('data', '')
+                chunk_index = data.get('index', 0)
+                if chunk_b64:
+                    chunk_bytes = base64.b64decode(chunk_b64)
+                    # Ensure list is long enough
+                    while len(self._audio_chunks) <= chunk_index:
+                        self._audio_chunks.append(None)
+                    self._audio_chunks[chunk_index] = chunk_bytes
+                    
+                    # Start playback after receiving a few chunks (low latency)
+                    if not self._is_playing and len([c for c in self._audio_chunks if c]) >= 3:
+                        self._is_playing = True
+                        self._play_buffered_audio()
+            except Exception as e:
+                logger.warning(f"Failed to process audio chunk: {e}")
+        
+        @self.sio.on('audio_complete')
+        def on_audio_complete(data):
+            """Audio streaming complete"""
+            total = data.get('totalChunks', 0)
+            error = data.get('error')
+            
+            if error:
+                logger.warning(f"Audio streaming failed: {error}")
+            else:
+                logger.info(f"🔊 Audio streaming complete: {total} chunks")
+            
+            # Play remaining chunks if not already playing
+            if not self._is_playing and self._audio_chunks:
+                self._play_buffered_audio()
+            
+            # Reset for next stream
+            self._audio_chunks = []
+            self._is_playing = False
+        
         @self.sio.on('engineer_text')
         def on_engineer_text(data):
             """Receive text-only response from engineer"""
@@ -98,6 +143,17 @@ class PitBoxClient:
             logger.info(f"💬 Engineer: {text}")
             if text and self.on_engineer_text:
                 self.on_engineer_text(text)
+    
+    def _play_buffered_audio(self):
+        """Combine buffered audio chunks and play via on_voice_response callback"""
+        try:
+            # Combine all non-None chunks
+            combined = b''.join([c for c in self._audio_chunks if c is not None])
+            if combined and self.on_voice_response:
+                logger.info(f"🔊 Playing buffered audio: {len(combined)} bytes")
+                self.on_voice_response(combined)
+        except Exception as e:
+            logger.warning(f"Failed to play buffered audio: {e}")
     
     def connect(self) -> bool:
         """
