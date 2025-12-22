@@ -30,6 +30,7 @@ from data_mapper import (
 )
 from voice_recognition import VoiceRecognition
 from overlay import PTTOverlay
+from audio_recorder import AudioRecorder
 
 # ========================
 # Logging Setup
@@ -68,6 +69,10 @@ class RelayAgent:
         )
         self.overlay = PTTOverlay()
         
+        # Audio recorder for voice commands
+        self.audio_recorder = AudioRecorder()
+        self._setup_voice_callbacks()
+        
         # MoTeC Exporter
         self.motec_exporter = MoTeCLDExporter()
         self._setup_motec_channels()
@@ -75,11 +80,32 @@ class RelayAgent:
         self.running = False
         self.session_id: Optional[str] = None
         self.last_flag_state: str = 'green'
+        self.discipline_category: str = 'road'
+        
+        # Voice state
+        self.ptt_was_pressed = False
+        self.current_context: dict = {}
         
         # Stats
         self.start_time = 0
         self.telemetry_count = 0
         self.incident_count = 0
+    
+    def _setup_voice_callbacks(self):
+        """Set up callbacks for voice responses from server"""
+        def on_voice_audio(audio_bytes):
+            """Play TTS audio response"""
+            self.audio_recorder.play_audio(audio_bytes, 'mp3')
+        
+        def on_engineer_text(text):
+            """Display engineer response in HUD"""
+            if hasattr(self.overlay, 'set_engineer_response'):
+                self.overlay.set_engineer_response(text)
+            elif hasattr(self.overlay, 'hud'):
+                self.overlay.hud.set_engineer_response(text)
+        
+        self.cloud_client.on_voice_response = on_voice_audio
+        self.cloud_client.on_engineer_text = on_engineer_text
 
     def _setup_motec_channels(self):
         """Configure MoTeC channels"""
@@ -143,9 +169,24 @@ class RelayAgent:
         session_sent = False
         
         while self.running:
-            # Check PTT for Overlay
-            if hasattr(self, 'vr') and hasattr(self, 'overlay'):
-                self.overlay.set_talking(self.vr.is_pressed())
+            # Check PTT for voice recording
+            ptt_pressed = self.vr.is_pressed() if hasattr(self, 'vr') else False
+            
+            # Update overlay PTT state
+            if hasattr(self, 'overlay'):
+                self.overlay.set_talking(ptt_pressed)
+            
+            # Handle PTT press/release for voice recording
+            if ptt_pressed and not self.ptt_was_pressed:
+                # PTT just pressed - start recording
+                self.audio_recorder.start_recording()
+            elif not ptt_pressed and self.ptt_was_pressed:
+                # PTT just released - stop recording and send
+                audio_data = self.audio_recorder.stop_recording()
+                if audio_data:
+                    self.cloud_client.send_voice_command(audio_data, self.current_context)
+            
+            self.ptt_was_pressed = ptt_pressed
                 
             # Try to connect to iRacing
             if not self.ir_reader.is_connected():
@@ -257,6 +298,37 @@ class RelayAgent:
         telemetry = map_telemetry_snapshot(self.session_id, cars)
         self.cloud_client.send_telemetry(telemetry)
         self.telemetry_count += 1
+        
+        # Update HUD with player telemetry
+        for car in cars:
+            if car.is_player:
+                hud_data = {
+                    'speed': car.speed * 3.6,  # m/s to km/h
+                    'gear': car.gear,
+                    'rpm': car.rpm,
+                    'max_rpm': 8000,  # TODO: Get from car data
+                    'lap': car.lap,
+                    'total_laps': 0,  # TODO: Get from session
+                    'position': car.position,
+                    'gap_ahead': car.gap_to_leader if hasattr(car, 'gap_to_leader') else 0,
+                    'fuel_remaining': car.fuel_level if hasattr(car, 'fuel_level') else 0,
+                    'fuel_laps': 0,  # TODO: Calculate
+                    'flag': self.last_flag_state,
+                }
+                
+                # Update current context for voice commands
+                self.current_context = {
+                    'lap': car.lap,
+                    'position': car.position,
+                    'speed': car.speed * 3.6,
+                }
+                
+                # Update HUD
+                if hasattr(self.overlay, 'update_telemetry'):
+                    self.overlay.update_telemetry(hud_data)
+                elif hasattr(self.overlay, 'hud'):
+                    self.overlay.hud.update_telemetry(hud_data)
+                break
         
         if config.LOG_TELEMETRY:
             logger.debug(f"📊 Telemetry: {len(cars)} cars")

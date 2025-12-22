@@ -2,6 +2,7 @@
 PitBox Relay Agent - Server Client
 Socket.IO client for connecting to PitBox Server
 """
+import base64
 import logging
 import time
 from typing import Callable, Optional, Dict, Any
@@ -29,6 +30,10 @@ class PitBoxClient:
         )
         self.connected = False
         self.session_id: Optional[str] = None
+        
+        # Voice callbacks
+        self.on_voice_response: Optional[Callable[[bytes], None]] = None  # TTS audio
+        self.on_engineer_text: Optional[Callable[[str], None]] = None     # Response text
         
         # Set up event handlers
         self._setup_handlers()
@@ -68,6 +73,31 @@ class PitBoxClient:
             logger.info(f"⚡ STEWARD COMMAND: {data.get('command')}")
             logger.info(f"   Reason: {data.get('reason')}")
             # TODO: Implement command execution in iRacing
+        
+        @self.sio.on('voice_response')
+        def on_voice_response(data):
+            """Receive TTS audio response from server"""
+            logger.info("🔊 Received voice response from engineer")
+            audio_b64 = data.get('audio')
+            text = data.get('text', '')
+            
+            if audio_b64 and self.on_voice_response:
+                try:
+                    audio_bytes = base64.b64decode(audio_b64)
+                    self.on_voice_response(audio_bytes)
+                except Exception as e:
+                    logger.error(f"Failed to decode audio: {e}")
+            
+            if text and self.on_engineer_text:
+                self.on_engineer_text(text)
+        
+        @self.sio.on('engineer_text')
+        def on_engineer_text(data):
+            """Receive text-only response from engineer"""
+            text = data.get('text', '')
+            logger.info(f"💬 Engineer: {text}")
+            if text and self.on_engineer_text:
+                self.on_engineer_text(text)
     
     def connect(self) -> bool:
         """
@@ -161,3 +191,30 @@ class PitBoxClient:
         Use this in the main loop to allow receiving events
         """
         self.sio.sleep(seconds)
+    
+    def send_voice_command(self, audio_data: bytes, context: Optional[Dict[str, Any]] = None):
+        """
+        Send voice command audio to server for transcription and AI response
+        
+        Args:
+            audio_data: WAV audio bytes
+            context: Optional race context (lap, position, etc.)
+        """
+        if not self.is_connected():
+            logger.warning("Cannot send voice command: not connected")
+            return False
+        
+        try:
+            audio_b64 = base64.b64encode(audio_data).decode('utf-8')
+            payload = {
+                'sessionId': self.session_id,
+                'audio': audio_b64,
+                'format': 'wav',
+                'context': context or {}
+            }
+            self.sio.emit('voice_command', payload)
+            logger.info("🎤 Voice command sent to server")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send voice command: {e}")
+            return False
