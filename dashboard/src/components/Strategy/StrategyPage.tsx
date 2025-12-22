@@ -98,6 +98,9 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
 
   const calculatePitWindows = () => {
     const windows: PitStop[] = [];
+    // Don't calculate pit windows if no race data
+    if (totalLaps === 0 || remainingLaps <= 0) return windows;
+
     const stintLength = Math.floor(remainingLaps / (numStops + 1));
 
     for (let i = 0; i < numStops; i++) {
@@ -137,7 +140,7 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
       <div className="standings-panel">
         <div className="panel-header">
           <h3>Race Standings</h3>
-          <span className="lap-badge">Lap {currentLap}/{totalLaps}</span>
+          <span className="lap-badge">{totalLaps > 0 ? `Lap ${currentLap}/${totalLaps}` : 'N/A'}</span>
         </div>
 
         <div className="standings-table">
@@ -225,8 +228,8 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
                   ))}
                 </div>
                 <div className="progress-labels">
-                  <span>Lap {currentLap}</span>
-                  <span>Lap {totalLaps}</span>
+                  <span>{totalLaps > 0 ? `Lap ${currentLap}` : 'N/A'}</span>
+                  <span>{totalLaps > 0 ? `Lap ${totalLaps}` : 'N/A'}</span>
                 </div>
               </div>
 
