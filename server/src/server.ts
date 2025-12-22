@@ -28,6 +28,12 @@ import { createHealthCheckRouter } from './middleware/health-check.js';
 import { corsMiddleware, logCorsConfiguration } from './middleware/cors-config.js';
 import { securityHeaders, customSecurityHeaders, logSecurityConfiguration } from './middleware/security-headers.js';
 
+import { fileURLToPath } from 'url';
+
+// ESM compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Basic types aligned with dashboard expectations
 export interface TelemetryTire {
   temp: number;
@@ -547,6 +553,25 @@ app.get('/sessions/:id/telemetry', telemetryLimiter, authenticateToken, async (r
 });
 
 // Start server
+
+// --- 404 & Static File Handling ---
+
+// Serve React static files (JS, CSS, etc)
+// Adjust path relative to: server/src/server.ts -> server/dist/server.js
+// Build is in: project/dashboard/build
+const buildPath = path.join(__dirname, '../../dashboard/build');
+app.use(express.static(buildPath));
+
+console.log(`Serving static files from: ${buildPath}`);
+
+// Catch-all: For any request that isn't an API route or static file,
+// send back index.html so React Router can handle it.
+app.get('*', (req, res) => {
+  // Don't intercept API 404s if possible, but route order matters.
+  // Ideally this is last.
+  res.sendFile(path.join(buildPath, 'index.html'));
+});
+
 server.listen(config.PORT, () => {
   console.log('='.repeat(60));
   console.log('🚀 PitBox Server Started');

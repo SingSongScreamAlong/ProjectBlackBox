@@ -13,15 +13,16 @@ envs:
     value: production
 
 services:
-  # Backend API + Socket.IO Server
+  # Monolith: Backend + Static Frontend
   - name: server
     github:
       repo: SingSongScreamAlong/ProjectBlackBox
       branch: main
       deploy_on_push: true
-    source_dir: /server
-    build_command: rm -rf dist && npm install && npm run build
-    run_command: npm start
+    source_dir: /
+    # Build Frontend first, then Backend
+    build_command: cd dashboard && npm install && npm run build && cd ../server && rm -rf dist && npm install && npm run build
+    run_command: cd server && npm start
     http_port: 3000
     instance_count: 1
     instance_size_slug: basic-xxs
@@ -30,20 +31,7 @@ services:
       initial_delay_seconds: 10
       period_seconds: 30
     routes:
-      - path: /api
-        preserve_path_prefix: true
-      - path: /auth
-        preserve_path_prefix: true
-      - path: /health
-        preserve_path_prefix: true
-      - path: /ping
-        preserve_path_prefix: true
-      - path: /socket.io
-        preserve_path_prefix: true
-      - path: /sessions
-        preserve_path_prefix: true
-      - path: /download-relay
-        preserve_path_prefix: true
+      - path: /
     envs:
       - key: OPENAI_API_KEY
         scope: RUN_TIME
@@ -62,29 +50,13 @@ services:
       - key: BACKEND_URL
         scope: RUN_TIME
         value: "${APP_URL}"
-
-# Removed blackbox-web service - using dashboard as main frontend
-
-static_sites:
-  # Telemetry Dashboard (React) - Now at root path
-  - name: dashboard
-    github:
-      repo: SingSongScreamAlong/ProjectBlackBox
-      branch: main
-      deploy_on_push: true
-    source_dir: /dashboard
-    build_command: npm install && npm run build
-    output_dir: build
-    catchall_document: index.html
-    routes:
-      - path: /
-    envs:
+      # Frontend Build Vars
       - key: REACT_APP_BACKEND_URL
         scope: BUILD_TIME
-        value: "${server.PUBLIC_URL}"
+        value: "${APP_URL}"
       - key: REACT_APP_RELAY_AGENT_URL
         scope: BUILD_TIME
-        value: "${server.PUBLIC_URL}"
+        value: "${APP_URL}"
       - key: REACT_APP_WEBSOCKET_URL
         scope: BUILD_TIME
-        value: "${server.PUBLIC_URL}"
+        value: "${APP_URL}"
