@@ -100,7 +100,7 @@ app.get('/download-relay', (req, res) => {
 const server = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: ["http://localhost:3001", "http://127.0.0.1:3001", "http://localhost:3000", "http://127.0.0.1:3000"],
+    origin: true, // Allow all origins for relay agent connections
     credentials: true,
   },
 });
