@@ -135,16 +135,15 @@ class RelayAgent:
         self.cloud_client.on_voice_response = on_voice_audio
         self.cloud_client.on_engineer_text = on_engineer_text
     
-    def _on_ptt_binding_changed(self, ptt_type: str, ptt_key: str, joystick_button: int):
+    def _on_ptt_binding_changed(self, ptt_type: str, ptt_key: str, joystick_id: int, joystick_button: int):
         """Callback when PTT binding is changed via HUD settings"""
-        logger.info(f"🎯 PTT binding changed: type={ptt_type}, key={ptt_key}, button={joystick_button}")
+        logger.info(f"🎯 PTT binding changed: type={ptt_type}, key={ptt_key}, joy_id={joystick_id}, button={joystick_button}")
         
         # Update VoiceRecognition with new binding and re-initialize devices
-        # Joystick ID assumes 0 for now as we don't fully support multi-joystick selection in UI yet
         self.vr.reconfigure(
             ptt_type=ptt_type,
             ptt_key=ptt_key,
-            joystick_id=0,
+            joystick_id=joystick_id,
             joystick_button=joystick_button
         )
         

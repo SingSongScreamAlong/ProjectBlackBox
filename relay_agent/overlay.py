@@ -277,7 +277,7 @@ class DriverHUD:
         
         # Notify callback
         if self._ptt_binding_callback:
-            self._ptt_binding_callback('keyboard', key, -1)
+            self._ptt_binding_callback('keyboard', key, 0, -1)
         
         logger.info(f"✅ PTT bound to keyboard key: {key}")
     
@@ -378,7 +378,7 @@ class DriverHUD:
         
         # Notify callback
         if self._ptt_binding_callback:
-            self._ptt_binding_callback('joystick', '', btn)
+            self._ptt_binding_callback('joystick', '', js_idx, btn)
     
     def _cancel_binding(self):
         """Cancel the binding process"""
