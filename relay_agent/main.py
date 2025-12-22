@@ -50,6 +50,27 @@ logger = logging.getLogger(__name__)
 
 import os
 from exporters.motec_exporter import MoTeCLDExporter
+import json
+
+def load_ptt_config():
+    """Load PTT configuration from ptt_config.json, falling back to config.py defaults"""
+    config_path = os.path.join(os.path.dirname(__file__), 'ptt_config.json')
+    try:
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                ptt_config = json.load(f)
+                logger.info(f"📋 Loaded PTT config: {ptt_config}")
+                return ptt_config
+    except Exception as e:
+        logger.warning(f"Could not load ptt_config.json: {e}")
+    
+    # Fall back to config.py defaults
+    return {
+        'ptt_type': config.PTT_TYPE,
+        'ptt_key': config.PTT_KEY,
+        'joystick_id': config.JOYSTICK_ID,
+        'joystick_button': config.JOYSTICK_BUTTON
+    }
 
 class RelayAgent:
     """
@@ -61,13 +82,20 @@ class RelayAgent:
         self.ir_reader = IRacingReader()
         self.cloud_client = PitBoxClient(cloud_url)
         self.video_encoder = VideoEncoder(self.cloud_client)
+        
+        # Load PTT config from ptt_config.json
+        ptt_config = load_ptt_config()
         self.vr = VoiceRecognition(
-            ptt_type=config.PTT_TYPE,
-            ptt_key=config.PTT_KEY,
-            joystick_id=config.JOYSTICK_ID,
-            joystick_button=config.JOYSTICK_BUTTON
+            ptt_type=ptt_config.get('ptt_type', 'keyboard'),
+            ptt_key=ptt_config.get('ptt_key', 'space'),
+            joystick_id=ptt_config.get('joystick_id', 0),
+            joystick_button=ptt_config.get('joystick_button', 0)
         )
         self.overlay = PTTOverlay()
+        
+        # Set up callback for when PTT binding changes via HUD
+        if hasattr(self.overlay, 'hud'):
+            self.overlay.hud.set_ptt_callback(self._on_ptt_binding_changed)
         
         # Audio recorder for voice commands
         self.audio_recorder = AudioRecorder()
@@ -106,6 +134,19 @@ class RelayAgent:
         
         self.cloud_client.on_voice_response = on_voice_audio
         self.cloud_client.on_engineer_text = on_engineer_text
+    
+    def _on_ptt_binding_changed(self, ptt_type: str, ptt_key: str, joystick_button: int):
+        """Callback when PTT binding is changed via HUD settings"""
+        logger.info(f"🎯 PTT binding changed: type={ptt_type}, key={ptt_key}, button={joystick_button}")
+        
+        # Update VoiceRecognition with new binding
+        self.vr.ptt_type = ptt_type
+        if ptt_type == 'keyboard':
+            self.vr.ptt_key = ptt_key
+        else:
+            self.vr.joystick_button = joystick_button
+        
+        logger.info(f"✅ VoiceRecognition updated with new PTT binding")
 
     def _setup_motec_channels(self):
         """Configure MoTeC channels"""
