@@ -205,6 +205,35 @@ const Dashboard: React.FC = () => {
       }));
     };
 
+    // Handle session_metadata from relay agent (raw iRacing session data)
+    const handleSessionMetadata = (data: any) => {
+      console.log('📋 Session metadata received from relay:', data);
+      // Map relay agent metadata to dashboard session info
+      if (data) {
+        setSessionInfo(prevState => ({
+          ...prevState,
+          track: data.trackName || data.track || prevState.track,
+          session: data.sessionType || data.session || prevState.session,
+          driver: data.driverName || prevState.driver,
+          car: data.carName || prevState.car
+        }));
+
+        // Update display info
+        setDisplayInfo({
+          trackName: data.trackName || data.track || '',
+          sessionType: data.sessionType || '',
+          lapCount: data.totalLaps || 0
+        });
+
+        // If relay has a sessionId, use it
+        if (data.sessionId) {
+          console.log(`📡 Joining session: ${data.sessionId}`);
+          wsService.joinSession(data.sessionId);
+          setSessionId(data.sessionId);
+        }
+      }
+    };
+
     // Subscribe to events
     const unsubscribeConnect = wsService.on('connect', handleConnect).unsubscribe;
     const unsubscribeDisconnect = wsService.on('disconnect', handleDisconnect).unsubscribe;
@@ -214,6 +243,7 @@ const Dashboard: React.FC = () => {
     const unsubscribeCompetitorData = wsService.on('competitor_data', handleCompetitorUpdate).unsubscribe;
     const unsubscribeStrategyData = wsService.on('strategy_data', handleStrategyUpdate).unsubscribe;
     const unsubscribeSessionInfo = wsService.on('session_info', handleSessionUpdate).unsubscribe;
+    const unsubscribeSessionMetadata = wsService.on('session_metadata', handleSessionMetadata).unsubscribe;
 
     // Connect to WebSocket server on backend port
     // Strip /api suffix if present - Socket.IO is at root, not at /api namespace
@@ -231,6 +261,7 @@ const Dashboard: React.FC = () => {
       unsubscribeCompetitorData();
       unsubscribeStrategyData();
       unsubscribeSessionInfo();
+      unsubscribeSessionMetadata();
       // Do not disconnect service as it might be shared, but here it's fine
       // wsService.disconnect(); 
     };

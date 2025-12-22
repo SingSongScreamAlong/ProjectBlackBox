@@ -369,7 +369,10 @@ class WebSocketService {
     if (!this.socket) return;
 
     // Set up handlers for all event types
+    // NOTE: Server broadcasts 'telemetry' and 'session_metadata' directly; 'telemetry_update' is for session rooms
+    this.socket.on('telemetry', (data) => this.handleSocketIOMessage('telemetry', data));
     this.socket.on('telemetry_update', (data) => this.handleSocketIOMessage('telemetry', data));
+    this.socket.on('session_metadata', (data) => this.handleSocketIOMessage('session_metadata', data));
     this.socket.on('session_info', (data) => this.handleSocketIOMessage('session_info', data));
     this.socket.on('coaching', (data) => this.handleSocketIOMessage('coaching', data));
     this.socket.on('skill_analysis', (data) => this.handleSocketIOMessage('skill_analysis', data));
