@@ -9,6 +9,7 @@ import AnalysisPage from '../Analysis/AnalysisPage';
 import TrackPage from '../Track/TrackPage';
 import StrategyPage from '../Strategy/StrategyPage';
 import AICoaching from '../AICoaching/AICoaching';
+import VideoPanel from '../VideoPanel/VideoPanel';
 import { TimingTower } from '../TimingTower/TimingTower';
 import TeamChat from '../TeamChat/TeamChat';
 import { NotificationSystem, useNotifications } from '../Notifications/NotificationSystem';
@@ -245,6 +246,10 @@ const Dashboard: React.FC = () => {
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
             </div>
             <div className="dashboard-right" style={{ flex: 1 }}>
+              {/* Video Feed */}
+              <div className="video-container-mini" style={{ marginBottom: '8px' }}>
+                <VideoPanel driverCamActive={connected} />
+              </div>
               {/* Mini-map for quick reference */}
               <div className="mini-map-container">
                 <TrackMap telemetryData={telemetryData} trackName={sessionInfo.track || 'Unknown Track'} />
@@ -302,6 +307,10 @@ const Dashboard: React.FC = () => {
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
             </div>
             <div className="dashboard-right" style={{ flex: 1 }}>
+              {/* Video Feed */}
+              <div className="video-container-mini" style={{ marginBottom: '8px' }}>
+                <VideoPanel driverCamActive={connected} />
+              </div>
               <div className="mini-map-container">
                 <TrackMap telemetryData={telemetryData} trackName={sessionInfo.track || 'Unknown Track'} />
               </div>

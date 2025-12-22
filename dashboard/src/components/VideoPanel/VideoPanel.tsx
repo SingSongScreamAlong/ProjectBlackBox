@@ -59,11 +59,13 @@ const VideoPanel: React.FC<VideoPanelProps> = ({
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', marginBottom: '8px' }}>🏎️</div>
-                <div>{driverCamActive ? 'WAITING FOR SIGNAL...' : 'DRIVER CAM OFFLINE'}</div>
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📹</div>
+                <div style={{ color: '#ff8c00', fontWeight: '600' }}>
+                  {driverCamActive ? '⏱️ No Video Feed' : 'DRIVER CAM OFFLINE'}
+                </div>
                 <div style={{ fontSize: '12px', color: '#7d8590', marginTop: '4px' }}>
-                  COCKPIT VIEW • 1920x1080 • --fps
+                  COCKPIT VIEW • 1920x1080
                 </div>
               </div>
             )}
