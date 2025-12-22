@@ -223,7 +223,7 @@ const TelemetryAnalysis: React.FC<TelemetryAnalysisProps> = ({ telemetryData }) 
 
         {displayLapHistory.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-            Waiting for lap data...
+            No lap data yet
           </div>
         ) : (
 
@@ -277,7 +277,7 @@ const TelemetryAnalysis: React.FC<TelemetryAnalysisProps> = ({ telemetryData }) 
         </div>
         {displayLapHistory.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-            Waiting for session data...
+            No session data yet
           </div>
         ) : (
           <div className="summary-grid">

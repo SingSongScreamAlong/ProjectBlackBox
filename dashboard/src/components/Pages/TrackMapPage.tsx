@@ -169,7 +169,7 @@ const TrackMapPage: React.FC = () => {
                 ))
               ) : (
                 <div className="driver-item" style={{ opacity: 0.6, justifyContent: 'center' }}>
-                  Waiting for session data...
+                  No session data
                 </div>
               )}
             </div>

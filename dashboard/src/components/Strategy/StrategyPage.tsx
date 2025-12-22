@@ -89,8 +89,8 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
   const selectedDriverData = selectedDriver ? drivers.find(d => d.driver === selectedDriver) : null;
 
   // Pit strategy calculations
-  const fuelPerLap = telemetryData?.fuel?.usagePerHour ? (telemetryData.fuel.usagePerHour / 3600) * 90 : 2.8;
-  const currentFuel = telemetryData?.fuel?.level || 80;
+  const fuelPerLap = telemetryData?.fuel?.usagePerHour ? (telemetryData.fuel.usagePerHour / 3600) * 90 : 0;
+  const currentFuel = telemetryData?.fuel?.level || 0;
   const remainingLaps = totalLaps - currentLap;
   const fuelNeeded = remainingLaps * fuelPerLap;
 

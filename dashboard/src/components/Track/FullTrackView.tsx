@@ -75,7 +75,7 @@ const FullTrackView: React.FC<FullTrackViewProps> = ({
   if (!trackDef) {
     return (
       <div className="full-track-view" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <div style={{ color: '#888' }}>Waiting for track data...</div>
+        <div style={{ color: '#888' }}>No track data</div>
       </div>
     );
   }

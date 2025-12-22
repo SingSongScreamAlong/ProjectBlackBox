@@ -8,6 +8,9 @@ interface TelemetryProps {
 }
 
 const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
+  // Track if we have real data or showing placeholder
+  const isOffline = !telemetryData;
+
   // Show zero-state UI when no telemetry data
   const data = telemetryData || {
     throttle: 0,
@@ -44,8 +47,19 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
   const isRedline = rpmPct > 95;
   const rpmColor = isRedline ? '#ff3b3b' : (rpmPct > 80 ? '#ffd700' : '#00d4ff');
 
+  // Offline styling
+  const offlineStyle = isOffline ? { color: '#ff8c00', opacity: 0.7 } : {};
+  const offlineClass = isOffline ? 'offline-value' : '';
+
   return (
-    <div className="cockpit-container">
+    <div className={`cockpit-container ${isOffline ? 'offline' : ''}`}>
+      {/* Offline Indicator */}
+      {isOffline && (
+        <div className="offline-banner">
+          <span className="offline-icon">⏱️</span>
+          <span>Awaiting Telemetry Connection</span>
+        </div>
+      )}
       {/* --- LEFT COLUMN: VEHICLE STATUS --- */}
       <div className="cockpit-column">
         {/* Tires */}

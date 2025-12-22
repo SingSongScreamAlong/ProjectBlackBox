@@ -99,7 +99,7 @@ const TrackPage: React.FC<TrackPageProps> = ({
   if (!trackDef) {
     return (
       <div className="track-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <div style={{ color: '#888' }}>Waiting for track data...</div>
+        <div style={{ color: '#888' }}>No track selected</div>
       </div>
     );
   }
@@ -466,7 +466,7 @@ const TrackPage: React.FC<TrackPageProps> = ({
               <div className="ai-summary">
                 <h4>📊 Track Summary</h4>
                 <p>
-                  {trackName ? `${trackName} is a circuit that rewards precision and commitment. Monitor conditions for optimal performance.` : 'Waiting for track data...'}
+                  {trackName ? `${trackName} is a circuit that rewards precision and commitment. Monitor conditions for optimal performance.` : 'No track data available'}
                 </p>
               </div>
             </div>

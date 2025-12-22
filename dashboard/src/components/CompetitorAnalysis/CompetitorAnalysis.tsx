@@ -62,13 +62,13 @@ const CompetitorAnalysis: React.FC<CompetitorAnalysisProps> = ({ competitorData,
         {/* Sector Analysis - Placeholder until real sector data is available */}
         <div style={{ marginTop: '16px', textAlign: 'center', color: '#666' }}>
           <div className="section-title">SECTOR ANALYSIS</div>
-          <div>Waiting for sector data...</div>
+          <div>No sector data</div>
         </div>
 
         {/* Weather & Track Conditions - Placeholder */}
         <div style={{ marginTop: '16px', textAlign: 'center', color: '#666' }}>
           <div className="section-title">TRACK CONDITIONS</div>
-          <div>Waiting for session info...</div>
+          <div>No session info</div>
         </div>
       </div>
     </div>

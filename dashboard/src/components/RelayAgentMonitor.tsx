@@ -10,9 +10,9 @@ interface RelayAgentMonitorProps {
 /**
  * Component for monitoring and displaying data from the relay agent
  */
-const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({ 
-  serverUrl, 
-  autoConnect = true 
+const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
+  serverUrl,
+  autoConnect = true
 }) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [lastVideoFrame, setLastVideoFrame] = useState<any>(null);
@@ -20,7 +20,7 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [frameCount, setFrameCount] = useState<number>(0);
   const [telemetryCount, setTelemetryCount] = useState<number>(0);
-  
+
   const videoRef = useRef<HTMLImageElement>(null);
   const connectionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -30,7 +30,7 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
     if (serverUrl) {
       relayAgentService.setServerUrl(serverUrl);
     }
-    
+
     // Register event listeners
     const unsubscribeConnection = relayAgentService.onConnectionStatus((connected) => {
       setIsConnected(connected);
@@ -40,11 +40,11 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
         setError(null);
       }
     });
-    
+
     const unsubscribeVideo = relayAgentService.onVideoFrame((frameData) => {
       setLastVideoFrame(frameData);
       setFrameCount((prev) => prev + 1);
-      
+
       // Display the video frame if it contains image data
       if (frameData && frameData.image && videoRef.current) {
         try {
@@ -55,23 +55,23 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
         }
       }
     });
-    
+
     const unsubscribeTelemetry = relayAgentService.onTelemetry((telemetryData) => {
       setLastTelemetry(telemetryData);
       setTelemetryCount((prev) => prev + 1);
     });
-    
+
     // Auto-connect if enabled
     if (autoConnect) {
       handleConnect();
     }
-    
+
     // Clean up on unmount
     return () => {
       if (typeof unsubscribeConnection === 'function') unsubscribeConnection();
       if (typeof unsubscribeVideo === 'function') unsubscribeVideo();
       if (typeof unsubscribeTelemetry === 'function') unsubscribeTelemetry();
-      
+
       if (connectionTimerRef.current) {
         clearTimeout(connectionTimerRef.current);
       }
@@ -83,7 +83,7 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
     try {
       setError(null);
       relayAgentService.connect();
-      
+
       // Set a timeout to check if connection was successful
       connectionTimerRef.current = setTimeout(() => {
         if (!isConnected) {
@@ -105,7 +105,7 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
       <Typography variant="h5" gutterBottom>
         Relay Agent Monitor
       </Typography>
-      
+
       <Box sx={{ mb: 2 }}>
         <Typography variant="subtitle1">
           Server: {relayAgentService.getServerUrl()}
@@ -114,42 +114,42 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
           Status: {isConnected ? 'Connected' : 'Disconnected'}
         </Typography>
       </Box>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       <Box sx={{ mb: 2 }}>
-        <Button 
-          variant="contained" 
-          color="primary" 
+        <Button
+          variant="contained"
+          color="primary"
           onClick={handleConnect}
           disabled={isConnected}
           sx={{ mr: 2 }}
         >
           Connect
         </Button>
-        <Button 
-          variant="outlined" 
-          color="secondary" 
+        <Button
+          variant="outlined"
+          color="secondary"
           onClick={handleDisconnect}
           disabled={!isConnected}
         >
           Disconnect
         </Button>
       </Box>
-      
+
       <Grid container spacing={2}>
         {/* Video Display */}
         <Grid sx={{ gridColumn: 'span 12', '@media (min-width:900px)': { gridColumn: 'span 6' } }}>
-          <Paper 
-            elevation={1} 
-            sx={{ 
-              p: 2, 
-              height: '300px', 
-              display: 'flex', 
+          <Paper
+            elevation={1}
+            sx={{
+              p: 2,
+              height: '300px',
+              display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
@@ -159,13 +159,13 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
             <Typography variant="h6" gutterBottom>
               Video Feed
             </Typography>
-            
+
             {isConnected ? (
               <>
-                <Box 
-                  sx={{ 
-                    width: '100%', 
-                    height: '220px', 
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: '220px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -173,18 +173,18 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
                   }}
                 >
                   {frameCount > 0 ? (
-                    <img 
-                      ref={videoRef} 
-                      alt="Video Feed" 
-                      style={{ 
-                        maxWidth: '100%', 
-                        maxHeight: '100%', 
-                        objectFit: 'contain' 
-                      }} 
+                    <img
+                      ref={videoRef}
+                      alt="Video Feed"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain'
+                      }}
                     />
                   ) : (
                     <Typography variant="body2" color="textSecondary">
-                      Waiting for video frames...
+                      No video frames
                     </Typography>
                   )}
                 </Box>
@@ -202,14 +202,14 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
             )}
           </Paper>
         </Grid>
-        
+
         {/* Telemetry Display */}
         <Grid sx={{ gridColumn: 'span 12', '@media (min-width:900px)': { gridColumn: 'span 6' } }}>
-          <Paper 
-            elevation={1} 
-            sx={{ 
-              p: 2, 
-              height: '300px', 
+          <Paper
+            elevation={1}
+            sx={{
+              p: 2,
+              height: '300px',
               overflowY: 'auto',
               backgroundColor: '#f5f5f5'
             }}
@@ -217,7 +217,7 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
             <Typography variant="h6" gutterBottom>
               Telemetry Data
             </Typography>
-            
+
             {isConnected ? (
               <>
                 {telemetryCount > 0 ? (
@@ -226,7 +226,7 @@ const RelayAgentMonitor: React.FC<RelayAgentMonitorProps> = ({
                   </pre>
                 ) : (
                   <Typography variant="body2" color="textSecondary">
-                    Waiting for telemetry data...
+                    No telemetry data
                   </Typography>
                 )}
                 <Typography variant="caption">

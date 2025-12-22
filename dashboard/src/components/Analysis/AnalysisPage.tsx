@@ -80,7 +80,7 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ telemetryData, sessionId })
 
             <div className="sector-comparison">
               <div style={{ textAlign: 'center', padding: '2rem', color: '#666', width: '100%' }}>
-                Waiting for lap data...
+                No lap data available
               </div>
             </div>
 
@@ -93,7 +93,7 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ telemetryData, sessionId })
                 <span>S3: --.---</span>
               </div>
               <div className="potential-gain">
-                Waiting for reference...
+                Potential gain: 0.000s
               </div>
             </div>
           </div>
@@ -104,20 +104,20 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ telemetryData, sessionId })
             <div className="comparison-header">
               <h3>Driver Comparison</h3>
               <div className="driver-selectors">
-                <div style={{ color: '#888' }}>Waiting for competitors...</div>
+                <div style={{ color: '#888' }}>No competitors</div>
               </div>
             </div>
 
             <div className="comparison-metrics">
               <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-                Waiting for driver comparison data...
+                No driver comparison data
               </div>
             </div>
 
             <div className="comparison-insights">
               <h4>📊 Comparison Insights</h4>
               <ul>
-                <li style={{ color: '#888', fontStyle: 'italic', listStyle: 'none' }}>Waiting for data...</li>
+                <li style={{ color: '#888', fontStyle: 'italic', listStyle: 'none' }}>No data available</li>
               </ul>
             </div>
           </div>
