@@ -8,34 +8,39 @@ interface TelemetryProps {
 }
 
 const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
-  if (!telemetryData) {
-    return (
-      <div className="panel telemetry-panel">
-        <div className="panel-content">
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '2rem',
-            gap: '1.5rem',
-            minHeight: '300px'
-          }}>
-            <div style={{ color: '#888', fontSize: '14px' }}>
-              Waiting for telemetry connection...
-            </div>
-            <div className="loading-spinner"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Show zero-state UI when no telemetry data
+  const data = telemetryData || {
+    throttle: 0,
+    brake: 0,
+    clutch: 0,
+    speed: 0,
+    rpm: 0,
+    gear: 0,
+    lapTime: 0,
+    bestLapTime: 0,
+    deltaToBestLap: 0,
+    gapAhead: 0,
+    gapBehind: 0,
+    racePosition: 0,
+    flags: 0,
+    tires: {
+      frontLeft: { temp: 0, wear: 0, pressure: 0 },
+      frontRight: { temp: 0, wear: 0, pressure: 0 },
+      rearLeft: { temp: 0, wear: 0, pressure: 0 },
+      rearRight: { temp: 0, wear: 0, pressure: 0 },
+    },
+    fuel: { level: 0, usagePerHour: 0, remaining: 0 },
+    carSettings: { brakeBias: 0, fuelMixture: 0, tractionControl: 0, abs: 0 },
+    energy: { batteryPct: 0 },
+    gForce: { lateral: 0, longitudinal: 0 },
+    weather: { windSpeed: 0 }
+  };
 
   // Helpers
-  const isGreenFlag = (telemetryData.flags || 0) === 0;
-  const delta = telemetryData.deltaToBestLap || 0;
+  const isGreenFlag = (data.flags || 0) === 0;
+  const delta = data.deltaToBestLap || 0;
   const deltaColor = delta < 0 ? 'delta-neg' : 'delta-pos'; // Green if negative (faster)
-  const rpmPct = Math.min(100, Math.max(0, (telemetryData.rpm / 14000) * 100)); // Assuming 14k max for now
+  const rpmPct = Math.min(100, Math.max(0, (data.rpm / 14000) * 100)); // Assuming 14k max for now
   const isRedline = rpmPct > 95;
   const rpmColor = isRedline ? '#ff3b3b' : (rpmPct > 80 ? '#ffd700' : '#00d4ff');
 
@@ -47,10 +52,10 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
         <div className="cockpit-card">
           <div className="cockpit-card-title">Tires (Temp/Wear)</div>
           <div className="tire-box">
-            <TireDisplay position="FL" {...telemetryData.tires.frontLeft} />
-            <TireDisplay position="FR" {...telemetryData.tires.frontRight} />
-            <TireDisplay position="RL" {...telemetryData.tires.rearLeft} />
-            <TireDisplay position="RR" {...telemetryData.tires.rearRight} />
+            <TireDisplay position="FL" {...data.tires.frontLeft} />
+            <TireDisplay position="FR" {...data.tires.frontRight} />
+            <TireDisplay position="RL" {...data.tires.rearLeft} />
+            <TireDisplay position="RR" {...data.tires.rearRight} />
           </div>
         </div>
 
@@ -60,19 +65,19 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', textAlign: 'center' }}>
             <div>
               <div style={{ fontSize: '9px', color: '#888' }}>BRAKE BIAS</div>
-              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{telemetryData.carSettings?.brakeBias?.toFixed(1) ?? '-'}%</div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.carSettings?.brakeBias?.toFixed(1) ?? '-'}%</div>
             </div>
             <div>
               <div style={{ fontSize: '9px', color: '#888' }}>FUEL MAP</div>
-              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{telemetryData.carSettings?.fuelMixture ?? '-'}</div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.carSettings?.fuelMixture ?? '-'}</div>
             </div>
             <div>
               <div style={{ fontSize: '9px', color: '#888' }}>TC</div>
-              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{telemetryData.carSettings?.tractionControl ?? '-'}</div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.carSettings?.tractionControl ?? '-'}</div>
             </div>
             <div>
               <div style={{ fontSize: '9px', color: '#888' }}>ABS</div>
-              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{telemetryData.carSettings?.abs ?? '-'}</div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.carSettings?.abs ?? '-'}</div>
             </div>
           </div>
         </div>
@@ -81,8 +86,8 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
         <div className="cockpit-card">
           <div className="cockpit-card-title">Fuel</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{telemetryData.fuel?.level?.toFixed(1) ?? '0.0'} <span style={{ fontSize: '12px', color: '#666' }}>L</span></div>
-            <div style={{ fontSize: '12px', color: '#888' }}>Est. Laps: {telemetryData.fuel?.usagePerHour ? (telemetryData.fuel.level / (telemetryData.fuel.usagePerHour / 3600 * telemetryData.lapTime)).toFixed(1) : '-'}</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{data.fuel?.level?.toFixed(1) ?? '0.0'} <span style={{ fontSize: '12px', color: '#666' }}>L</span></div>
+            <div style={{ fontSize: '12px', color: '#888' }}>Est. Laps: {data.fuel?.usagePerHour ? (data.fuel.level / (data.fuel.usagePerHour / 3600 * data.lapTime)).toFixed(1) : '-'}</div>
           </div>
         </div>
       </div>
@@ -97,10 +102,10 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
         {/* Main Dash */}
         <div className="cockpit-card center-dash">
           <div className={`gear-display ${isRedline ? 'redline' : ''}`}>
-            {telemetryData.gear === 0 ? 'N' : (telemetryData.gear === -1 ? 'R' : telemetryData.gear)}
+            {data.gear === 0 ? 'N' : (data.gear === -1 ? 'R' : data.gear)}
           </div>
           <div className="speed-display">
-            {Math.round(telemetryData.speed)}<span className="speed-unit">KM/H</span>
+            {Math.round(data.speed)}<span className="speed-unit">KM/H</span>
           </div>
 
           {/* RPM Bar */}
@@ -115,7 +120,7 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
           </div>
           <div style={{ marginTop: '4px', fontSize: '12px', color: '#666', width: '100%', display: 'flex', justifyContent: 'space-between' }}>
             <span>0</span>
-            <span>{Math.round(telemetryData.rpm)}</span>
+            <span>{Math.round(data.rpm)}</span>
             <span>14000</span>
           </div>
         </div>
@@ -125,17 +130,17 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
           <div className="cockpit-card-title">Hybrid Energy</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ flex: 1, background: '#333', height: '8px', borderRadius: '4px' }}>
-              <div style={{ width: `${(telemetryData.energy?.batteryPct || 0) * 100}%`, background: '#4caf50', height: '100%', borderRadius: '4px' }} />
+              <div style={{ width: `${(data.energy?.batteryPct || 0) * 100}%`, background: '#4caf50', height: '100%', borderRadius: '4px' }} />
             </div>
-            <div style={{ fontWeight: 'bold' }}>{Math.round((telemetryData.energy?.batteryPct || 0) * 100)}%</div>
+            <div style={{ fontWeight: 'bold' }}>{Math.round((data.energy?.batteryPct || 0) * 100)}%</div>
           </div>
         </div>
 
         {/* Inputs (Thin bar) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px' }}>
-          <InputBar label="THR" value={telemetryData.throttle} color="#00ff9d" />
-          <InputBar label="BRK" value={telemetryData.brake} color="#ff3b3b" />
-          <InputBar label="CLT" value={telemetryData.clutch} color="#e2e2e2" />
+          <InputBar label="THR" value={data.throttle} color="#00ff9d" />
+          <InputBar label="BRK" value={data.brake} color="#ff3b3b" />
+          <InputBar label="CLT" value={data.clutch} color="#e2e2e2" />
         </div>
       </div>
 
@@ -155,23 +160,23 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
 
           <div className="timing-row">
             <span className="timing-label">CURRENT LAP</span>
-            <span className="timing-value highlight">{formatTime(telemetryData.lapTime)}</span>
+            <span className="timing-value highlight">{formatTime(data.lapTime)}</span>
           </div>
           <div className="timing-row">
             <span className="timing-label">BEST LAP</span>
-            <span className="timing-value">{formatTime(telemetryData.bestLapTime)}</span>
+            <span className="timing-value">{formatTime(data.bestLapTime)}</span>
           </div>
           <div className="timing-row">
             <span className="timing-label">GAP AHEAD</span>
-            <span className="timing-value">{telemetryData.gapAhead > 0 ? `+${telemetryData.gapAhead.toFixed(1)}` : '-'}</span>
+            <span className="timing-value">{data.gapAhead > 0 ? `+${data.gapAhead.toFixed(1)}` : '-'}</span>
           </div>
           <div className="timing-row">
             <span className="timing-label">GAP BEHIND</span>
-            <span className="timing-value">{telemetryData.gapBehind > 0 ? `+${telemetryData.gapBehind.toFixed(1)}` : '-'}</span>
+            <span className="timing-value">{data.gapBehind > 0 ? `+${data.gapBehind.toFixed(1)}` : '-'}</span>
           </div>
           <div className="timing-row">
             <span className="timing-label">POSITION</span>
-            <span className="timing-value" style={{ color: 'var(--accent-color)' }}>P{telemetryData.racePosition}</span>
+            <span className="timing-value" style={{ color: 'var(--accent-color)' }}>P{data.racePosition}</span>
           </div>
         </div>
 
@@ -180,15 +185,15 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
           <div className="cockpit-card-title">Environment</div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{(telemetryData.weather?.windSpeed ?? 0).toFixed(1)}</div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{(data.weather?.windSpeed ?? 0).toFixed(1)}</div>
               <div style={{ fontSize: '9px', color: '#666' }}>Wind (m/s)</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{telemetryData.gForce?.lateral?.toFixed(1) ?? '0.0'}</div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{data.gForce?.lateral?.toFixed(1) ?? '0.0'}</div>
               <div style={{ fontSize: '9px', color: '#666' }}>Lat G</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{telemetryData.gForce?.longitudinal?.toFixed(1) ?? '0.0'}</div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{data.gForce?.longitudinal?.toFixed(1) ?? '0.0'}</div>
               <div style={{ fontSize: '9px', color: '#666' }}>Long G</div>
             </div>
           </div>

@@ -33,7 +33,7 @@ const AICoaching: React.FC<AICoachingProps> = ({ insights, skillAnalysis }) => {
             ))
           ) : (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#888', fontStyle: 'italic' }}>
-              Waiting for analysis...
+              No insights available
             </div>
           )}
 

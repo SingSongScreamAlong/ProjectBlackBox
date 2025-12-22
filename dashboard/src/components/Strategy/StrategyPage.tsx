@@ -45,8 +45,8 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
   telemetryData,
   competitorData,
   strategyData,
-  totalLaps = 52,
-  currentLap = 1
+  totalLaps = 0,
+  currentLap = 0
 }) => {
   const [selectedDriver, setSelectedDriver] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'pit' | 'tire' | 'fuel' | 'weather' | 'setup'>('pit');
@@ -265,12 +265,12 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
                   <div className="analysis-card undercut">
                     <span className="card-title">Undercut</span>
                     <span className="card-value">--</span>
-                    <span className="card-note">Waiting for data...</span>
+                    <span className="card-note">N/A</span>
                   </div>
                   <div className="analysis-card overcut">
                     <span className="card-title">Overcut</span>
                     <span className="card-value">--</span>
-                    <span className="card-note">Waiting for data...</span>
+                    <span className="card-note">N/A</span>
                   </div>
                 </div>
               </div>

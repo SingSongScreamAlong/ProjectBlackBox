@@ -160,7 +160,7 @@ const TrackMap: React.FC<TrackMapProps> = ({ telemetryData, trackName }) => {
       <div className="panel track-map-panel">
         <div className="panel-header">{trackName || 'Track Map'}</div>
         <div className="track-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <div style={{ color: '#888' }}>Waiting for track info...</div>
+          <div style={{ color: '#888' }}>Unknown Track</div>
         </div>
       </div>
     );

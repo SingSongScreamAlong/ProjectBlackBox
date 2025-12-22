@@ -32,7 +32,7 @@ const CompetitorPositions: React.FC<CompetitorPositionsProps> = ({ competitorDat
           </div>
 
           {displayCompetitorData.length === 0 ? (
-            <div style={{ padding: '1rem', textAlign: 'center', color: '#888' }}>Waiting for field data...</div>
+            <div style={{ padding: '1rem', textAlign: 'center', color: '#888' }}>No field data</div>
           ) : (
             displayCompetitorData.map((competitor, index) => (
               <div
