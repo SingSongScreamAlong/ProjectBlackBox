@@ -3,14 +3,11 @@ import WebSocketService from '../../services/WebSocketService';
 
 interface VideoPanelProps {
   driverCamActive?: boolean;
-  spotterCamActive?: boolean;
 }
 
 const VideoPanel: React.FC<VideoPanelProps> = ({
-  driverCamActive = true,
-  spotterCamActive = true
+  driverCamActive = true
 }) => {
-  const [activeSpotterCam, setActiveSpotterCam] = useState<string>('CHASE');
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const frameCountRef = useRef(0);
   const lastFrameTimeRef = useRef(Date.now());
@@ -40,16 +37,11 @@ const VideoPanel: React.FC<VideoPanelProps> = ({
     };
   }, []);
 
-  const cameraOptions = [
-    'CHASE', 'WHEEL', 'TRACKSIDE', 'OVERHEAD',
-    'ONBOARD', 'TV POD', 'REPLAY', 'HELICOPTER'
-  ];
-
   return (
     <div className="video-panel">
       {/* Driver Camera Feed */}
       <div className="panel">
-        <div className="panel-header">DRIVER CAM - COCKPIT VIEW (FIXED)</div>
+        <div className="panel-header">DRIVER CAM</div>
         <div className="video-container">
           <div className="video-feed">
             {videoSrc ? (
@@ -73,68 +65,10 @@ const VideoPanel: React.FC<VideoPanelProps> = ({
             <div className="video-overlay"></div>
             <div className="video-info">
               <div className="video-status">
-                {driverCamActive && <div className="live-indicator"></div>}
+                {driverCamActive && videoSrc && <div className="live-indicator"></div>}
                 <span>DRIVER CAM</span>
               </div>
-              <div className="video-quality">1080p {fps > 0 ? fps : '--'}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Spotter Camera Feed */}
-      <div className="panel">
-        <div className="panel-header">SPOTTER CAM - {activeSpotterCam} VIEW (SWITCHABLE)</div>
-        <div className="video-container">
-          <div className="video-feed">
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', marginBottom: '8px' }}>📹</div>
-              <div>{spotterCamActive ? 'SPOTTER CAM ACTIVE' : 'SPOTTER CAM OFFLINE'}</div>
-              <div style={{ fontSize: '12px', color: '#7d8590', marginTop: '4px' }}>
-                {activeSpotterCam} VIEW • 1920x1080 • 60fps
-              </div>
-            </div>
-            <div className="video-overlay"></div>
-            <div className="video-info">
-              <div className="video-status">
-                {spotterCamActive && <div className="live-indicator"></div>}
-                <span>SPOTTER CAM</span>
-              </div>
-              <div className="video-quality">1080p60</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Spotter Camera Controls */}
-      <div className="panel">
-        <div className="panel-header">SPOTTER CAM CONTROLS</div>
-        <div className="panel-content">
-          <div style={{ marginBottom: '12px' }}>
-            <div className="section-title">DRIVER CAM</div>
-            <div style={{
-              padding: '8px',
-              background: '#0d1117',
-              borderRadius: '4px',
-              borderLeft: '3px solid #30363d',
-              fontSize: '11px',
-              color: '#7d8590'
-            }}>
-              COCKPIT VIEW (FIXED)
-            </div>
-          </div>
-          <div>
-            <div className="section-title">SPOTTER CAM</div>
-            <div className="controls-grid">
-              {cameraOptions.map(camera => (
-                <button
-                  key={camera}
-                  className={`camera-button ${activeSpotterCam === camera ? 'active' : ''}`}
-                  onClick={() => setActiveSpotterCam(camera)}
-                >
-                  {camera}
-                </button>
-              ))}
+              <div className="video-quality">{fps > 0 ? `${fps}fps` : '--'}</div>
             </div>
           </div>
         </div>

@@ -10,6 +10,7 @@ import TrackPage from '../Track/TrackPage';
 import StrategyPage from '../Strategy/StrategyPage';
 import AICoaching from '../AICoaching/AICoaching';
 import VideoPanel from '../VideoPanel/VideoPanel';
+import IncidentReplayPanel, { ReplayIncident } from '../IncidentReplay/IncidentReplayPanel';
 import { TimingTower } from '../TimingTower/TimingTower';
 import TeamChat from '../TeamChat/TeamChat';
 import { NotificationSystem, useNotifications } from '../Notifications/NotificationSystem';
@@ -43,6 +44,65 @@ const Dashboard: React.FC = () => {
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showSessionBrowser, setShowSessionBrowser] = useState<boolean>(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState<boolean>(false);
+
+  // Incident replay state - for demo, starts with a mock incident
+  const [selectedIncident, setSelectedIncident] = useState<ReplayIncident | null>(() => {
+    // Mock incident data for demo - shows spin at turn 1
+    return {
+      id: 'demo-incident-1',
+      lap: 3,
+      sector: 1,
+      type: 'spin',
+      severity: 'moderate',
+      timeLost: 4.2,
+      corner: 'Turn 1',
+      trackPosition: 0.15, // 15% around track
+      snapshots: [
+        {
+          timestamp: -3000, playerPosition: { x: 0.12, y: 0.5, trackPosition: 0.12 }, competitorPositions: [
+            { driver: 'Driver 2', position: { x: 0.10, y: 0.5, trackPosition: 0.10 } },
+            { driver: 'Driver 3', position: { x: 0.08, y: 0.5, trackPosition: 0.08 } }
+          ]
+        },
+        {
+          timestamp: -2000, playerPosition: { x: 0.14, y: 0.5, trackPosition: 0.14 }, competitorPositions: [
+            { driver: 'Driver 2', position: { x: 0.12, y: 0.5, trackPosition: 0.12 } },
+            { driver: 'Driver 3', position: { x: 0.10, y: 0.5, trackPosition: 0.10 } }
+          ]
+        },
+        {
+          timestamp: -1000, playerPosition: { x: 0.15, y: 0.5, trackPosition: 0.15 }, competitorPositions: [
+            { driver: 'Driver 2', position: { x: 0.14, y: 0.5, trackPosition: 0.14 } },
+            { driver: 'Driver 3', position: { x: 0.12, y: 0.5, trackPosition: 0.12 } }
+          ]
+        },
+        {
+          timestamp: 0, playerPosition: { x: 0.15, y: 0.5, trackPosition: 0.15 }, competitorPositions: [
+            { driver: 'Driver 2', position: { x: 0.16, y: 0.5, trackPosition: 0.16 } },
+            { driver: 'Driver 3', position: { x: 0.14, y: 0.5, trackPosition: 0.14 } }
+          ]
+        },
+        {
+          timestamp: 1000, playerPosition: { x: 0.16, y: 0.5, trackPosition: 0.16 }, competitorPositions: [
+            { driver: 'Driver 2', position: { x: 0.20, y: 0.5, trackPosition: 0.20 } },
+            { driver: 'Driver 3', position: { x: 0.18, y: 0.5, trackPosition: 0.18 } }
+          ]
+        },
+        {
+          timestamp: 2000, playerPosition: { x: 0.17, y: 0.5, trackPosition: 0.17 }, competitorPositions: [
+            { driver: 'Driver 2', position: { x: 0.24, y: 0.5, trackPosition: 0.24 } },
+            { driver: 'Driver 3', position: { x: 0.22, y: 0.5, trackPosition: 0.22 } }
+          ]
+        },
+        {
+          timestamp: 3000, playerPosition: { x: 0.18, y: 0.5, trackPosition: 0.18 }, competitorPositions: [
+            { driver: 'Driver 2', position: { x: 0.28, y: 0.5, trackPosition: 0.28 } },
+            { driver: 'Driver 3', position: { x: 0.26, y: 0.5, trackPosition: 0.26 } }
+          ]
+        }
+      ]
+    };
+  });
 
   // Hooks for new features
   const { notifications, dismissNotification, notifyFastestLap, notifyPitWindow } = useNotifications();
@@ -243,8 +303,16 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="dashboard-center" style={{ flex: 1 }}>
               {/* Live Video Feed - Primary view */}
-              <div className="video-container-main" style={{ marginBottom: '12px' }}>
+              <div className="video-container-main" style={{ marginBottom: '8px' }}>
                 <VideoPanel driverCamActive={connected} />
+              </div>
+              {/* Incident Replay - Replaces spotter camera */}
+              <div className="incident-replay-container" style={{ marginBottom: '8px' }}>
+                <IncidentReplayPanel
+                  incident={selectedIncident}
+                  trackName={sessionInfo.track || 'Unknown Track'}
+                  onClose={() => setSelectedIncident(null)}
+                />
               </div>
               {/* Race Insights - AI analysis */}
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
@@ -305,8 +373,16 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="dashboard-center" style={{ flex: 1 }}>
               {/* Live Video Feed - Primary view */}
-              <div className="video-container-main" style={{ marginBottom: '12px' }}>
+              <div className="video-container-main" style={{ marginBottom: '8px' }}>
                 <VideoPanel driverCamActive={connected} />
+              </div>
+              {/* Incident Replay */}
+              <div className="incident-replay-container" style={{ marginBottom: '8px' }}>
+                <IncidentReplayPanel
+                  incident={selectedIncident}
+                  trackName={sessionInfo.track || 'Unknown Track'}
+                  onClose={() => setSelectedIncident(null)}
+                />
               </div>
               {/* Race Insights - AI analysis */}
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
