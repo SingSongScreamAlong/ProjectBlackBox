@@ -285,8 +285,8 @@ const Dashboard: React.FC = () => {
               telemetryData={telemetryData}
               competitorData={competitorData}
               strategyData={strategyData}
-              totalLaps={sessionInfo.totalLaps || 52}
-              currentLap={telemetryData?.lap || 1}
+              totalLaps={sessionInfo.totalLaps || 0}
+              currentLap={telemetryData?.lap || 0}
             />
           </div>
         );
