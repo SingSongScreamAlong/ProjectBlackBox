@@ -242,14 +242,14 @@ const Dashboard: React.FC = () => {
               <Telemetry telemetryData={telemetryData} />
             </div>
             <div className="dashboard-center" style={{ flex: 1 }}>
-              {/* Coaching - actionable insights */}
+              {/* Live Video Feed - Primary view */}
+              <div className="video-container-main" style={{ marginBottom: '12px' }}>
+                <VideoPanel driverCamActive={connected} />
+              </div>
+              {/* Race Insights - AI analysis */}
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
             </div>
             <div className="dashboard-right" style={{ flex: 1 }}>
-              {/* Video Feed */}
-              <div className="video-container-mini" style={{ marginBottom: '8px' }}>
-                <VideoPanel driverCamActive={connected} />
-              </div>
               {/* Mini-map for quick reference */}
               <div className="mini-map-container">
                 <TrackMap telemetryData={telemetryData} trackName={sessionInfo.track || 'Unknown Track'} />
@@ -304,13 +304,14 @@ const Dashboard: React.FC = () => {
               <Telemetry telemetryData={telemetryData} />
             </div>
             <div className="dashboard-center" style={{ flex: 1 }}>
+              {/* Live Video Feed - Primary view */}
+              <div className="video-container-main" style={{ marginBottom: '12px' }}>
+                <VideoPanel driverCamActive={connected} />
+              </div>
+              {/* Race Insights - AI analysis */}
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
             </div>
             <div className="dashboard-right" style={{ flex: 1 }}>
-              {/* Video Feed */}
-              <div className="video-container-mini" style={{ marginBottom: '8px' }}>
-                <VideoPanel driverCamActive={connected} />
-              </div>
               <div className="mini-map-container">
                 <TrackMap telemetryData={telemetryData} trackName={sessionInfo.track || 'Unknown Track'} />
               </div>
