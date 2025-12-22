@@ -50,9 +50,9 @@ class CarData:
     velocity_x: float = 0.0    # X velocity (m/s)
     velocity_y: float = 0.0    # Y velocity (m/s)
     velocity_z: float = 0.0    # Z velocity (m/s)
-    velocity_z: float = 0.0    # Z velocity (m/s)
     yaw: float = 0.0           # Heading angle (radians)
     is_player: bool = False    # Is this the local player?
+    fuel_level: float = 0.0    # Fuel level (liters)
 
 
 @dataclass
@@ -126,8 +126,9 @@ class IRacingReader:
         try:
             drivers = self.ir['DriverInfo']['Drivers']
             self._car_info_cache = {d['CarIdx']: d for d in drivers}
-        except (KeyError, TypeError):
-            pass
+            logger.info(f"📋 Car info cache updated: {len(self._car_info_cache)} drivers")
+        except (KeyError, TypeError) as e:
+            logger.warning(f"Failed to update car info cache: {e}")
     
     def get_session_data(self) -> Optional[SessionData]:
         """Get current session metadata"""
@@ -192,6 +193,7 @@ class IRacingReader:
             player_brake = self.ir['Brake'] or 0
             player_steering = self.ir['SteeringWheelAngle'] or 0
             player_rpm = self.ir['RPM'] or 0
+            player_fuel = self.ir['FuelLevel'] or 0  # Fuel level in liters
             
             # Coordinate data (player car only for track map)
             player_lat = self.ir['Lat'] or 0
@@ -203,8 +205,12 @@ class IRacingReader:
             player_yaw = self.ir['Yaw'] or 0
             
             for car_idx, driver_info in self._car_info_cache.items():
-                if car_idx >= len(positions) or positions[car_idx] <= 0:
-                    continue  # Skip cars not in session
+                # Check if this is the player car
+                is_player = car_idx == player_car_idx
+                
+                # Skip cars not in session, BUT always include player car
+                if not is_player and (car_idx >= len(positions) or positions[car_idx] <= 0):
+                    continue
                 
                 # Get incident count for this car
                 incident_count = 0
@@ -212,9 +218,6 @@ class IRacingReader:
                     incident_count = self.ir['CarIdxSessionFlags'][car_idx] if self.ir['CarIdxSessionFlags'] else 0
                 except (IndexError, TypeError):
                     pass
-                
-                # Populate coordinate data for player car only
-                is_player = car_idx == player_car_idx
                 
                 car_data = CarData(
                     car_id=car_idx,
@@ -249,7 +252,8 @@ class IRacingReader:
                     velocity_y=player_vel_y if is_player else 0,
                     velocity_z=player_vel_z if is_player else 0,
                     yaw=player_yaw if is_player else 0,
-                    is_player=is_player
+                    is_player=is_player,
+                    fuel_level=player_fuel if is_player else 0
                 )
                 cars.append(car_data)
             

@@ -180,6 +180,18 @@ app.get('/sessions', apiLimiter, authenticateToken, async (_req, res) => {
   res.json({ sessions });
 });
 
+// Also mount at /api/sessions for dashboard compatibility (allows guest access)
+app.get('/api/sessions', apiLimiter, async (_req, res) => {
+  try {
+    const q = await pool.query('SELECT id, name, track, extract(epoch from created_at)*1000 as created_at_ms FROM sessions ORDER BY created_at DESC LIMIT 50');
+    const sessions = q.rows.map((r: any) => ({ id: r.id, name: r.name ?? undefined, track: r.track ?? undefined, createdAt: Math.round(Number(r.created_at_ms)) })) as Session[];
+    res.json({ sessions });
+  } catch (err) {
+    console.error('[API Sessions] Error fetching sessions:', err);
+    res.json({ sessions: [] }); // Return empty array instead of crashing
+  }
+});
+
 // Socket.IO basic rooms per session
 io.on('connection', (socket) => {
   console.log(`[Socket.IO] Client connected: ${socket.id}`);
