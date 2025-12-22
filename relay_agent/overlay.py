@@ -652,6 +652,29 @@ class DriverHUD:
 
 
 # Backwards compatibility wrapper
+    def set_listening(self, active: bool):
+        """Set PTT active state"""
+        self.ptt_active = active
+        if active:
+            # Clear previous response when starting to listen
+            self.engineer_response = None
+        self._update_canvas()
+        
+    def set_engineer_response(self, text: str):
+        """Set engineer response text"""
+        self.engineer_response = text
+        self.ptt_active = False # Ensure PTT is off
+        self._update_canvas()
+        
+        # Clear response after 8 seconds
+        self.root.after(8000, lambda: self._clear_response(text))
+        
+    def _clear_response(self, text):
+        """Clear response if it matches current (expired)"""
+        if self.engineer_response == text:
+            self.engineer_response = None
+            self._update_canvas()
+
 class PTTOverlay:
     """
     Wrapper for backwards compatibility with old PTTOverlay interface.
