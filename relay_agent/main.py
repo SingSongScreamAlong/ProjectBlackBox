@@ -345,7 +345,7 @@ class RelayAgent:
         for car in cars:
             if car.is_player:
                 hud_data = {
-                    'speed': car.speed * 3.6,  # m/s to km/h
+                    'speed': car.speed,  # Send m/s (Overlay handles conversion)
                     'gear': car.gear,
                     'rpm': car.rpm,
                     'max_rpm': 8000,  # TODO: Get from car data
@@ -362,7 +362,7 @@ class RelayAgent:
                 self.current_context = {
                     'lap': car.lap,
                     'position': car.position,
-                    'speed': car.speed * 3.6,
+                    'speed': car.speed * 2.23694,  # Context prefers MPH for voice
                 }
                 
                 # Update HUD
@@ -397,7 +397,6 @@ def main():
     )
     parser.add_argument(
         '-v', '--verbose',
-        action='store_true',
         action='store_true',
         help='Enable verbose logging'
     )

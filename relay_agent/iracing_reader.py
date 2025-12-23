@@ -53,6 +53,24 @@ class CarData:
     yaw: float = 0.0           # Heading angle (radians)
     is_player: bool = False    # Is this the local player?
     fuel_level: float = 0.0    # Fuel level (liters)
+    # Tires (NEW) - Player only
+    lf_temp: float = 0.0; lf_wear: float = 0.0; lf_pressure: float = 0.0
+    rf_temp: float = 0.0; rf_wear: float = 0.0; rf_pressure: float = 0.0
+    lr_temp: float = 0.0; lr_wear: float = 0.0; lr_pressure: float = 0.0
+    rr_temp: float = 0.0; rr_wear: float = 0.0; rr_pressure: float = 0.0
+    # Car Settings (NEW) - Player only
+    brake_bias: float = 0.0
+    traction_control: int = 0
+    abs_setting: int = 0
+    fuel_mixture: int = 0
+    # Dynamic (NEW)
+    gap_ahead: float = 0.0
+    gap_behind: float = 0.0
+    wind_speed: float = 0.0
+    wind_dir: float = 0.0
+    lat_g: float = 0.0
+    long_g: float = 0.0
+    vert_g: float = 0.0
 
 
 @dataclass
@@ -253,7 +271,35 @@ class IRacingReader:
                     velocity_z=player_vel_z if is_player else 0,
                     yaw=player_yaw if is_player else 0,
                     is_player=is_player,
-                    fuel_level=player_fuel if is_player else 0
+                    fuel_level=player_fuel if is_player else 0,
+                    # Tires (Player only)
+                    lf_temp=(self.ir['LFtempCL'] + self.ir['LFtempCM'] + self.ir['LFtempCR']) / 3 if is_player and self.ir['LFtempCM'] else 0,
+                    rf_temp=(self.ir['RFtempCL'] + self.ir['RFtempCM'] + self.ir['RFtempCR']) / 3 if is_player and self.ir['RFtempCM'] else 0,
+                    lr_temp=(self.ir['LRtempCL'] + self.ir['LRtempCM'] + self.ir['LRtempCR']) / 3 if is_player and self.ir['LRtempCM'] else 0,
+                    rr_temp=(self.ir['RRtempCL'] + self.ir['RRtempCM'] + self.ir['RRtempCR']) / 3 if is_player and self.ir['RRtempCM'] else 0,
+                    lf_wear=(self.ir['LFwearL'] + self.ir['LFwearM'] + self.ir['LFwearR']) / 3 * 100 if is_player and self.ir['LFwearM'] else 0,
+                    rf_wear=(self.ir['RFwearL'] + self.ir['RFwearM'] + self.ir['RFwearR']) / 3 * 100 if is_player and self.ir['RFwearM'] else 0,
+                    lr_wear=(self.ir['LRwearL'] + self.ir['LRwearM'] + self.ir['LRwearR']) / 3 * 100 if is_player and self.ir['LRwearM'] else 0,
+                    rr_wear=(self.ir['RRwearL'] + self.ir['RRwearM'] + self.ir['RRwearR']) / 3 * 100 if is_player and self.ir['RRwearM'] else 0,
+                    lf_pressure=self.ir['LFcoldPressure'] or 0 if is_player else 0,
+                    rf_pressure=self.ir['RFcoldPressure'] or 0 if is_player else 0,
+                    lr_pressure=self.ir['LRcoldPressure'] or 0 if is_player else 0,
+                    rr_pressure=self.ir['RRcoldPressure'] or 0 if is_player else 0,
+                    # Settings
+                    brake_bias=self.ir['dcBrakeBias'] or 0 if is_player else 0,
+                    traction_control=self.ir['dcTractionControl'] or 0 if is_player else 0,
+                    abs_setting=self.ir['dcABS'] or 0 if is_player else 0,
+                    fuel_mixture=self.ir['dcFuelMixture'] or 0 if is_player else 0,
+                    # Dynamic Telemetry (NEW)
+                    gap_ahead=self._calculate_gap(car_idx, "ahead"),
+                    gap_behind=self._calculate_gap(car_idx, "behind"),
+                    # Environment
+                    wind_speed=self.ir['WindVel'] or 0 if is_player else 0,
+                    wind_dir=self.ir['WindDir'] or 0 if is_player else 0,
+                    # Forces
+                    lat_g=self.ir['LatAccel'] or 0 if is_player else 0,
+                    long_g=self.ir['LongAccel'] or 0 if is_player else 0,
+                    vert_g=self.ir['VertAccel'] or 0 if is_player else 0
                 )
                 cars.append(car_data)
             
@@ -343,6 +389,50 @@ class IRacingReader:
         if self.is_connected():
             self.ir.freeze_var_buffer_latest()
     
+    def _calculate_gap(self, car_idx: int, direction: str) -> float:
+        """
+        Calculate time gap to car ahead/behind using F2Time (Time vs Leader).
+        Note: This is an approximation. iRacing F2Time is updated at start/finish.
+        """
+        if not self.is_connected():
+            return 0.0
+            
+        try:
+            # Get positions and times relative to leader
+            positions = self.ir['CarIdxPosition']
+            f2_times = self.ir['CarIdxF2Time']
+            
+            if not positions or not f2_times:
+                return 0.0
+                
+            my_pos = positions[car_idx]
+            if my_pos <= 0: return 0.0
+            
+            target_pos = my_pos - 1 if direction == "ahead" else my_pos + 1
+            if target_pos < 1: return 0.0 # Leader has no gap ahead
+            
+            # Find car at target position
+            # (Basic linear search is fine for <64 cars)
+            target_idx = -1
+            for i, pos in enumerate(positions):
+                if pos == target_pos:
+                    target_idx = i
+                    break
+            
+            if target_idx != -1:
+                my_time = f2_times[car_idx]
+                target_time = f2_times[target_idx]
+                
+                # Check for valid times (invalid is -1)
+                if my_time != -1 and target_time != -1:
+                     gap = abs(my_time - target_time)
+                     return gap
+                     
+            return 0.0
+            
+        except Exception:
+            return 0.0
+
     def unfreeze_frame(self):
         """Unfreeze telemetry data"""
         if self.is_connected():

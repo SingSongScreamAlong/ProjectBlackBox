@@ -52,16 +52,52 @@ def map_telemetry_snapshot(session_id: str, cars: List[CarData]) -> Dict[str, An
             'driverId': car.driver_id,
             'speed': car.speed,
             'gear': car.gear,
-            'pos': {'s': car.track_pct},
+            'rpm': car.rpm,
             'throttle': car.throttle,
             'brake': car.brake,
+            'clutch': 0.0, # Not currently in Reader
             'steering': _normalize_steering(car.steering),
-            'rpm': car.rpm,
-            'inPit': car.in_pit,
             'lap': car.lap,
+            'lapTime': car.last_lap_time,
+            'bestLapTime': car.best_lap_time,
             'position': car.position,
-            'classPosition': car.class_position,
-            # Track map coordinates (NEW)
+            'racePosition': car.position,
+            'gapAhead': car.gap_ahead, # Calculated by reader
+            'gapBehind': car.gap_behind,
+            
+            # Nested Objects for Dashboard Compatibility
+            'fuel': {
+                'level': car.fuel_level,
+                'usagePerHour': 0.0, # TODO: Calculate
+                'remaining': 0.0
+            },
+            'tires': {
+                'frontLeft': {'temp': car.lf_temp, 'wear': car.lf_wear, 'pressure': car.lf_pressure},
+                'frontRight': {'temp': car.rf_temp, 'wear': car.rf_wear, 'pressure': car.rf_pressure},
+                'rearLeft': {'temp': car.lr_temp, 'wear': car.lr_wear, 'pressure': car.lr_pressure},
+                'rearRight': {'temp': car.rr_temp, 'wear': car.rr_wear, 'pressure': car.rr_pressure}
+            },
+            'carSettings': {
+                'brakeBias': car.brake_bias,
+                'fuelMixture': car.fuel_mixture,
+                'tractionControl': car.traction_control,
+                'abs': car.abs_setting
+            },
+            'energy': {
+                'batteryPct': 0.0,
+                'deployPct': 0.0
+            },
+            'weather': {
+                'windSpeed': car.wind_speed,
+                'windDirection': car.wind_dir
+            },
+            'gForce': {
+                'lateral': car.lat_g,
+                'longitudinal': car.long_g,
+                'vertical': car.vert_g
+            },
+            
+            # Track map coordinates
             'lat': car.lat,
             'lon': car.lon,
             'alt': car.alt,
@@ -71,12 +107,26 @@ def map_telemetry_snapshot(session_id: str, cars: List[CarData]) -> Dict[str, An
             'yaw': car.yaw
         })
     
-    return {
+    payload = {
         'type': 'telemetry',
         'sessionId': session_id,
         'timestamp': int(time.time() * 1000),
         'cars': car_snapshots
     }
+    
+    # Flatten player data into root for dashboard compatibility
+    # Find player car (or default to first car)
+    # Note: We need access to the original 'cars' objects to check 'is_player', 
+    # but map_telemetry_snapshot iterates 'cars' to make 'car_snapshots'.
+    # We can rely on the fact that is_player is usually index 0 or index matches.
+    # Actually, simpler: just take the first snapshot if available, usually player is focused.
+    # Better: iterate input 'cars' again to find player index.
+    
+    player_index = next((i for i, c in enumerate(cars) if c.is_player), 0)
+    if car_snapshots and len(car_snapshots) > player_index:
+        payload.update(car_snapshots[player_index])
+        
+    return payload
 
 
 def map_race_event(

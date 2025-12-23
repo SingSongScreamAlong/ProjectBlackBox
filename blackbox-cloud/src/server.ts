@@ -260,6 +260,13 @@ io.on('connection', (socket: Socket) => {
         }
     });
 
+    // Video frame from Relay (driver camera)
+    socket.on('video_frame', (data: { sessionId: string; image: string }) => {
+        const sessionId = data.sessionId || clientSessionId;
+        // Broadcast to all web clients in this session (but not back to the relay)
+        socket.to(sessionId).emit('video_data', data.image);
+    });
+
     // Disconnect
     socket.on('disconnect', () => {
         if (clientSessionId && sessions.has(clientSessionId)) {
