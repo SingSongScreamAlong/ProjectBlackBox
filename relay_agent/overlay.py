@@ -566,11 +566,12 @@ class DriverHUD:
         # === Row 2: Speed / Gear ===
         y = 60
         
-        # Speed (large)
-        speed = int(self.telemetry['speed'])
-        self.canvas.create_text(self.width // 2 - 30, y, text=str(speed), fill=text_primary,
+        # Speed (large) - Default to MPH
+        # iracing_reader provides m/s. 1 m/s = 2.23694 mph
+        speed_mph = int(self.telemetry['speed'] * 2.23694)
+        self.canvas.create_text(self.width // 2 - 30, y, text=str(speed_mph), fill=text_primary,
                                font=("Arial", 28, "bold"), anchor="e")
-        self.canvas.create_text(self.width // 2 - 25, y + 5, text="km/h", fill=text_secondary,
+        self.canvas.create_text(self.width // 2 - 25, y + 5, text="MPH", fill=text_secondary,
                                font=("Arial", 9), anchor="w")
         
         # Gear (right side)
