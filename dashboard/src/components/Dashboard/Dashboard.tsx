@@ -9,6 +9,7 @@ import AnalysisPage from '../Analysis/AnalysisPage';
 import TrackPage from '../Track/TrackPage';
 import StrategyPage from '../Strategy/StrategyPage';
 import AICoaching from '../AICoaching/AICoaching';
+import VideoPanel from '../VideoPanel/VideoPanel';
 // NOTE: IncidentReplayPanel shelved for beta - component files kept in IncidentReplay/
 import { TimingTower } from '../TimingTower/TimingTower';
 import TeamChat from '../TeamChat/TeamChat';
@@ -273,11 +274,25 @@ const Dashboard: React.FC = () => {
         return (
           <>
             <div className="dashboard-left" style={{ flex: 1 }}>
-              <Telemetry telemetryData={telemetryData} />
+              <Telemetry
+                telemetryData={telemetryData}
+                unitSystem={settings.units || 'imperial'}
+                onToggleUnits={() => {
+                  const newUnits = settings.units === 'imperial' ? 'metric' : 'imperial';
+                  updateSettings({
+                    ...settings,
+                    units: newUnits,
+                    // Auto-switch temp unit if matches previous unit type
+                    temperatureUnit: newUnits === 'imperial' ? 'fahrenheit' : 'celsius'
+                  });
+                }}
+              />
             </div>
             <div className="dashboard-center" style={{ flex: 1 }}>
               {/* Live Video Feed - Primary view */}
-
+              <div className="video-container-main" style={{ marginBottom: '8px' }}>
+                <VideoPanel driverCamActive={connected} />
+              </div>
               {/* Race Insights - AI analysis */}
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
             </div>
@@ -333,11 +348,24 @@ const Dashboard: React.FC = () => {
         return (
           <>
             <div className="dashboard-left" style={{ flex: 1 }}>
-              <Telemetry telemetryData={telemetryData} />
+              <Telemetry
+                telemetryData={telemetryData}
+                unitSystem={settings.units || 'imperial'}
+                onToggleUnits={() => {
+                  const newUnits = settings.units === 'imperial' ? 'metric' : 'imperial';
+                  updateSettings({
+                    ...settings,
+                    units: newUnits,
+                    temperatureUnit: newUnits === 'imperial' ? 'fahrenheit' : 'celsius'
+                  });
+                }}
+              />
             </div>
             <div className="dashboard-center" style={{ flex: 1 }}>
               {/* Live Video Feed - Primary view */}
-
+              <div className="video-container-main" style={{ marginBottom: '8px' }}>
+                <VideoPanel driverCamActive={connected} />
+              </div>
               {/* Race Insights - AI analysis */}
               <AICoaching insights={coachingInsights} skillAnalysis={skillAnalysis} />
             </div>

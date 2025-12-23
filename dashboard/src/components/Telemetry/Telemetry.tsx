@@ -5,18 +5,21 @@ import './TelemetryCockpit.css';
 
 interface TelemetryProps {
   telemetryData: TelemetryData | null;
+  unitSystem: 'metric' | 'imperial';
+  onToggleUnits: () => void;
 }
 
-const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
+const Telemetry: React.FC<TelemetryProps> = ({ telemetryData, unitSystem, onToggleUnits }) => {
   // Track if we have real data or showing placeholder
   const isOffline = !telemetryData;
+  const useImperial = unitSystem === 'imperial';
 
   // Show zero-state UI when no telemetry data
   const data = telemetryData || {
     throttle: 0,
     brake: 0,
     clutch: 0,
-    speed: 0,
+    speed: 0, // In meters/second (m/s)
     rpm: 0,
     gear: 0,
     lapTime: 0,
@@ -38,6 +41,15 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
     gForce: { lateral: 0, longitudinal: 0 },
     weather: { windSpeed: 0 }
   };
+
+  // Unit Conversion Helpers
+  // Speed: m/s -> MPH (x2.237) or KPH (x3.6)
+  const displaySpeed = Math.round(data.speed * (useImperial ? 2.23694 : 3.6));
+  const speedUnit = useImperial ? 'MPH' : 'KPH';
+
+  // Temp: Celsius -> Fahrenheit if imperial
+  const convertTemp = (c: number) => useImperial ? (c * 9 / 5) + 32 : c;
+  const tempUnit = useImperial ? '°F' : '°C';
 
   // Helpers
   const isGreenFlag = (data.flags || 0) === 0;
@@ -68,10 +80,10 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
           <div className="cockpit-card-title">Tires (Temp/Wear)</div>
           <div className="tire-box">
             {/* Safe Access for tires to prevent crash if data is partial */}
-            <TireDisplay position="FL" {...(data.tires?.frontLeft || { temp: 0, wear: 0, pressure: 0 })} />
-            <TireDisplay position="FR" {...(data.tires?.frontRight || { temp: 0, wear: 0, pressure: 0 })} />
-            <TireDisplay position="RL" {...(data.tires?.rearLeft || { temp: 0, wear: 0, pressure: 0 })} />
-            <TireDisplay position="RR" {...(data.tires?.rearRight || { temp: 0, wear: 0, pressure: 0 })} />
+            <TireDisplay position="FL" {...(data.tires?.frontLeft || { temp: 0, wear: 0, pressure: 0 })} convertTemp={convertTemp} />
+            <TireDisplay position="FR" {...(data.tires?.frontRight || { temp: 0, wear: 0, pressure: 0 })} convertTemp={convertTemp} />
+            <TireDisplay position="RL" {...(data.tires?.rearLeft || { temp: 0, wear: 0, pressure: 0 })} convertTemp={convertTemp} />
+            <TireDisplay position="RR" {...(data.tires?.rearRight || { temp: 0, wear: 0, pressure: 0 })} convertTemp={convertTemp} />
           </div>
         </div>
 
@@ -115,13 +127,13 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData }) => {
           {isGreenFlag ? 'GREEN FLAG' : 'CAUTION / YELLOW'}
         </div>
 
-        {/* Main Dash */}
-        <div className="cockpit-card center-dash">
+        {/* Main Dash (Click to toggle units) */}
+        <div className="cockpit-card center-dash" onClick={onToggleUnits} style={{ cursor: 'pointer' }} title="Click to toggle MPH/KPH">
           <div className={`gear-display ${isRedline ? 'redline' : ''}`}>
             {data.gear === 0 ? 'N' : (data.gear === -1 ? 'R' : data.gear)}
           </div>
           <div className="speed-display">
-            {Math.round(data.speed)}<span className="speed-unit">KM/H</span>
+            {displaySpeed}<span className="speed-unit">{speedUnit}</span>
           </div>
 
           {/* RPM Bar */}
@@ -233,18 +245,16 @@ interface TireDisplayProps {
   temp: number;
   wear: number;
   pressure: number;
+  convertTemp: (c: number) => number;
 }
 
-const TireDisplay: React.FC<TireDisplayProps> = ({ position, temp, wear, pressure }) => {
-  const getTempClass = (t: number) => {
-    if (t < 80 || t > 110) return 'color: #ff3b3b'; // Critical
-    return 'color: #fff';
-  };
+const TireDisplay: React.FC<TireDisplayProps> = ({ position, temp, wear, pressure, convertTemp }) => {
+  const displayTemp = convertTemp(temp);
 
   return (
     <div style={{ background: '#161b22', borderRadius: '6px', padding: '10px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
       <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#888', marginBottom: '4px' }}>{position}</div>
-      <div style={{ fontSize: '22px', fontWeight: 'bold', color: temp > 105 ? '#ff3b3b' : '#fff' }}>{Math.round(temp)}°</div>
+      <div style={{ fontSize: '22px', fontWeight: 'bold', color: temp > 105 ? '#ff3b3b' : '#fff' }}>{Math.round(displayTemp)}°</div>
       <div style={{ fontSize: '14px', color: parseInt(String(wear)) < 50 ? '#ffd700' : '#8b949e', marginTop: '2px' }}>{Math.round(wear)}%</div>
     </div>
   );
