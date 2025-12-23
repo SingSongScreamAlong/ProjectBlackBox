@@ -14,3 +14,5 @@ requests>=2.31.0
 sounddevice>=0.4.6
 soundfile>=0.12.1
 customtkinter>=5.2.0
+pywin32>=306  # For window capture (iRacing window targeting)
+dxcam>=0.0.5  # DirectX game capture (like Discord)

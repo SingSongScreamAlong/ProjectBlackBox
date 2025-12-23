@@ -1125,9 +1125,9 @@ class WebSocketService {
    * @returns True if the message was sent successfully
    */
   joinSession(sessionId: string): boolean {
-    // The server expects just the string ID for 'join_session' event
-    // We cast to any because EventMap doesn't strictly define join_session payload
-    return this.sendMessage('join_session', sessionId as any);
+    // Server expects { sessionId: string, role: string } object
+    const payload = { sessionId, role: 'viewer' };
+    return this.sendMessage('join_session', payload as any);
   }
 
   /**
