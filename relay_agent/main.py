@@ -78,10 +78,10 @@ class RelayAgent:
     Orchestrates reading from iRacing and sending to PitBox Cloud
     """
     
-    def __init__(self, cloud_url: str = None):
+    def __init__(self, cloud_url: str = None, monitor_index: int = 1):
         self.ir_reader = IRacingReader()
         self.cloud_client = PitBoxClient(cloud_url)
-        self.video_encoder = VideoEncoder(self.cloud_client)
+        self.video_encoder = VideoEncoder(self.cloud_client, monitor_index)
         
         # Load PTT config from ptt_config.json
         ptt_config = load_ptt_config()
@@ -398,7 +398,14 @@ def main():
     parser.add_argument(
         '-v', '--verbose',
         action='store_true',
+        action='store_true',
         help='Enable verbose logging'
+    )
+    parser.add_argument(
+        '--monitor',
+        type=int,
+        default=1,
+        help='Monitor index to capture (default: 1)'
     )
     
     args = parser.parse_args()
@@ -411,7 +418,7 @@ def main():
         config.POLL_INTERVAL = 1.0 / args.rate
     
     # Create and start agent
-    agent = RelayAgent(args.url)
+    agent = RelayAgent(args.url, monitor_index=args.monitor)
     
     # Handle signals
     def signal_handler(sig, frame):

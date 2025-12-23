@@ -25,7 +25,7 @@ class VideoEncoder:
     Uses mss for fast screen capture.
     """
     
-    def __init__(self, client):
+    def __init__(self, client, monitor_index=1):
         self.client = client
         self.running = False
         self.thread = None
@@ -40,7 +40,7 @@ class VideoEncoder:
         self.height = 480
         self.quality = 70  # JPEG quality (lower = smaller files)
         self.fps = 15
-        self.monitor_index = 1  # Primary monitor (1-indexed in mss)
+        self.monitor_index = monitor_index
         
     def start(self):
         """Start screen capture thread"""
