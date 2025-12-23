@@ -14,8 +14,15 @@ const VideoPanel: React.FC<VideoPanelProps> = ({
   const [fps, setFps] = useState(0);
 
   useEffect(() => {
+    console.log('📹 VideoPanel: Subscribing to video_data events');
+
     // Subscribe to video frames
     const handleVideoFrame = (base64Image: string) => {
+      // Log first frame and every 100th frame
+      if (frameCountRef.current === 0 || frameCountRef.current % 100 === 0) {
+        console.log(`📹 VideoPanel: Received video frame #${frameCountRef.current} (${base64Image?.length || 0} bytes)`);
+      }
+
       // Simple FPS counter
       frameCountRef.current++;
       const now = Date.now();
@@ -31,8 +38,10 @@ const VideoPanel: React.FC<VideoPanelProps> = ({
 
     // Use the onVideoData method from the service
     const subscription = WebSocketService.onVideoData(handleVideoFrame);
+    console.log('📹 VideoPanel: Subscription active');
 
     return () => {
+      console.log('📹 VideoPanel: Unsubscribing from video_data events');
       subscription.unsubscribe();
     };
   }, []);

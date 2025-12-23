@@ -263,6 +263,12 @@ io.on('connection', (socket: Socket) => {
     // Video frame from Relay (driver camera)
     socket.on('video_frame', (data: { sessionId: string; image: string }) => {
         const sessionId = data.sessionId || clientSessionId;
+        // Log periodically (every 100 frames)
+        if (!socket.data.videoFrameCount) socket.data.videoFrameCount = 0;
+        socket.data.videoFrameCount++;
+        if (socket.data.videoFrameCount === 1 || socket.data.videoFrameCount % 100 === 0) {
+            console.log(`📹 Video frame #${socket.data.videoFrameCount} for session ${sessionId} (${data.image?.length || 0} bytes)`);
+        }
         // Broadcast to all web clients in this session (but not back to the relay)
         socket.to(sessionId).emit('video_data', data.image);
     });

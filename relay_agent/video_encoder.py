@@ -73,7 +73,7 @@ class VideoEncoder:
     Targets iRacing window by title, similar to Discord's game streaming.
     """
     
-    def __init__(self, client, monitor_index=0, window_title="iRacing"):
+    def __init__(self, client, monitor_index=0, window_title="iRacing.com Simulator"):
         self.client = client
         self.running = False
         self.thread = None
