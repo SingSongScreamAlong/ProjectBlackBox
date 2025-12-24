@@ -269,8 +269,9 @@ io.on('connection', (socket: Socket) => {
         if (socket.data.videoFrameCount === 1 || socket.data.videoFrameCount % 100 === 0) {
             console.log(`📹 Video frame #${socket.data.videoFrameCount} for session ${sessionId} (${data.image?.length || 0} bytes)`);
         }
-        // Broadcast to all web clients in this session (but not back to the relay)
-        socket.to(sessionId).emit('video_data', data.image);
+        // Broadcast to ALL connected clients (except the sender)
+        // This fixes the session room mismatch issue since dashboard may not join same session
+        socket.broadcast.emit('video_data', data.image);
     });
 
     // Disconnect
