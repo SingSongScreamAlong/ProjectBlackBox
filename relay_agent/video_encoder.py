@@ -93,7 +93,7 @@ class VideoEncoder:
         self.width = 960    # 540p - good balance of quality vs speed
         self.height = 540
         self.quality = 45   # Lower quality = smaller files = faster transmission
-        self.fps = 90       # 90fps for extra smoothness
+        self.fps = 120      # 120fps ultra-smooth test
         
         # DXCam camera instance
         self.camera = None

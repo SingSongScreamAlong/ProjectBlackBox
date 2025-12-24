@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import WebSocketService from '../../services/WebSocketService';
 
 interface VideoPanelProps {
@@ -9,8 +9,6 @@ const VideoPanel: React.FC<VideoPanelProps> = ({
   driverCamActive = true
 }) => {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
-  const frameCountRef = useRef(0);
-  const lastFrameTimeRef = useRef(Date.now());
   const [fps, setFps] = useState(0);
 
   useEffect(() => {
