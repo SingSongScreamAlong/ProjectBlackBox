@@ -111,7 +111,7 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData, unitSystem, onTogg
         </div>
 
         {/* Fuel */}
-        <div className="cockpit-card">
+        <div className="cockpit-card" style={{ minHeight: '50px' }}>
           <div className="cockpit-card-title">Fuel</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{data.fuel?.level?.toFixed(1) ?? '0.0'} <span style={{ fontSize: '12px', color: '#666' }}>L</span></div>
@@ -154,7 +154,7 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData, unitSystem, onTogg
         </div>
 
         {/* ERS / Boost */}
-        <div className="cockpit-card">
+        <div className="cockpit-card" style={{ minHeight: '50px' }}>
           <div className="cockpit-card-title">Hybrid Energy</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ flex: 1, background: '#333', height: '8px', borderRadius: '4px' }}>
