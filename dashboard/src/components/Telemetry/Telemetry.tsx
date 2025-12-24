@@ -233,10 +233,10 @@ const Telemetry: React.FC<TelemetryProps> = ({ telemetryData, unitSystem, onTogg
 
 // Sub-components for cleaner code
 const InputBar: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
-  <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '6px', height: '80px', position: 'relative', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+  <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '6px', height: '50px', position: 'relative', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
     <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: `${value * 100}%`, background: color, transition: 'height 0.05s', boxShadow: `0 0 10px ${color}` }} />
-    <div style={{ position: 'absolute', bottom: 6, left: 0, width: '100%', textAlign: 'center', fontSize: '14px', fontWeight: 'bold', textShadow: '0 1px 3px black', color: '#fff' }}>{label}</div>
-    <div style={{ position: 'absolute', top: 6, left: 0, width: '100%', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', textShadow: '0 1px 3px black', color: '#fff' }}>{Math.round(value * 100)}%</div>
+    <div style={{ position: 'absolute', bottom: 4, left: 0, width: '100%', textAlign: 'center', fontSize: '10px', fontWeight: 'bold', textShadow: '0 1px 3px black', color: '#fff' }}>{label}</div>
+    <div style={{ position: 'absolute', top: 4, left: 0, width: '100%', textAlign: 'center', fontSize: '14px', fontWeight: 'bold', textShadow: '0 1px 3px black', color: '#fff' }}>{Math.round(value * 100)}%</div>
   </div>
 );
 

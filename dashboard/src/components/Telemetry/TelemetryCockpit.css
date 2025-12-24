@@ -82,8 +82,8 @@
 
 /* Primary Gear/Speed Display */
 .center-dash {
-    flex: 2;
-    /* Take up more vertical space */
+    flex: 1;
+    /* Compact - same height as other cards */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -91,10 +91,11 @@
     background: radial-gradient(circle at center, rgba(33, 38, 45, 0.8) 0%, rgba(22, 27, 34, 0.9) 100%);
     border: 1px solid rgba(0, 212, 255, 0.2);
     position: relative;
+    padding: 8px;
 }
 
 .gear-display {
-    font-size: 100px;
+    font-size: 64px;
     font-weight: 800;
     line-height: 1;
     color: #fff;
@@ -108,10 +109,10 @@
 }
 
 .speed-display {
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 700;
     color: var(--accent-color, #00d4ff);
-    margin-top: -10px;
+    margin-top: -4px;
 }
 
 .speed-unit {
