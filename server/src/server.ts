@@ -291,10 +291,10 @@ io.on('connection', (socket) => {
 
   // Relay video frames
   socket.on('video_frame', (data: { sessionId: string; image: string }) => {
-    // Broadcast to the specific session room, excluding sender if needed
-    // Bridge to 'video_data' event which Dashboard expects
-    if (data && data.sessionId && data.image) {
-      socket.to(`session:${data.sessionId}`).emit('video_data', data.image);
+    // Broadcast to ALL connected clients (except sender)
+    // This fixes the session room mismatch issue - dashboard may not join same session
+    if (data && data.image) {
+      socket.broadcast.emit('video_data', data.image);
     }
   });
 
