@@ -232,9 +232,10 @@ class PitBoxClient:
         Optimize: fire and forget, don't wait for ack to keep latency low
         """
         # We use a specific event for video that the server expects
-        if self.connected and self.session_id:
+        # Allow sending even without session_id - use 'default' for immediate streaming
+        if self.connected:
             payload = {
-                'sessionId': self.session_id,
+                'sessionId': self.session_id or 'default',
                 'image': frame_data
             }
             self.sio.emit('video_frame', payload)
