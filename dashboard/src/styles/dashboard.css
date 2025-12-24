@@ -5,22 +5,22 @@
   --bg-secondary: rgba(12, 14, 18, 0.95);
   --bg-tertiary: rgba(18, 20, 26, 0.9);
   --bg-panel: #0a0c10;
-  
+
   /* Muted text colors */
   --text-primary: #e8e8ec;
   --text-secondary: #a8aab0;
   --text-muted: #5c5e66;
-  
+
   /* Subtle steel blue accent */
   --accent-color: #4a9eff;
   --accent-hover: #6bb3ff;
   --accent-dim: rgba(74, 158, 255, 0.15);
-  
+
   /* Status colors - slightly muted */
   --status-good: #3dd68c;
   --status-warning: #e6b422;
   --status-critical: #e54545;
-  
+
   /* Borders and surfaces */
   --border-color: rgba(60, 65, 75, 0.4);
   --border-subtle: rgba(255, 255, 255, 0.04);
@@ -29,7 +29,7 @@
   --grid-line-color: rgba(74, 158, 255, 0.06);
   --glass-border: 1px solid rgba(255, 255, 255, 0.03);
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
-  
+
   /* Focus Mode Transitions */
   --transition-speed: 0.3s;
 }
@@ -64,7 +64,8 @@ body {
   gap: 12px;
   padding: 12px;
   height: calc(100vh - 60px);
-  min-height: 0; /* Allow grid to shrink for flex children */
+  min-height: 0;
+  /* Allow grid to shrink for flex children */
   overflow: auto;
   transition: all var(--transition-speed) ease;
 }
@@ -118,7 +119,7 @@ body {
   transition: width var(--transition-speed) ease;
 }
 
-.dashboard-right.wide, 
+.dashboard-right.wide,
 .dashboard-center.wide {
   grid-column: span 2;
 }
@@ -179,7 +180,8 @@ body {
   background-color: var(--panel-content-bg);
   overflow-y: auto;
   flex: 1;
-  min-height: 0; /* Important for flex children to scroll */
+  min-height: 0;
+  /* Important for flex children to scroll */
 }
 
 /* Custom scrollbar for panels */
@@ -293,7 +295,7 @@ body {
 .mode-button.active {
   background: rgba(74, 158, 255, 0.12);
   color: var(--accent-color);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .header-logo {
@@ -411,7 +413,8 @@ body {
 .telemetry-item {
   background-color: var(--bg-tertiary);
   border-radius: 4px;
-  padding: 12px 8px; /* Slightly more padding */
+  padding: 12px 8px;
+  /* Slightly more padding */
   display: flex;
   flex-direction: column;
 }
@@ -424,7 +427,8 @@ body {
 
 /* IMPROVED Typography: Bigger numbers */
 .telemetry-value {
-  font-size: 20px; /* Increased from 16px */
+  font-size: 20px;
+  /* Increased from 16px */
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.5px;
@@ -726,7 +730,7 @@ body {
   background-color: var(--bg-tertiary);
   border-radius: 4px;
   width: 100%;
-  height: 150px;
+  height: 280px;
   position: relative;
   display: flex;
   align-items: center;
@@ -1059,6 +1063,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
