@@ -16,24 +16,34 @@ const VideoPanel: React.FC<VideoPanelProps> = ({
   useEffect(() => {
     console.log('📹 VideoPanel: Subscribing to video_data events');
 
+    // Rolling FPS tracker (stores last 30 frame timestamps)
+    const frameTimestamps: number[] = [];
+    const MAX_SAMPLES = 30;
+
     // Subscribe to video frames
     const handleVideoFrame = (base64Image: string) => {
-      // Log first frame and every 100th frame
-      if (frameCountRef.current === 0 || frameCountRef.current % 100 === 0) {
-        console.log(`📹 VideoPanel: Received video frame #${frameCountRef.current} (${base64Image?.length || 0} bytes)`);
+      const now = performance.now();
+
+      // Add timestamp and remove old ones
+      frameTimestamps.push(now);
+      while (frameTimestamps.length > MAX_SAMPLES) {
+        frameTimestamps.shift();
       }
 
-      // Simple FPS counter
-      frameCountRef.current++;
-      const now = Date.now();
-      if (now - lastFrameTimeRef.current >= 1000) {
-        setFps(frameCountRef.current);
-        frameCountRef.current = 0;
-        lastFrameTimeRef.current = now;
+      // Calculate rolling FPS from timestamps
+      if (frameTimestamps.length >= 2) {
+        const oldestTime = frameTimestamps[0];
+        const timeSpan = (now - oldestTime) / 1000; // in seconds
+        if (timeSpan > 0) {
+          const rollingFps = Math.round((frameTimestamps.length - 1) / timeSpan);
+          setFps(rollingFps);
+        }
       }
 
-      // Update image source
-      setVideoSrc(`data:image/jpeg;base64,${base64Image}`);
+      // Update image source using requestAnimationFrame for smooth rendering
+      requestAnimationFrame(() => {
+        setVideoSrc(`data:image/jpeg;base64,${base64Image}`);
+      });
     };
 
     // Use the onVideoData method from the service

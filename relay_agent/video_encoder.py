@@ -89,11 +89,11 @@ class VideoEncoder:
         self.window_region = None  # Cached window region
         self.last_window_check = 0
         
-        # Output settings - balanced for smooth + stable
-        self.width = 1280   # 720p HD
-        self.height = 720
-        self.quality = 60  # Good quality
-        self.fps = 90      # 90fps - extra smooth for telemetry reference
+        # Output settings - optimized for LOW LATENCY
+        self.width = 960    # 540p - good balance of quality vs speed
+        self.height = 540
+        self.quality = 45   # Lower quality = smaller files = faster transmission
+        self.fps = 90       # 90fps for extra smoothness
         
         # DXCam camera instance
         self.camera = None
