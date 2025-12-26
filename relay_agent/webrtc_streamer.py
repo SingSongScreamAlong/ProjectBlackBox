@@ -37,6 +37,20 @@ except ImportError as e:
     WEBRTC_AVAILABLE = False
     logger.warning(f"WebRTC dependencies not available: {e}")
     logger.warning("Install with: pip install aiortc av numpy")
+    # Define placeholder classes so module can still be imported
+    class MediaStreamTrack:
+        pass
+    class RTCPeerConnection:
+        pass
+    class RTCSessionDescription:
+        pass
+    class RTCIceCandidate:
+        pass
+    class VideoFrame:
+        @staticmethod
+        def from_ndarray(*args, **kwargs):
+            return None
+    import numpy as np  # numpy is likely installed
 
 
 @dataclass
