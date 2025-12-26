@@ -1,0 +1,232 @@
+/**
+ * SponsorExposure Styles
+ */
+
+.sponsor-exposure {
+    padding: 1.5rem;
+    background: #1a1a2e;
+    border-radius: 12px;
+    min-height: 400px;
+}
+
+.sponsor-exposure--loading,
+.sponsor-exposure--error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #888;
+}
+
+.sponsor-exposure__spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 212, 255, 0.2);
+    border-top-color: #00d4ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.sponsor-exposure__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.sponsor-exposure__header h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.sponsor-exposure__controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.sponsor-exposure__select {
+    background: #16213e;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.sponsor-exposure__select:hover {
+    border-color: #00d4ff;
+}
+
+.sponsor-exposure__export-btn {
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sponsor-exposure__export-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+
+/* Summary Cards */
+.sponsor-exposure__summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.sponsor-exposure__stat-card {
+    background: linear-gradient(135deg, #16213e, #1a1a2e);
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.sponsor-exposure__stat-value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #00d4ff;
+    margin-bottom: 0.25rem;
+}
+
+.sponsor-exposure__stat-label {
+    color: #888;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Sponsor List */
+.sponsor-exposure__list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sponsor-exposure__empty {
+    color: #666;
+    text-align: center;
+    padding: 2rem;
+}
+
+.sponsor-exposure__card {
+    background: #16213e;
+    border-radius: 10px;
+    padding: 1.25rem;
+    border-left: 4px solid #00d4ff;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sponsor-exposure__card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.sponsor-exposure__card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.sponsor-exposure__sponsor-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.sponsor-exposure__logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.sponsor-exposure__sponsor-name {
+    color: #fff;
+    font-size: 1.1rem;
+    margin: 0 0 0.25rem 0;
+}
+
+.sponsor-exposure__tier {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Stats Grid */
+.sponsor-exposure__card-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.sponsor-exposure__metric {
+    text-align: center;
+}
+
+.sponsor-exposure__metric-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.sponsor-exposure__metric-label {
+    color: #888;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+/* Placement Tags */
+.sponsor-exposure__placements {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.sponsor-exposure__placement-tag {
+    background: rgba(0, 212, 255, 0.15);
+    color: #00d4ff;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    text-transform: capitalize;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sponsor-exposure__card-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sponsor-exposure__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

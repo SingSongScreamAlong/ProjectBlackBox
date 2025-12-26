@@ -80,3 +80,38 @@ FLAG_STATES = {
     'randomWaving': 'localYellow',
     'furled': 'green'
 }
+
+# =============================================================================
+# BroadcastBox Streaming Configuration
+# =============================================================================
+
+# Master enable for video streaming
+STREAM_ENABLED = os.getenv('STREAM_ENABLED', 'false').lower() == 'true'
+
+# Video quality settings
+STREAM_FPS = int(os.getenv('STREAM_FPS', '60'))
+STREAM_RESOLUTION = os.getenv('STREAM_RESOLUTION', '720p')  # 480p, 720p, 1080p
+STREAM_BITRATE = int(os.getenv('STREAM_BITRATE', '4000'))   # kbps
+STREAM_CODEC = os.getenv('STREAM_CODEC', 'H264')
+
+# Transport selection (WebRTC is recommended for lowest latency)
+STREAM_TRANSPORT = os.getenv('STREAM_TRANSPORT', 'webrtc')  # webrtc, srt, rtmp
+
+# STUN/TURN servers for NAT traversal
+STUN_SERVERS = os.getenv('STUN_SERVERS', 'stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302').split(',')
+TURN_SERVER = os.getenv('TURN_SERVER', '')
+TURN_USERNAME = os.getenv('TURN_USERNAME', '')
+TURN_CREDENTIAL = os.getenv('TURN_CREDENTIAL', '')
+
+# Performance safeguards (ZERO DRIVER IMPACT rule)
+FAILSAFE_FPS_MIN = int(os.getenv('FAILSAFE_FPS_MIN', '55'))      # Min iRacing FPS
+FAILSAFE_CPU_MAX = int(os.getenv('FAILSAFE_CPU_MAX', '85'))      # Max system CPU %
+FAILSAFE_ENCODE_LAG_MS = int(os.getenv('FAILSAFE_ENCODE_LAG_MS', '50'))  # Max encoder lag
+
+# Stream access control
+STREAM_ACCESS_LEVEL = os.getenv('STREAM_ACCESS_LEVEL', 'public')  # public, team, league, private
+
+# Audio capture (Phase 2)
+STREAM_AUDIO_ENABLED = os.getenv('STREAM_AUDIO_ENABLED', 'false').lower() == 'true'
+STREAM_AUDIO_DEVICE = os.getenv('STREAM_AUDIO_DEVICE', '')  # Empty = default device
+

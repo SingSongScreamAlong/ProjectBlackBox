@@ -16,3 +16,9 @@ soundfile>=0.12.1
 customtkinter>=5.2.0
 pywin32>=306  # For window capture (iRacing window targeting)
 dxcam>=0.0.5  # DirectX game capture (like Discord)
+
+# BroadcastBox WebRTC Streaming (optional)
+aiortc>=1.6.0         # WebRTC for Python
+av>=11.0.0            # Audio/video encoding (FFmpeg bindings)
+numpy>=1.24.0         # Frame processing
+psutil>=5.9.0         # System monitoring for health checks

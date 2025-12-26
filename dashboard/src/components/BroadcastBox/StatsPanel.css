@@ -1,0 +1,145 @@
+/* StatsPanel.css */
+
+.stats-panel {
+    color: #fff;
+    font-family: 'Monaco', 'Consolas', monospace;
+}
+
+.stats-panel--loading,
+.stats-panel--empty {
+    padding: 2rem;
+    text-align: center;
+    color: #888;
+}
+
+.stats-panel--empty small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.stats-panel__section {
+    margin-bottom: 1.5rem;
+}
+
+.stats-panel__section h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #00d4ff;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stats-panel__section h3 .warning-badge {
+    background: #ff3333;
+    color: #fff;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    margin-left: auto;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.stat-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stat-card .label {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.stat-card .value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.stat-card .value.best {
+    color: #ff3366;
+}
+
+.stat-card .value.faster {
+    color: #00ff00;
+}
+
+.stat-card .value.slower {
+    color: #ff3333;
+}
+
+.stat-card .value.neutral {
+    color: #ffff00;
+}
+
+.stat-card .value.warn {
+    color: #ff9900;
+}
+
+.stat-card .value.critical {
+    color: #ff3333;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.stat-card .value.compound {
+    text-transform: uppercase;
+}
+
+.stat-card.prediction {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: rgba(0, 212, 255, 0.3);
+}
+
+.stat-card .confidence {
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+}
+
+/* Compact Mode */
+.stats-panel--compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.stats-panel--compact .stat-row {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.stats-panel--compact .label {
+    font-size: 0.7rem;
+    color: #888;
+}
+
+.stats-panel--compact .value {
+    font-weight: 600;
+}

@@ -1,0 +1,267 @@
+/* IncidentScrubber.css */
+
+.incident-scrubber {
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+}
+
+.incident-scrubber__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.incident-scrubber__header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #00d4ff;
+}
+
+.incident-scrubber__count {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.incident-scrubber__timeline {
+    position: relative;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 20px 0;
+}
+
+.incident-scrubber__track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    transform: translateY(-50%);
+}
+
+.incident-scrubber__playhead {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: #00d4ff;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.incident-scrubber__playhead::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -4px;
+    width: 10px;
+    height: 10px;
+    background: #00d4ff;
+    border-radius: 50%;
+}
+
+.incident-scrubber__marker {
+    position: absolute;
+    top: 50%;
+    width: 24px;
+    height: 24px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 5;
+}
+
+.incident-scrubber__marker:hover {
+    transform: translate(-50%, -50%) scale(1.3);
+    z-index: 20;
+}
+
+.incident-scrubber__marker.selected {
+    transform: translate(-50%, -50%) scale(1.4);
+    box-shadow: 0 0 20px currentColor;
+    z-index: 15;
+}
+
+.incident-scrubber__marker .marker-icon {
+    font-size: 12px;
+}
+
+.incident-scrubber__labels {
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #666;
+}
+
+/* Tooltip */
+.incident-scrubber__tooltip {
+    position: absolute;
+    bottom: 100%;
+    transform: translateX(-50%);
+    margin-bottom: 1rem;
+    background: rgba(0, 0, 0, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.75rem;
+    min-width: 200px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.incident-scrubber__tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    border: 6px solid transparent;
+    border-top-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(-50%);
+}
+
+.tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tooltip-header .icon {
+    font-size: 1.1rem;
+}
+
+.tooltip-header .type {
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.tooltip-header .severity {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    margin-left: auto;
+}
+
+.tooltip-header .severity.minor {
+    background: #ffff00;
+    color: #000;
+}
+
+.tooltip-header .severity.moderate {
+    background: #ff9900;
+    color: #000;
+}
+
+.tooltip-header .severity.major {
+    background: #ff3333;
+    color: #fff;
+}
+
+.tooltip-body p {
+    font-size: 0.85rem;
+    color: #ccc;
+    margin: 0 0 0.5rem;
+}
+
+.tooltip-body .lap,
+.tooltip-body .corner {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* Selected detail panel */
+.incident-scrubber__detail {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    border-left: 4px solid #00d4ff;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.detail-header .icon {
+    font-size: 1.5rem;
+}
+
+.detail-header h4 {
+    margin: 0;
+    text-transform: capitalize;
+}
+
+.detail-header .severity-badge {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.detail-header .severity-badge.minor {
+    background: #ffff00;
+    color: #000;
+}
+
+.detail-header .severity-badge.moderate {
+    background: #ff9900;
+    color: #000;
+}
+
+.detail-header .severity-badge.major {
+    background: #ff3333;
+    color: #fff;
+}
+
+.detail-header .close-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.detail-header .close-btn:hover {
+    color: #fff;
+}
+
+.incident-scrubber__detail .description {
+    color: #ccc;
+    margin: 0 0 1rem;
+}
+
+.incident-scrubber__detail .drivers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.incident-scrubber__detail .driver-tag {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.incident-scrubber__detail .meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #888;
+}
