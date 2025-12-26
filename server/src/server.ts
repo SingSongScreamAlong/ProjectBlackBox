@@ -31,6 +31,7 @@ import { config, isProduction } from './config/environment.js';
 import { createHealthCheckRouter } from './middleware/health-check.js';
 import { corsMiddleware, logCorsConfiguration } from './middleware/cors-config.js';
 import { securityHeaders, customSecurityHeaders, logSecurityConfiguration } from './middleware/security-headers.js';
+import { CoachingService } from './services/CoachingService.js';
 
 import { fileURLToPath } from 'url';
 import { existsSync } from 'node:fs';
@@ -117,6 +118,8 @@ const io = new SocketIOServer(server, {
   },
 });
 
+// Initialize real-time AI coaching service
+const coachingService = new CoachingService(io);
 
 
 // WebSocket server for voice communication
@@ -235,6 +238,13 @@ io.on('connection', (socket) => {
     if (data?.sessionId) {
       socket.join(`session:${data.sessionId}`);
       io.to(`session:${data.sessionId}`).emit('session_metadata', data);
+      // Feed track/driver info to CoachingService for better AI context
+      if (coachingService.isEnabled()) {
+        coachingService.setSessionInfo(data.sessionId, {
+          track: data.trackName,
+          driverName: data.driverName
+        });
+      }
     }
   });
 
@@ -245,6 +255,23 @@ io.on('connection', (socket) => {
     // Also send to session room
     if (data?.sessionId) {
       io.to(`session:${data.sessionId}`).emit('telemetry_update', data);
+    }
+    // Feed telemetry to CoachingService for real-time AI analysis
+    if (coachingService.isEnabled() && data?.sessionId) {
+      coachingService.ingestTelemetry(data.sessionId, {
+        timestamp: data.timestamp || Date.now(),
+        speed: data.speed || 0,
+        rpm: data.rpm || 0,
+        gear: data.gear || 0,
+        throttle: data.throttle || 0,
+        brake: data.brake || 0,
+        lap: data.lap || 0,
+        sector: data.sector || 0,
+        tires: data.tires,
+        gForce: data.gForce,
+        trackPosition: data.trackPosition,
+        racePosition: data.racePosition
+      });
     }
   });
 
