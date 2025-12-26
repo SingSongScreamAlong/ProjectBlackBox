@@ -1,0 +1,142 @@
+/**
+ * Visualization Components - Shared Styles
+ */
+
+/* XY Plot */
+.xy-plot {
+    position: relative;
+    display: inline-block;
+    background: #1a1a2e;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.xy-plot__canvas {
+    display: block;
+    border-radius: 6px;
+}
+
+.xy-plot__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #333;
+}
+
+.xy-plot__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.xy-plot__legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+/* Histogram */
+.histogram {
+    position: relative;
+    display: inline-block;
+    background: #1a1a2e;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.histogram__canvas {
+    display: block;
+    border-radius: 6px;
+}
+
+.histogram__stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #333;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+/* Scatter Plot */
+.scatter-plot {
+    position: relative;
+    display: inline-block;
+    background: #1a1a2e;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.scatter-plot__canvas {
+    display: block;
+    border-radius: 6px;
+}
+
+.scatter-plot__legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #333;
+}
+
+.scatter-plot__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.scatter-plot__legend-color {
+    width: 16px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+/* Visualization Container */
+.visualization-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.visualization-card {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #333;
+}
+
+.visualization-card__title {
+    color: #fff;
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.visualization-card__title::before {
+    content: '📊';
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .visualization-container {
+        grid-template-columns: 1fr;
+    }
+
+    .xy-plot,
+    .histogram,
+    .scatter-plot {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+}
