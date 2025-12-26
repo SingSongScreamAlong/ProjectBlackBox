@@ -1,0 +1,240 @@
+/* HealthDashboard.css */
+
+.health-dashboard {
+    color: #fff;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+    min-height: 100vh;
+}
+
+.health-dashboard--loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: #888;
+}
+
+.health-dashboard__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.health-dashboard__header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.health-dashboard__header .refresh-indicator {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+/* Metrics */
+.health-dashboard__metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.metric-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.metric-card .value {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #00d4ff;
+}
+
+.metric-card .label {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.25rem;
+}
+
+.metric-card.alerts .value.has-alerts {
+    color: #ff9900;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Quality Distribution */
+.health-dashboard__quality {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.health-dashboard__quality h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: #00d4ff;
+}
+
+.quality-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.quality-bar {
+    position: relative;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.quality-bar .bar-fill {
+    height: 100%;
+    transition: width 0.3s;
+}
+
+.quality-bar .quality-label {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: #000;
+    font-weight: 600;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+/* Grid */
+.health-dashboard__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 900px) {
+    .health-dashboard__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Sections */
+.health-dashboard__streams,
+.health-dashboard__alerts,
+.health-dashboard__connections {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.health-dashboard__streams h3,
+.health-dashboard__alerts h3,
+.health-dashboard__connections h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: #00d4ff;
+}
+
+.empty {
+    color: #666;
+    font-style: italic;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+th {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+td {
+    font-size: 0.85rem;
+}
+
+td.warn {
+    color: #ff9900;
+}
+
+td.has-errors {
+    color: #ff3333;
+}
+
+td.socket-id {
+    font-family: 'Monaco', monospace;
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.quality-badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #000;
+}
+
+/* Alerts */
+.alert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.alert-item {
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid;
+    border-radius: 4px;
+    padding: 0.5rem;
+}
+
+.alert-item .alert-type {
+    display: block;
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.alert-item .alert-message {
+    display: block;
+    font-size: 0.85rem;
+    margin: 0.25rem 0;
+}
+
+.alert-item .alert-time {
+    font-size: 0.7rem;
+    color: #666;
+}

@@ -12,6 +12,7 @@ import TrackMapPage from './components/Pages/TrackMapPage';
 import TrainingDashboard from './components/Training/TrainingDashboard';
 import VoiceEngineerPage from './components/Pages/VoiceEngineerPage';
 import { TeamDashboard } from './components/Team';
+import { RaceHub, DriverHub, BattleMode, Leaderboard } from './components/BroadcastBox';
 import { multiDriverService } from './services/MultiDriverService';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
@@ -40,6 +41,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               <li><Link to="/track-map">Track Map</Link></li>
               <li><Link to="/training">Training</Link></li>
               <li><Link to="/voice-engineer">Voice Engineer</Link></li>
+              <li><Link to="/broadcast">BroadcastBox</Link></li>
             </>
           )}
         </ul>
@@ -127,6 +129,28 @@ function AppContent() {
               <RelayAgentPage />
             </AppLayout>
           </PrivateRoute>
+        } />
+
+        {/* BroadcastBox Routes - F1 TV-style viewer experience */}
+        <Route path="/broadcast" element={
+          <AppLayout>
+            <RaceHub sessionId="current" />
+          </AppLayout>
+        } />
+        <Route path="/broadcast/driver/:driverId" element={
+          <AppLayout>
+            <DriverHub sessionId="current" />
+          </AppLayout>
+        } />
+        <Route path="/broadcast/battles" element={
+          <AppLayout>
+            <BattleMode sessionId="current" onDriverClick={(id: string) => window.location.href = `/broadcast/driver/${id}`} />
+          </AppLayout>
+        } />
+        <Route path="/broadcast/leaderboard" element={
+          <AppLayout>
+            <Leaderboard sessionId="current" />
+          </AppLayout>
         } />
       </Routes>
     </Router>

@@ -1,0 +1,213 @@
+/* DriverHub.css */
+
+.driver-hub {
+    min-height: 100vh;
+    background: #0a0a0a;
+    color: #fff;
+}
+
+.driver-hub--empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+}
+
+.driver-hub__header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    background: rgba(0, 0, 0, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.driver-hub__back {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.driver-hub__back:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.driver-hub__header h1 {
+    flex: 1;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.driver-hub__controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.driver-hub__controls button,
+.driver-hub__controls select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.driver-hub__controls button:hover,
+.driver-hub__controls button.active {
+    background: #00d4ff;
+    color: #000;
+}
+
+.driver-hub__content {
+    display: block;
+    padding: 1rem;
+}
+
+@media (max-width: 1024px) {
+    .driver-hub__content {
+        padding: 0.5rem;
+    }
+}
+
+.driver-hub__video {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.driver-hub__no-stream {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    color: #666;
+}
+
+.driver-hub__stats {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    width: 280px;
+    z-index: 10;
+}
+
+.stat-card {
+    /* Glassmorphism effect */
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    animation: fadeSlideIn 0.4s ease-out backwards;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.stat-card:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.stat-card:nth-child(2) {
+    animation-delay: 0.05s;
+}
+
+.stat-card:nth-child(3) {
+    animation-delay: 0.1s;
+}
+
+.stat-card:nth-child(4) {
+    animation-delay: 0.15s;
+}
+
+.stat-card:nth-child(5) {
+    animation-delay: 0.2s;
+}
+
+.stat-card:nth-child(6) {
+    animation-delay: 0.25s;
+}
+
+.stat-card:hover {
+    background: rgba(0, 212, 255, 0.15);
+    border-color: rgba(0, 212, 255, 0.4);
+    transform: scale(1.02);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(0, 212, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.stat-card h3 {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.stat-card span {
+    font-size: 1.3rem;
+    font-weight: 700;
+    font-family: 'Monaco', 'Consolas', monospace;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.stat-card small {
+    display: block;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 0.25rem;
+}
+
+.delta--faster {
+    color: #00ff00;
+}
+
+.delta--slower {
+    color: #ff3333;
+}
+
+.delta--neutral {
+    color: #ffff00;
+}
+
+.confidence-warning,
+.fuel-warning {
+    color: #ff9900;
+}
+
+.driver-hub__timeline {
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}

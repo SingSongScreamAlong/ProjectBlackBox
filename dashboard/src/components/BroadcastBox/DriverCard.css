@@ -1,0 +1,120 @@
+/* DriverCard.css */
+
+.driver-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: cardSlideIn 0.4s ease-out backwards;
+}
+
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.driver-card:hover {
+    background: rgba(0, 212, 255, 0.15);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    border-color: rgba(0, 212, 255, 0.4);
+}
+
+.driver-card--live {
+    border-color: rgba(0, 255, 0, 0.3);
+}
+
+.driver-card--degraded {
+    border-color: rgba(255, 153, 0, 0.3);
+}
+
+.driver-card--offline {
+    opacity: 0.6;
+}
+
+.driver-card__position {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Monaco', monospace;
+    color: #00d4ff;
+    min-width: 50px;
+    text-align: center;
+}
+
+.driver-card__info {
+    flex: 1;
+}
+
+.driver-card__name {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.driver-card__number {
+    color: #888;
+    margin-right: 0.5rem;
+    font-family: 'Monaco', monospace;
+}
+
+.driver-card__team {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.driver-card__class {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-top: 0.25rem;
+}
+
+.driver-card__stream {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.driver-card__status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.driver-card__status-text {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.driver-card__viewers {
+    color: #888;
+}

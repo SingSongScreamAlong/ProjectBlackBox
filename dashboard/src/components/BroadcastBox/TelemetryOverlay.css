@@ -1,0 +1,149 @@
+/* TelemetryOverlay.css */
+
+.telemetry-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    font-family: 'Monaco', 'Consolas', monospace;
+}
+
+.telemetry-overlay__row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+}
+
+.telemetry-overlay__row--top {
+    top: 0;
+    gap: 1rem;
+}
+
+.telemetry-overlay__row--bottom {
+    bottom: 0;
+    gap: 2rem;
+}
+
+.telemetry-overlay__speed {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+}
+
+.telemetry-overlay__speed .value {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.telemetry-overlay__speed .unit {
+    font-size: 1rem;
+    color: #888;
+}
+
+.telemetry-overlay__gear {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #00d4ff;
+    text-shadow: 0 2px 12px rgba(0, 212, 255, 0.5);
+    min-width: 60px;
+    text-align: center;
+}
+
+.telemetry-overlay__rpm {
+    flex: 1;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.telemetry-overlay__rpm-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff00, #ffff00, #ff3333);
+    transition: width 0.05s;
+}
+
+.telemetry-overlay__pedals {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.telemetry-overlay__pedal {
+    width: 30px;
+    height: 80px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 0.25rem;
+}
+
+.telemetry-overlay__pedal span {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    font-size: 0.7rem;
+}
+
+.telemetry-overlay__pedal-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transition: height 0.05s;
+}
+
+.telemetry-overlay__pedal--throttle .telemetry-overlay__pedal-bar {
+    background: #00ff00;
+}
+
+.telemetry-overlay__pedal--brake .telemetry-overlay__pedal-bar {
+    background: #ff3333;
+}
+
+.telemetry-overlay__steering {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    position: relative;
+}
+
+.telemetry-overlay__steering-indicator {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    width: 4px;
+    height: 20px;
+    background: #fff;
+    transform-origin: center bottom;
+    border-radius: 2px;
+}
+
+.telemetry-overlay__times {
+    margin-left: auto;
+    text-align: right;
+}
+
+.telemetry-overlay__lap {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.telemetry-overlay__current-time {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.telemetry-overlay__best-time {
+    font-size: 0.9rem;
+    color: #ff3366;
+}

@@ -20,6 +20,10 @@ import reportRoutes from './report-routes.js';
 import analysisRoutes from './analysis-routes.js';
 import notificationRoutes from './notification-routes.js';
 import teamRoutes from './team-routes.js';
+import broadcastRoutes from './broadcast-routes.js';
+import { getStreamRegistry } from './services/StreamRegistryService.js';
+import { getTimeSync } from './services/TimeSyncService.js';
+import { getNextGenStats } from './services/NextGenStatsService.js';
 import GamificationService from './services/GamificationService.js';
 import { apiLimiter, telemetryLimiter, authLimiter } from './middleware/rate-limit.js';
 import { sanitizeInputs } from './middleware/sql-injection-guard.js';
@@ -177,6 +181,9 @@ app.use('/api/notifications', notificationRoutes);
 
 // Team routes (authenticated) - Multi-driver views
 app.use('/api/teams', teamRoutes);
+
+// BroadcastBox routes (public + authenticated) - Stream listing, stats, time sync
+app.use('/api/broadcast', broadcastRoutes);
 
 // Health check endpoints (public) - /health, /health/ready, /health/metrics
 app.use(createHealthCheckRouter(pool));
@@ -409,6 +416,120 @@ io.on('connection', (socket) => {
     } catch (error) {
       console.error('[Voice] Error processing voice command:', error);
       socket.emit('voice_response', { error: 'Voice processing failed', text: 'Engineer offline.' });
+    }
+  });
+
+  // ========================
+  // BroadcastBox Event Handlers
+  // ========================
+
+  // Handle stream registration from relay agent
+  socket.on('stream_registration', (data: any) => {
+    console.log(`[BroadcastBox] Stream registration: ${data?.driverName || 'unknown'} (${data?.streamId || 'no-id'})`);
+    const registry = getStreamRegistry();
+    registry.registerStream({
+      type: 'STREAM_REGISTRATION',
+      ...data,
+      timestamp: Date.now(),
+    });
+
+    // Initialize time sync for session
+    if (data?.sessionId) {
+      const timeSync = getTimeSync();
+      timeSync.initSession(data.sessionId);
+    }
+  });
+
+  // Handle stream health updates from relay agent
+  socket.on('stream_health', (data: any) => {
+    const registry = getStreamRegistry();
+    registry.updateHealth({
+      type: 'STREAM_HEALTH',
+      ...data,
+      timestamp: Date.now(),
+    });
+  });
+
+  // Handle stream deregistration
+  socket.on('stream_deregistration', (data: any) => {
+    console.log(`[BroadcastBox] Stream deregistration: ${data?.streamId || 'no-id'} (${data?.reason || 'unknown'})`);
+    const registry = getStreamRegistry();
+    registry.deregisterStream({
+      type: 'STREAM_DEREGISTRATION',
+      ...data,
+      timestamp: Date.now(),
+    });
+  });
+
+  // WebRTC signaling: relay offer from publisher to viewer(s)
+  socket.on('webrtc_offer', (data: { streamId: string; sdp: string; fromPeer: string; toPeer?: string }) => {
+    console.log(`[BroadcastBox] WebRTC offer for stream ${data.streamId}`);
+    if (data.toPeer) {
+      // Send to specific peer
+      io.to(data.toPeer).emit('webrtc_offer', data);
+    } else {
+      // Broadcast to stream room
+      socket.to(`stream:${data.streamId}`).emit('webrtc_offer', data);
+    }
+  });
+
+  // WebRTC signaling: relay answer from viewer to publisher
+  socket.on('webrtc_answer', (data: { streamId: string; sdp: string; fromPeer: string; toPeer: string }) => {
+    console.log(`[BroadcastBox] WebRTC answer for stream ${data.streamId}`);
+    io.to(data.toPeer).emit('webrtc_answer', data);
+  });
+
+  // WebRTC signaling: relay ICE candidates
+  socket.on('webrtc_ice_candidate', (data: { streamId: string; candidate: any; fromPeer: string; toPeer?: string }) => {
+    if (data.toPeer) {
+      io.to(data.toPeer).emit('webrtc_ice_candidate', data);
+    } else {
+      socket.to(`stream:${data.streamId}`).emit('webrtc_ice_candidate', data);
+    }
+  });
+
+  // Join stream room (for WebRTC signaling)
+  socket.on('join_stream', (streamId: string) => {
+    socket.join(`stream:${streamId}`);
+    console.log(`[BroadcastBox] Client ${socket.id} joined stream:${streamId}`);
+  });
+
+  // Leave stream room
+  socket.on('leave_stream', (streamId: string) => {
+    socket.leave(`stream:${streamId}`);
+    console.log(`[BroadcastBox] Client ${socket.id} left stream:${streamId}`);
+  });
+
+  // Feed telemetry to Next Gen Stats engine
+  socket.on('telemetry', (data: any) => {
+    // Existing telemetry broadcast logic...
+    socket.broadcast.emit('telemetry', data);
+    if (data?.sessionId) {
+      io.to(`session:${data.sessionId}`).emit('telemetry_update', data);
+
+      // Feed to stats engine
+      const stats = getNextGenStats();
+      stats.updateTelemetry(data.sessionId, data);
+
+      // Update time sync
+      const timeSync = getTimeSync();
+      timeSync.updateFromTelemetry(data.sessionId, data.timestamp || Date.now());
+    }
+  });
+
+  // Process overlap events for battle detection
+  socket.on('overlap_event', (data: any) => {
+    if (data?.sessionId) {
+      const stats = getNextGenStats();
+      stats.processOverlapEvent(data.sessionId, data);
+    }
+  });
+
+  // Process incidents
+  socket.on('incident_event', (data: any) => {
+    if (data?.sessionId) {
+      const stats = getNextGenStats();
+      stats.processIncident(data.sessionId, data);
     }
   });
 

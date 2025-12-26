@@ -1,0 +1,98 @@
+/* LiveTelemetryStrip.css */
+
+.telemetry-strip {
+    background: rgba(0, 0, 0, 0.9);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.telemetry-strip__scroll {
+    display: flex;
+    gap: 1px;
+    animation: scroll 30s linear infinite;
+    animation-play-state: running;
+}
+
+.telemetry-strip:hover .telemetry-strip__scroll {
+    animation-play-state: paused;
+}
+
+.telemetry-strip__driver {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.85rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.telemetry-strip__driver.in-pit {
+    opacity: 0.5;
+}
+
+.telemetry-strip__driver .position {
+    font-weight: 700;
+    color: #00d4ff;
+    min-width: 30px;
+}
+
+.telemetry-strip__driver .number {
+    color: #888;
+}
+
+.telemetry-strip__driver .name {
+    color: #fff;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.telemetry-strip__driver .delta {
+    min-width: 65px;
+    font-weight: 600;
+}
+
+.telemetry-strip__driver .delta.faster {
+    color: #00ff00;
+}
+
+.telemetry-strip__driver .delta.slower {
+    color: #ff3333;
+}
+
+.telemetry-strip__driver .lap-time {
+    color: #ccc;
+    min-width: 75px;
+}
+
+.telemetry-strip__driver .speed {
+    color: #888;
+    min-width: 60px;
+}
+
+.telemetry-strip__driver .gear {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    color: #fff;
+}
+
+.telemetry-strip__driver .pit-badge {
+    background: #ff9900;
+    color: #000;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 0.7rem;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}

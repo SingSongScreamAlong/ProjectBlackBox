@@ -32,6 +32,15 @@ from voice_recognition import VoiceRecognition
 from overlay import PTTOverlay
 from audio_recorder import AudioRecorder
 
+# BroadcastBox streaming (optional)
+try:
+    from webrtc_streamer import create_webrtc_streamer, StreamConfig
+    from stream_health_monitor import get_health_monitor, StreamHealthMonitor
+    BROADCASTBOX_AVAILABLE = True
+except ImportError as e:
+    BROADCASTBOX_AVAILABLE = False
+    logger.info(f"BroadcastBox streaming not available: {e}")
+
 # ========================
 # Logging Setup
 # ========================
@@ -118,6 +127,11 @@ class RelayAgent:
         self.start_time = 0
         self.telemetry_count = 0
         self.incident_count = 0
+        
+        # BroadcastBox WebRTC Streaming
+        self.webrtc_streamer = None
+        self.health_monitor = None
+        self._setup_broadcastbox()
     
     def _setup_voice_callbacks(self):
         """Set up callbacks for voice responses from server"""
@@ -149,6 +163,84 @@ class RelayAgent:
         
         logger.info(f"✅ VoiceRecognition reconfigured with new PTT binding")
 
+    def _setup_broadcastbox(self):
+        """Initialize BroadcastBox streaming if enabled"""
+        if not BROADCASTBOX_AVAILABLE:
+            logger.info("BroadcastBox streaming not available (missing dependencies)")
+            return
+        
+        if not config.STREAM_ENABLED:
+            logger.info("BroadcastBox streaming disabled (STREAM_ENABLED=false)")
+            return
+        
+        logger.info("🎥 Initializing BroadcastBox streaming...")
+        
+        # Set up health monitor
+        self.health_monitor = get_health_monitor()
+        self.health_monitor.set_iracing_fps_callback(self._get_iracing_fps)
+        self.health_monitor.on_degrade = self._on_stream_degrade
+        self.health_monitor.on_warning = self._on_stream_warning
+        
+        logger.info(f"   Resolution: {config.STREAM_RESOLUTION}")
+        logger.info(f"   FPS: {config.STREAM_FPS}")
+        logger.info(f"   Bitrate: {config.STREAM_BITRATE}kbps")
+    
+    def _get_iracing_fps(self) -> float:
+        """Get iRacing FPS for health monitoring"""
+        # iRacing SDK doesn't expose FPS directly, estimate from frame time
+        # In production, this would use SessionInfo['WeekendInfo']['TrackDisplayShortName'] timing
+        return 60.0  # Default estimate
+    
+    def _on_stream_degrade(self, level):
+        """Called when stream quality is degraded"""
+        if level.is_disabled:
+            logger.warning("⛔ BroadcastBox stream DISABLED due to performance")
+            if self.webrtc_streamer:
+                self.webrtc_streamer.stop()
+                self.webrtc_streamer = None
+        else:
+            logger.warning(f"📉 BroadcastBox degraded: {level.resolution} @ {level.fps}fps")
+    
+    def _on_stream_warning(self, warning: str):
+        """Called when stream health warning is triggered"""
+        logger.warning(f"⚠️ Stream warning: {warning}")
+    
+    def _start_webrtc_stream(self):
+        """Start WebRTC stream after session is established"""
+        if not BROADCASTBOX_AVAILABLE or not config.STREAM_ENABLED:
+            return
+        
+        if self.webrtc_streamer:
+            return  # Already started
+        
+        logger.info("🎥 Starting BroadcastBox WebRTC stream...")
+        
+        # Create WebRTC streamer
+        self.webrtc_streamer = create_webrtc_streamer(
+            socket_client=self.cloud_client.sio,
+            frame_source=self._get_video_frame,
+            driver_id=config.RELAY_ID,
+            session_id=self.session_id,
+        )
+        
+        if self.webrtc_streamer:
+            self.webrtc_streamer.start()
+            self.health_monitor.start()
+            logger.info("✅ BroadcastBox stream started")
+        else:
+            logger.warning("Could not create WebRTC streamer")
+    
+    def _get_video_frame(self):
+        """Get current video frame for WebRTC stream"""
+        # Reuse the existing video encoder's capture
+        if hasattr(self.video_encoder, 'camera') and self.video_encoder.camera:
+            try:
+                frame = self.video_encoder.camera.grab(region=self.video_encoder.window_region)
+                return frame
+            except Exception:
+                pass
+        return None
+    
     def _setup_motec_channels(self):
         """Configure MoTeC channels"""
         self.motec_exporter.add_channel("Speed", "km/h")
@@ -182,6 +274,13 @@ class RelayAgent:
     def stop(self):
         """Stop the relay agent"""
         self.running = False
+        
+        # Stop BroadcastBox streaming
+        if self.webrtc_streamer:
+            self.webrtc_streamer.stop()
+        if self.health_monitor:
+            self.health_monitor.stop()
+        
         self.video_encoder.stop()
         self.overlay.stop()
         self.ir_reader.disconnect()
@@ -284,6 +383,9 @@ class RelayAgent:
         if not self.video_encoder.running:
             logger.info("🎥 Starting video encoder...")
             self.video_encoder.start()
+        
+        # Start BroadcastBox WebRTC stream (if enabled)
+        self._start_webrtc_stream()
     
     def _check_flag_state(self):
         """Check for flag state changes and send race events"""
