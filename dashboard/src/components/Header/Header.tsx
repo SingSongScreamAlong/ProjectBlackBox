@@ -12,8 +12,8 @@ interface HeaderSessionInfo {
   weather: string;
 }
 
-// Define available Dashboard Modes - 4 distinct modes with unique functionality
-export type DashboardMode = 'RACE' | 'TRACK' | 'STRATEGY' | 'ANALYSIS';
+// Define available Dashboard Modes - 5 distinct modes with unique functionality
+export type DashboardMode = 'RACE' | 'TRACK' | 'STRATEGY' | 'ANALYSIS' | 'TEAM';
 
 interface HeaderProps {
   connected: boolean;
@@ -54,7 +54,8 @@ const Header: React.FC<HeaderProps> = ({
             { id: 'RACE', label: '🏎️ RACE', desc: 'Live telemetry' },
             { id: 'TRACK', label: '🗺️ TRACK', desc: 'Track & positions' },
             { id: 'STRATEGY', label: '📊 STRATEGY', desc: 'Pit planner' },
-            { id: 'ANALYSIS', label: '📈 ANALYSIS', desc: 'Session review' }
+            { id: 'ANALYSIS', label: '📈 ANALYSIS', desc: 'Session review' },
+            { id: 'TEAM', label: '👥 TEAM', desc: 'Multi-driver view' }
           ] as { id: DashboardMode; label: string; desc: string }[]).map((mode) => (
             <button
               key={mode.id}

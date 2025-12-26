@@ -8,6 +8,7 @@ import MultiDriverPanel from '../MultiDriver/MultiDriverPanel';
 import AnalysisPage from '../Analysis/AnalysisPage';
 import TrackPage from '../Track/TrackPage';
 import StrategyPage from '../Strategy/StrategyPage';
+import TeamDashboard from '../Team/TeamDashboard';
 import AICoaching from '../AICoaching/AICoaching';
 import VideoPanel from '../VideoPanel/VideoPanel';
 // NOTE: IncidentReplayPanel shelved for beta - component files kept in IncidentReplay/
@@ -340,6 +341,22 @@ const Dashboard: React.FC = () => {
         return (
           <div style={{ gridColumn: '1 / -1', height: '100%' }}>
             <AnalysisPage telemetryData={telemetryData} />
+          </div>
+        );
+
+      case 'TEAM':
+        // TEAM MODE: Multi-driver view and team communication
+        // Shows all connected drivers with live data and team chat
+        return (
+          <div style={{ gridColumn: '1 / -1', height: '100%', display: 'flex', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <TeamDashboard />
+            </div>
+            {showTeamChat && (
+              <div style={{ width: '350px' }}>
+                <TeamChat onClose={() => setShowTeamChat(false)} />
+              </div>
+            )}
           </div>
         );
 
