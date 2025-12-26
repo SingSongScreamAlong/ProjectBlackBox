@@ -285,16 +285,31 @@ const StrategyPage: React.FC<StrategyPageProps> = ({
               <div className="current-tires">
                 <h4>Current Tire Status</h4>
                 <div className="tire-grid">
-                  {['FL', 'FR', 'RL', 'RR'].map(pos => (
-                    <div key={pos} className="tire-card">
-                      <span className="tire-pos">{pos}</span>
-                      <div className="tire-temp">--°C</div>
-                      <div className="tire-wear-bar">
-                        <div className="wear-fill" style={{ width: '0%' }}></div>
+                  {[
+                    { pos: 'FL', data: telemetryData?.tires?.frontLeft },
+                    { pos: 'FR', data: telemetryData?.tires?.frontRight },
+                    { pos: 'RL', data: telemetryData?.tires?.rearLeft },
+                    { pos: 'RR', data: telemetryData?.tires?.rearRight }
+                  ].map(({ pos, data }) => {
+                    const temp = data?.temp ?? 0;
+                    const wear = data?.wear ?? 0;
+                    const wearColor = wear > 70 ? '#00ff9d' : wear > 40 ? '#ffeb3b' : '#ff4444';
+                    const tempColor = temp > 110 ? '#ff4444' : temp > 95 ? '#ffeb3b' : '#00d4ff';
+                    return (
+                      <div key={pos} className="tire-card">
+                        <span className="tire-pos">{pos}</span>
+                        <div className="tire-temp" style={{ color: tempColor }}>
+                          {temp > 0 ? `${Math.round(temp)}°C` : '--°C'}
+                        </div>
+                        <div className="tire-wear-bar">
+                          <div className="wear-fill" style={{ width: `${wear}%`, background: wearColor }}></div>
+                        </div>
+                        <span className="tire-wear-pct" style={{ color: wearColor }}>
+                          {wear > 0 ? `${Math.round(wear)}%` : '--%'}
+                        </span>
                       </div>
-                      <span className="tire-wear-pct">--%</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
