@@ -98,6 +98,7 @@ def map_telemetry_snapshot(session_id: str, cars: List[CarData]) -> Dict[str, An
             },
             
             # Track map coordinates
+            'trackPosition': car.track_pct,  # 0-1 progress around lap
             'lat': car.lat,
             'lon': car.lon,
             'alt': car.alt,

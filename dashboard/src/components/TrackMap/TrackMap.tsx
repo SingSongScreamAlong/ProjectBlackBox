@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { TelemetryData } from '../../services/WebSocketService';
-import { tracks, TrackDefinition } from '../../data/tracks/TrackRegistry';
+import { tracks, TrackDefinition, findTrackByName } from '../../data/tracks/TrackRegistry';
 import { trackAssetService } from '../../services/TrackAssetService';
 import { trackLearningService } from '../../services/TrackLearningService';
 
@@ -33,8 +33,11 @@ const TrackMap: React.FC<TrackMapProps> = ({ telemetryData, trackName }) => {
 
   const trackDef: TrackDefinition | undefined = useMemo(() => {
     if (!trackName) return undefined;
+    // Try static asset service first
     const staticData = trackAssetService.getStaticTrackData(trackName);
-    return staticData || tracks[trackName];
+    if (staticData) return staticData;
+    // Then try fuzzy matching against our track library
+    return findTrackByName(trackName) || tracks[trackName];
   }, [trackName]);
 
   // State for session trace (dynamic map improvement)

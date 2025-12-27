@@ -60,3 +60,47 @@ export function getTrackMetadata(trackId: string) {
     if (key) return lovelyTracks[key];
     return null;
 }
+
+// Fuzzy match track name from iRacing to our track definitions
+export function findTrackByName(trackName: string): TrackDefinition | undefined {
+    if (!trackName) return undefined;
+
+    const normalized = trackName.toLowerCase().trim();
+
+    // Exact match first
+    if (tracks[trackName]) return tracks[trackName];
+
+    // Try case-insensitive match
+    const exactKey = Object.keys(tracks).find(k => k.toLowerCase() === normalized);
+    if (exactKey) return tracks[exactKey];
+
+    // Fuzzy match: check if track name contains our key or vice versa
+    const fuzzyKey = Object.keys(tracks).find(k => {
+        const keyLower = k.toLowerCase();
+        return normalized.includes(keyLower) || keyLower.includes(normalized);
+    });
+    if (fuzzyKey) return tracks[fuzzyKey];
+
+    // Common aliases/variations
+    const aliases: Record<string, string> = {
+        'autodromo nazionale monza': 'Monza',
+        'circuit de spa-francorchamps': 'Spa-Francorchamps',
+        'spa': 'Spa-Francorchamps',
+        'silverstone circuit': 'Silverstone',
+        'suzuka international': 'Suzuka',
+        'daytona international speedway': 'Daytona',
+        'road america': 'Road America',
+        'watkins glen international': 'Watkins Glen',
+        'red bull ring': 'Red Bull Ring',
+        'autodromo jose carlos pace': 'Interlagos',
+        'interlagos': 'Interlagos'
+    };
+
+    for (const [alias, trackKey] of Object.entries(aliases)) {
+        if (normalized.includes(alias) || alias.includes(normalized)) {
+            return tracks[trackKey];
+        }
+    }
+
+    return undefined;
+}
