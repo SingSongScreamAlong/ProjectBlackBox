@@ -26,6 +26,7 @@ import DiagnosticsPage from './pages/admin/Diagnostics';
 import { Broadcast } from './pages/Broadcast';
 import { Watch } from './pages/Watch';
 import { DriverHUD } from './components/DriverHUD';
+import { TeamSessionList } from './pages/TeamSessionList';
 
 // Wrapper to extract sessionId from URL for TeamDashboard
 function TeamDashboardWrapper() {
@@ -63,10 +64,12 @@ export function App() {
                             {/* Public Watch Page - no auth required */}
                             <Route path="/watch/:sessionId" element={<Watch />} />
 
-                            {/* Driver HUD - authenticated */}
+                            {/* Driver HUD - requires BlackBox */}
                             <Route path="/driver" element={
                                 <ProtectedRoute>
-                                    <DriverHUD />
+                                    <RequireCapability capability="driver_hud">
+                                        <DriverHUD />
+                                    </RequireCapability>
                                 </ProtectedRoute>
                             } />
 
@@ -87,6 +90,15 @@ export function App() {
                             {/* ============================================================
                             BLACKBOX SURFACES (Team/Driver)
                             ============================================================ */}
+
+                            {/* Team Session List - BlackBox session selector */}
+                            <Route path="/team" element={
+                                <ProtectedRoute>
+                                    <RequireCapability capability="pitwall_view">
+                                        <TeamSessionList />
+                                    </RequireCapability>
+                                </ProtectedRoute>
+                            } />
 
                             {/* Team Dashboard - BlackBox pit wall surface */}
                             <Route path="/team/:sessionId" element={
