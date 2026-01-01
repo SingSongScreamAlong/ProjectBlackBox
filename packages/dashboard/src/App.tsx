@@ -53,12 +53,10 @@ export function App() {
                             RACEBOX SURFACES (Broadcast/Spectator) - FREE
                             ============================================================ */}
 
-                            {/* Broadcast Director - requires RaceBox Plus */}
+                            {/* Broadcast Director - basic access is FREE, Plus features gated in component */}
                             <Route path="/broadcast" element={
                                 <ProtectedRoute>
-                                    <RequireCapability capability="racebox_access">
-                                        <Broadcast />
-                                    </RequireCapability>
+                                    <Broadcast />
                                 </ProtectedRoute>
                             } />
 

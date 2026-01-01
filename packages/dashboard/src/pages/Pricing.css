@@ -68,6 +68,35 @@
     background: rgba(0, 255, 136, 0.03);
 }
 
+.pricing-card.free {
+    border-color: #b366ff;
+    background: rgba(179, 102, 255, 0.03);
+}
+
+.free-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #b366ff, #00d4ff);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 16px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.price-free {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #b366ff, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 .popular-badge {
     position: absolute;
     top: -12px;

@@ -1,17 +1,7 @@
-/**
- * Broadcast Page - RaceBox Director Controls
- * 
- * Director interface for managing live race broadcasts.
- * Features:
- * - Stream delay controls
- * - Overlay management
- * - Camera/car selection
- * - Go live toggle
- */
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { socketClient } from '../lib/socket-client';
+import { useBootstrap } from '../hooks/useBootstrap';
 import './Broadcast.css';
 
 interface BroadcastSession {
@@ -32,18 +22,20 @@ interface OverlayConfig {
 
 export const Broadcast: React.FC = () => {
     const navigate = useNavigate();
+    const { hasCapability } = useBootstrap();
+    const hasRaceBoxPlus = hasCapability('racebox_access');
+
     const [session, setSession] = useState<BroadcastSession | null>(null);
     const [overlays, setOverlays] = useState<OverlayConfig>({
         timingTower: true,
         lowerThird: true,
         battleBox: false,
-        incidentBanner: true
+        incidentBanner: false
     });
     const [delaySeconds, setDelaySeconds] = useState(5);
     const [isLive, setIsLive] = useState(false);
 
     useEffect(() => {
-        // Listen for active sessions
         socketClient.on('onSessionActive', (msg) => {
             setSession({
                 sessionId: msg.sessionId,
@@ -61,13 +53,16 @@ export const Broadcast: React.FC = () => {
     }, []);
 
     const toggleOverlay = (key: keyof OverlayConfig) => {
+        // Battle box and incident banner are Plus features
+        if ((key === 'battleBox' || key === 'incidentBanner') && !hasRaceBoxPlus) {
+            return;
+        }
         setOverlays(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
     const goLive = () => {
         if (!session) return;
         setIsLive(true);
-        // Would emit to server to start broadcast
     };
 
     const stopBroadcast = () => {
