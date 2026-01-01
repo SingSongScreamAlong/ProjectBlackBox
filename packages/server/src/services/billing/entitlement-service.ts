@@ -18,6 +18,8 @@ import { pool as defaultPool } from '../../db/client.js';
 export type Product = 'blackbox' | 'controlbox' | 'racebox_plus' | 'bundle';
 export type EntitlementStatus = 'active' | 'trial' | 'past_due' | 'canceled' | 'expired' | 'pending';
 export type EntitlementSource = 'squarespace' | 'manual' | 'promo';
+export type EntitlementScope = 'user' | 'org';
+export type BillingPeriod = 'monthly' | 'annual';
 
 export interface Entitlement {
     id: string;
@@ -25,6 +27,9 @@ export interface Entitlement {
     orgId: string | null;
     product: Product;
     status: EntitlementStatus;
+    scope: EntitlementScope;
+    billingPeriod: BillingPeriod;
+    seriesAddonsCount: number;
     startAt: Date;
     endAt: Date | null;
     renewedAt: Date | null;
@@ -34,6 +39,7 @@ export interface Entitlement {
     externalSubscriptionId: string | null;
     externalOrderId: string | null;
     externalCustomerEmail: string | null;
+    externalEventId: string | null;  // For idempotency
     createdAt: Date;
     updatedAt: Date;
 }
@@ -106,7 +112,7 @@ export function deriveCapabilitiesFromEntitlements(
     entitlements: Entitlement[],
     roles: string[] = []
 ): Capabilities {
-    // Start with no capabilities
+    // Start with FREE RaceBox capabilities (always granted)
     const caps: Capabilities = {
         driver_hud: false,
         situational_awareness: false,
@@ -120,10 +126,11 @@ export function deriveCapabilitiesFromEntitlements(
         protest_review: false,
         rulebook_manage: false,
         session_authority: false,
-        racebox_access: false,
-        broadcast_overlays: false,
-        director_controls: false,
-        public_timing: false
+        // FREE RaceBox baseline - always available
+        racebox_access: true,       // Public viewer access
+        broadcast_overlays: false,  // Basic overlays only
+        director_controls: false,   // Requires Plus
+        public_timing: true         // Public timing board
     };
 
     // Filter to active entitlements only
@@ -143,8 +150,8 @@ export function deriveCapabilitiesFromEntitlements(
             caps.strategy_timeline = true;
         }
 
-        if (ent.product === 'racebox_plus') {
-            // RaceBox Plus capabilities - Broadcast
+        if (ent.product === 'racebox_plus' || ent.product === 'bundle') {
+            // RaceBox Plus capabilities - Full Broadcast
             caps.racebox_access = true;
             caps.broadcast_overlays = true;
             caps.director_controls = true;
@@ -387,6 +394,9 @@ export class EntitlementRepository {
             orgId: row.org_id,
             product: row.product,
             status: row.status,
+            scope: row.scope || 'user',
+            billingPeriod: row.billing_period || 'monthly',
+            seriesAddonsCount: row.series_addons_count || 0,
             startAt: row.start_at,
             endAt: row.end_at,
             renewedAt: row.renewed_at,
@@ -396,6 +406,7 @@ export class EntitlementRepository {
             externalSubscriptionId: row.external_subscription_id,
             externalOrderId: row.external_order_id,
             externalCustomerEmail: row.external_customer_email,
+            externalEventId: row.external_event_id,
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };

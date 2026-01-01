@@ -74,15 +74,58 @@ const SQUARESPACE_API_KEY = process.env.SQUARESPACE_API_KEY || '';
 
 // Product SKU → Product mapping
 const SKU_TO_PRODUCT: Record<string, Product> = {
+    // BlackBox (user-scoped)
     'BLACKBOX': 'blackbox',
-    'CONTROLBOX': 'controlbox',
-    'BUNDLE': 'bundle',
     'BB-MONTHLY': 'blackbox',
     'BB-ANNUAL': 'blackbox',
+    // ControlBox (org-scoped)
+    'CONTROLBOX': 'controlbox',
     'CB-MONTHLY': 'controlbox',
     'CB-ANNUAL': 'controlbox',
+    // RaceBox Plus (org-scoped) - NEW
+    'RBX-PLUS-MONTHLY': 'racebox_plus',
+    'RBX-PLUS-ANNUAL': 'racebox_plus',
+    'RACEBOX-PLUS': 'racebox_plus',
+    // Bundle (user + org)
+    'BUNDLE': 'bundle',
     'BUNDLE-MONTHLY': 'bundle',
     'BUNDLE-ANNUAL': 'bundle'
+};
+
+// SKU → Scope mapping (user or org)
+type Scope = 'user' | 'org';
+const SKU_TO_SCOPE: Record<string, Scope> = {
+    'BB-MONTHLY': 'user',
+    'BB-ANNUAL': 'user',
+    'BLACKBOX': 'user',
+    'CB-MONTHLY': 'org',
+    'CB-ANNUAL': 'org',
+    'CONTROLBOX': 'org',
+    'RBX-PLUS-MONTHLY': 'org',
+    'RBX-PLUS-ANNUAL': 'org',
+    'RACEBOX-PLUS': 'org',
+    'BUNDLE-MONTHLY': 'user',  // Bundle creates both user + org entitlements
+    'BUNDLE-ANNUAL': 'user',
+    'BUNDLE': 'user'
+};
+
+// SKU → Billing period
+type BillingPeriod = 'monthly' | 'annual';
+const SKU_TO_BILLING_PERIOD: Record<string, BillingPeriod> = {
+    'BB-MONTHLY': 'monthly',
+    'BB-ANNUAL': 'annual',
+    'CB-MONTHLY': 'monthly',
+    'CB-ANNUAL': 'annual',
+    'RBX-PLUS-MONTHLY': 'monthly',
+    'RBX-PLUS-ANNUAL': 'annual',
+    'BUNDLE-MONTHLY': 'monthly',
+    'BUNDLE-ANNUAL': 'annual'
+};
+
+// Series add-on SKUs (quantity-aware)
+const SERIES_ADDON_SKUS: Record<string, Product> = {
+    'CB-SERIES-ADDON': 'controlbox',
+    'RBX-SERIES-ADDON': 'racebox_plus'
 };
 
 // ============================================================================
@@ -255,6 +298,9 @@ function determineProductFromOrder(order: SquarespaceOrder): Product | null {
         const sku = item.sku?.toUpperCase() || '';
         const productName = item.productName?.toUpperCase() || '';
 
+        // Skip series add-on SKUs (handled separately)
+        if (SERIES_ADDON_SKUS[sku]) continue;
+
         // Try SKU first
         if (SKU_TO_PRODUCT[sku]) {
             return SKU_TO_PRODUCT[sku];
@@ -263,10 +309,38 @@ function determineProductFromOrder(order: SquarespaceOrder): Product | null {
         // Fallback to product name matching
         if (productName.includes('BLACKBOX')) return 'blackbox';
         if (productName.includes('CONTROLBOX')) return 'controlbox';
+        if (productName.includes('RACEBOX') && productName.includes('PLUS')) return 'racebox_plus';
         if (productName.includes('BUNDLE')) return 'bundle';
     }
 
     return null;
+}
+
+export function getOrderScopeAndBilling(order: SquarespaceOrder): { scope: Scope; billingPeriod: BillingPeriod } {
+    for (const item of order.lineItems) {
+        const sku = item.sku?.toUpperCase() || '';
+        if (SKU_TO_SCOPE[sku]) {
+            return {
+                scope: SKU_TO_SCOPE[sku],
+                billingPeriod: SKU_TO_BILLING_PERIOD[sku] || 'monthly'
+            };
+        }
+    }
+    return { scope: 'user', billingPeriod: 'monthly' };
+}
+
+export function getSeriesAddonsFromOrder(order: SquarespaceOrder): { product: Product; quantity: number }[] {
+    const addons: { product: Product; quantity: number }[] = [];
+    for (const item of order.lineItems) {
+        const sku = item.sku?.toUpperCase() || '';
+        if (SERIES_ADDON_SKUS[sku]) {
+            addons.push({
+                product: SERIES_ADDON_SKUS[sku],
+                quantity: item.quantity || 1
+            });
+        }
+    }
+    return addons;
 }
 
 function determineEntitlementStatus(
