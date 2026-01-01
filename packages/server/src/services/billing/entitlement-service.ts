@@ -15,7 +15,7 @@ import { pool as defaultPool } from '../../db/client.js';
 // TYPES
 // ============================================================================
 
-export type Product = 'blackbox' | 'controlbox' | 'bundle';
+export type Product = 'blackbox' | 'controlbox' | 'racebox_plus' | 'bundle';
 export type EntitlementStatus = 'active' | 'trial' | 'past_due' | 'canceled' | 'expired' | 'pending';
 export type EntitlementSource = 'squarespace' | 'manual' | 'promo';
 
@@ -69,9 +69,9 @@ export interface PendingEntitlement {
 // ============================================================================
 
 export interface Capabilities {
-    // BlackBox - Driver
+    // BlackBox - Driver (Live Race Execution)
     driver_hud: boolean;
-    ai_coaching: boolean;
+    situational_awareness: boolean;  // NOT "ai_coaching"
     voice_engineer: boolean;
     personal_telemetry: boolean;
 
@@ -86,6 +86,12 @@ export interface Capabilities {
     protest_review: boolean;
     rulebook_manage: boolean;
     session_authority: boolean;
+
+    // RaceBox Plus - Broadcast
+    racebox_access: boolean;
+    broadcast_overlays: boolean;
+    director_controls: boolean;
+    public_timing: boolean;
 }
 
 /**
@@ -103,7 +109,7 @@ export function deriveCapabilitiesFromEntitlements(
     // Start with no capabilities
     const caps: Capabilities = {
         driver_hud: false,
-        ai_coaching: false,
+        situational_awareness: false,
         voice_engineer: false,
         personal_telemetry: false,
         pitwall_view: false,
@@ -113,7 +119,11 @@ export function deriveCapabilitiesFromEntitlements(
         penalty_assign: false,
         protest_review: false,
         rulebook_manage: false,
-        session_authority: false
+        session_authority: false,
+        racebox_access: false,
+        broadcast_overlays: false,
+        director_controls: false,
+        public_timing: false
     };
 
     // Filter to active entitlements only
@@ -123,14 +133,22 @@ export function deriveCapabilitiesFromEntitlements(
 
     for (const ent of activeEntitlements) {
         if (ent.product === 'blackbox' || ent.product === 'bundle') {
-            // BlackBox capabilities
+            // BlackBox capabilities - Live Race Execution
             caps.driver_hud = true;
-            caps.ai_coaching = true;
+            caps.situational_awareness = true;
             caps.voice_engineer = true;
             caps.personal_telemetry = true;
             caps.pitwall_view = true;
             caps.multi_car_monitor = true;
             caps.strategy_timeline = true;
+        }
+
+        if (ent.product === 'racebox_plus') {
+            // RaceBox Plus capabilities - Broadcast
+            caps.racebox_access = true;
+            caps.broadcast_overlays = true;
+            caps.director_controls = true;
+            caps.public_timing = true;
         }
 
         if (ent.product === 'controlbox' || ent.product === 'bundle') {

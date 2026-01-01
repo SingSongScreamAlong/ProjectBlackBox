@@ -43,6 +43,7 @@ export interface BootstrapMemberships {
 export interface BootstrapLicenses {
     blackbox: boolean;
     controlbox: boolean;
+    racebox_plus: boolean;
 }
 
 // ============================================================================
@@ -52,9 +53,9 @@ export interface BootstrapLicenses {
 export type BootstrapRole = 'driver' | 'team' | 'racecontrol' | 'admin';
 
 export interface BootstrapCapabilities {
-    // BlackBox - Driver
+    // BlackBox - Driver (Live Race Execution)
     driver_hud: boolean;
-    ai_coaching: boolean;
+    situational_awareness: boolean;  // NOT "ai_coaching"
     voice_engineer: boolean;
     personal_telemetry: boolean;
 
@@ -69,6 +70,12 @@ export interface BootstrapCapabilities {
     protest_review: boolean;
     rulebook_manage: boolean;
     session_authority: boolean;
+
+    // RaceBox Plus - Broadcast
+    racebox_access: boolean;
+    broadcast_overlays: boolean;
+    director_controls: boolean;
+    public_timing: boolean;
 }
 
 export type CapabilityKey = keyof BootstrapCapabilities;
@@ -77,7 +84,7 @@ export type CapabilityKey = keyof BootstrapCapabilities;
 // SURFACES & UI
 // ============================================================================
 
-export type BootstrapSurface = 'driver' | 'team' | 'racecontrol';
+export type BootstrapSurface = 'driver' | 'team' | 'racecontrol' | 'broadcast';
 
 export interface BootstrapUI {
     /** Default landing page after login */
@@ -116,6 +123,7 @@ export const ROUTE_CAPABILITIES: Record<string, CapabilityKey> = {
     '/rulebooks': 'rulebook_manage',
     '/penalties': 'penalty_assign',
     '/audit': 'session_authority',
+    '/broadcast': 'racebox_access',
 } as const;
 
 /**
@@ -126,4 +134,5 @@ export const SURFACE_CAPABILITIES: Record<BootstrapSurface, CapabilityKey> = {
     driver: 'driver_hud',
     team: 'pitwall_view',
     racecontrol: 'incident_review',
+    broadcast: 'racebox_access',
 } as const;

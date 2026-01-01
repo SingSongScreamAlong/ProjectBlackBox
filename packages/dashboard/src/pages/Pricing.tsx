@@ -1,27 +1,31 @@
 /**
- * Pricing Page
+ * Pricing Page - v1 Commercial Model
  * 
- * Shows subscription options with links to Squarespace checkout.
- * Preserves intent param for post-purchase redirect.
+ * AUTHORITATIVE PRICING:
+ * - BlackBox: $16/month per driver
+ * - ControlBox: $18/month per league + $2/series
+ * - RaceBox Plus: $15/month per league + $2/series
+ * 
+ * Key principles:
+ * - Ok, Box Box is live race execution, NOT AI coaching
+ * - Drivers never pay for RaceBox — leagues/orgs do
+ * - Licenses are additive, not bundled
  */
 
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBootstrap } from '../hooks/useBootstrap';
 import './Pricing.css';
 
-// Squarespace checkout URLs (configured in Squarespace Commerce)
+// Squarespace checkout URLs
 const CHECKOUT_URLS = {
     blackbox: {
         monthly: 'https://okboxbox.squarespace.com/checkout/blackbox-monthly',
-        annual: 'https://okboxbox.squarespace.com/checkout/blackbox-annual'
     },
     controlbox: {
         monthly: 'https://okboxbox.squarespace.com/checkout/controlbox-monthly',
-        annual: 'https://okboxbox.squarespace.com/checkout/controlbox-annual'
     },
-    bundle: {
-        monthly: 'https://okboxbox.squarespace.com/checkout/bundle-monthly',
-        annual: 'https://okboxbox.squarespace.com/checkout/bundle-annual'
+    racebox_plus: {
+        monthly: 'https://okboxbox.squarespace.com/checkout/racebox-plus-monthly',
     }
 };
 
@@ -30,76 +34,74 @@ const RETURN_URL = typeof window !== 'undefined'
     : '/billing/return';
 
 interface PricingTier {
-    id: 'racebox' | 'blackbox' | 'controlbox' | 'bundle';
+    id: 'blackbox' | 'controlbox' | 'racebox_plus';
     name: string;
+    tagline: string;
     description: string;
-    monthlyPrice: number;
-    annualPrice: number;
+    basePrice: number;
+    priceUnit: string;
+    seriesAddon?: number;
     features: string[];
     popular?: boolean;
-    free?: boolean;
+    ctaText: string;
 }
 
 const PRICING_TIERS: PricingTier[] = [
     {
-        id: 'racebox',
-        name: 'RaceBox',
-        description: 'Free broadcast & spectator platform',
-        monthlyPrice: 0,
-        annualPrice: 0,
-        features: [
-            'Public timing tower',
-            'Broadcast overlays',
-            'Live stream delays',
-            'Director controls',
-            'Social media cards',
-            'Unlimited viewers'
-        ],
-        free: true
-    },
-    {
         id: 'blackbox',
         name: 'BlackBox',
-        description: 'AI-powered race engineering for drivers and teams',
-        monthlyPrice: 19.99,
-        annualPrice: 199.99,
+        tagline: 'For Drivers & Teams',
+        description: 'Live race execution and situational awareness for competitive drivers.',
+        basePrice: 16,
+        priceUnit: 'per driver',
         features: [
-            'Driver HUD overlay',
-            'AI coaching assistant',
-            'Voice race engineer',
-            'Team pit wall view',
-            'Strategy timeline',
+            'Live situational awareness',
+            'Team coordination surface',
+            'Replay and forensics',
+            'Gap and delta tracking',
+            'Fuel and tire strategy',
             'Opponent intel'
-        ]
+        ],
+        ctaText: 'Start Racing'
     },
     {
         id: 'controlbox',
         name: 'ControlBox',
-        description: 'Race control and stewarding toolkit for leagues',
-        monthlyPrice: 29.99,
-        annualPrice: 299.99,
+        tagline: 'For Leagues',
+        description: 'Race control automation and steward workflows for league operations.',
+        basePrice: 18,
+        priceUnit: 'per league',
+        seriesAddon: 2,
         popular: true,
         features: [
-            'Incident review',
-            'AI-assisted liability analysis',
-            'Penalty assignment',
-            'Protest handling',
-            'Rulebook management',
+            'Race control automation',
+            'Incident detection & workflows',
+            'Rulebook enforcement',
+            'Steward forensics',
+            'League & series management',
             'Audit logging'
-        ]
+        ],
+        ctaText: 'Run Your League'
     },
     {
-        id: 'bundle',
-        name: 'Bundle',
-        description: 'Everything in BlackBox + ControlBox',
-        monthlyPrice: 39.99,
-        annualPrice: 399.99,
+        id: 'racebox_plus',
+        name: 'RaceBox Plus',
+        tagline: 'For Broadcast',
+        description: 'Professional broadcast overlays and presentation tools for race streaming.',
+        basePrice: 15,
+        priceUnit: 'per league',
+        seriesAddon: 2,
         features: [
-            'All BlackBox features',
-            'All ControlBox features',
-            'Priority support',
-            'Early access to new features'
-        ]
+            'Timing tower overlays',
+            'Lower third graphics',
+            'Battle box overlays',
+            'Incident banners',
+            'Director control panel',
+            'Public timing pages',
+            'League & sponsor logos',
+            'Scene presets'
+        ],
+        ctaText: 'Go Live'
     }
 ];
 
@@ -110,20 +112,17 @@ export function Pricing() {
 
     const intent = searchParams.get('intent');
 
-    const handleCheckout = (product: 'blackbox' | 'controlbox' | 'bundle', billing: 'monthly' | 'annual') => {
-        // Build checkout URL with return URL
-        const baseUrl = CHECKOUT_URLS[product][billing];
+    const handleCheckout = (product: 'blackbox' | 'controlbox' | 'racebox_plus') => {
+        const baseUrl = CHECKOUT_URLS[product].monthly;
         const checkoutUrl = `${baseUrl}?onsuccess=${encodeURIComponent(RETURN_URL)}&email=${encodeURIComponent(bootstrap?.user.email || '')}`;
-
-        // Navigate to Squarespace checkout
         window.location.href = checkoutUrl;
     };
 
     return (
         <div className="pricing-page">
             <header className="pricing-header">
-                <h1>Choose Your Plan</h1>
-                <p>Unlock the full power of Ok, Box Box</p>
+                <h1>Simple, Transparent Pricing</h1>
+                <p>Live race execution. Situational awareness. Broadcast presentation.</p>
                 {intent && (
                     <p className="intent-notice">
                         Subscribe to unlock <strong>{intent}</strong> features
@@ -133,9 +132,7 @@ export function Pricing() {
 
             <div className="pricing-grid">
                 {PRICING_TIERS.map(tier => {
-                    const owned = tier.id === 'racebox'
-                        ? true // RaceBox is always free
-                        : hasLicense(tier.id === 'bundle' ? 'blackbox' : tier.id as 'blackbox' | 'controlbox');
+                    const owned = hasLicense(tier.id as 'blackbox' | 'controlbox');
 
                     return (
                         <div
@@ -145,26 +142,24 @@ export function Pricing() {
                             {tier.popular && <span className="popular-badge">Most Popular</span>}
                             {owned && <span className="owned-badge">✓ Active</span>}
 
-                            <h2>{tier.name}</h2>
+                            <div className="tier-header">
+                                <span className="tier-tagline">{tier.tagline}</span>
+                                <h2>{tier.name}</h2>
+                            </div>
+
                             <p className="tier-description">{tier.description}</p>
 
-                            {!tier.free && (
-                                <div className="pricing-amounts">
-                                    <div className="monthly">
-                                        <span className="price">${tier.monthlyPrice}</span>
-                                        <span className="period">/month</span>
-                                    </div>
-                                    <div className="annual">
-                                        <span className="price">${tier.annualPrice}</span>
-                                        <span className="period">/year</span>
-                                        <span className="savings">Save ${((tier.monthlyPrice * 12) - tier.annualPrice).toFixed(0)}</span>
-                                    </div>
-                                </div>
-                            )}
-                            {tier.free && (
-                                <div className="pricing-amounts free">
-                                    <span className="price-free">FREE</span>
-                                </div>
+                            <div className="pricing-amount">
+                                <span className="currency">$</span>
+                                <span className="price">{tier.basePrice}</span>
+                                <span className="period">/month</span>
+                            </div>
+                            <p className="price-unit">{tier.priceUnit}</p>
+
+                            {tier.seriesAddon && (
+                                <p className="series-addon">
+                                    + ${tier.seriesAddon}/month per additional series
+                                </p>
                             )}
 
                             <ul className="features">
@@ -173,37 +168,43 @@ export function Pricing() {
                                 ))}
                             </ul>
 
-                            {tier.free ? (
-                                <button
-                                    className="subscribe-btn free-btn"
-                                    onClick={() => navigate('/broadcast')}
-                                >
-                                    Get Started Free
-                                </button>
-                            ) : owned ? (
+                            {owned ? (
                                 <button className="subscribe-btn owned" disabled>
                                     Already Subscribed
                                 </button>
                             ) : (
-                                <div className="subscribe-buttons">
-                                    <button
-                                        className="subscribe-btn monthly"
-                                        onClick={() => handleCheckout(tier.id as 'blackbox' | 'controlbox' | 'bundle', 'monthly')}
-                                    >
-                                        Subscribe Monthly
-                                    </button>
-                                    <button
-                                        className="subscribe-btn annual"
-                                        onClick={() => handleCheckout(tier.id as 'blackbox' | 'controlbox' | 'bundle', 'annual')}
-                                    >
-                                        Subscribe Annually
-                                    </button>
-                                </div>
+                                <button
+                                    className="subscribe-btn"
+                                    onClick={() => handleCheckout(tier.id)}
+                                >
+                                    {tier.ctaText}
+                                </button>
                             )}
                         </div>
                     );
                 })}
             </div>
+
+            <section className="pricing-notes">
+                <h3>How It Works</h3>
+                <div className="notes-grid">
+                    <div className="note">
+                        <span className="note-icon">👤</span>
+                        <h4>BlackBox</h4>
+                        <p>Billed per driver. Each team member needs their own license.</p>
+                    </div>
+                    <div className="note">
+                        <span className="note-icon">🏁</span>
+                        <h4>ControlBox</h4>
+                        <p>Billed per league. Add series for $2/month each.</p>
+                    </div>
+                    <div className="note">
+                        <span className="note-icon">📺</span>
+                        <h4>RaceBox Plus</h4>
+                        <p>Billed to leagues/orgs. Drivers never pay for RaceBox.</p>
+                    </div>
+                </div>
+            </section>
 
             <footer className="pricing-footer">
                 <p>All plans include a 7-day free trial. Cancel anytime.</p>
