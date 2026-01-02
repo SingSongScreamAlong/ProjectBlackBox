@@ -8,7 +8,7 @@
         "tools/*"
     ],
     "scripts": {
-        "build": "npm run build --workspaces",
+        "build": "npm run build --workspace=packages/common && npm run build --workspace=packages/protocol && npm run build --workspace=packages/server && npm run build --workspace=packages/dashboard",
         "dev": "npm run dev --workspace=packages/server & npm run dev --workspace=packages/dashboard",
         "dev:server": "npm run dev --workspace=packages/server",
         "dev:dashboard": "npm run dev --workspace=packages/dashboard",
