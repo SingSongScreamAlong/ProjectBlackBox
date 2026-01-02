@@ -81,13 +81,25 @@ class ControlBoxClient:
             logger.info(f"🔌 Connecting to ControlBox Cloud at {self.url}...")
             self.sio.connect(
                 self.url,
-                transports=['websocket'],
+                transports=['polling', 'websocket'],
                 wait=True,
-                wait_timeout=10
+                wait_timeout=15
             )
+            # Give it a moment to fully establish
+            import time
+            time.sleep(0.5)
+            # Explicitly check connection state
+            if self.sio.connected:
+                self.connected = True
+                logger.info(f"✅ Connected to ControlBox Cloud (explicit check)")
             return self.connected
+        except socketio.exceptions.ConnectionError as e:
+            logger.error(f"Socket.IO connection error: {e}")
+            return False
         except Exception as e:
-            logger.error(f"Failed to connect: {e}")
+            logger.error(f"Unexpected error connecting: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def disconnect(self):
@@ -105,12 +117,15 @@ class ControlBoxClient:
         """
         Emit an event to ControlBox Cloud
         """
+        print(f"[EMIT] Attempting to emit {event}...")
+        print(f"[EMIT] self.connected={self.connected}, sio.connected={self.sio.connected}")
         if not self.is_connected():
             logger.warning(f"Cannot emit {event}: not connected")
             return False
         
         try:
             self.sio.emit(event, data)
+            print(f"[EMIT] ✅ Sent {event}")
             logger.debug(f"📤 Sent {event}")
             return True
         except Exception as e:

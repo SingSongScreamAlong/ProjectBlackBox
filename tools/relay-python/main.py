@@ -79,10 +79,14 @@ class RelayAgent:
         print()
         
         # Connect to cloud
-        if not self.cloud_client.connect():
+        print("[DEBUG] About to connect to cloud...")
+        connected = self.cloud_client.connect()
+        print(f"[DEBUG] Cloud connect returned: {connected}")
+        if not connected:
             logger.error("Failed to connect to ControlBox Cloud. Exiting.")
             return
         
+        print("[DEBUG] Cloud connected, entering main loop...")
         # Main loop
         try:
             self._main_loop()
