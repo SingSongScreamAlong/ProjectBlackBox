@@ -63,9 +63,22 @@ io.on('connection', (socket: Socket) => {
     // =====================================================================
 
     socket.on('session_metadata', (data: unknown) => {
-        console.log(`📊 Session metadata received`);
+        console.log(`📊 Session metadata received:`, JSON.stringify(data).substring(0, 200));
         relayClient = socket;
-        // Broadcast to all dashboard clients
+
+        // Extract session info for session:active broadcast
+        const sessionData = data as any;
+        const sessionActive = {
+            sessionId: sessionData.sessionId || 'unknown',
+            trackName: sessionData.trackName || 'Unknown Track',
+            sessionType: sessionData.sessionType || 'Practice'
+        };
+
+        // Broadcast session:active to ALL clients (not just other connections)
+        io.emit('session:active', sessionActive);
+        console.log(`📡 Broadcasted session:active to all clients`);
+
+        // Also send the full metadata
         socket.broadcast.emit('session:metadata', data);
     });
 
