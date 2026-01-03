@@ -1,0 +1,33 @@
+# DigitalOcean App Platform Specification
+# This file configures the correct source directories for the monorepo
+
+name: controlbox-platform
+
+services:
+  - name: server
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: SingSongScreamAlong/Ok-Box-Box
+    source_dir: /packages/server
+    run_command: node dist/index.js
+    environment_slug: node-js
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    http_port: 8080
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+
+static_sites:
+  - name: dashboard
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: SingSongScreamAlong/Ok-Box-Box
+    source_dir: /packages/dashboard
+    build_command: npm install && npm run build
+    output_dir: dist
+    environment_slug: node-js
