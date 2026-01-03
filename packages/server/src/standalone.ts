@@ -83,8 +83,8 @@ io.on('connection', (socket: Socket) => {
     });
 
     socket.on('telemetry', (data: unknown) => {
-        // Broadcast to all dashboard clients (don't log - too noisy)
-        socket.broadcast.emit('telemetry:update', data);
+        // Broadcast to all dashboard clients using event name dashboard expects
+        socket.broadcast.emit('telemetry:driver', data);
     });
 
     // v2: Baseline stream (4Hz)
