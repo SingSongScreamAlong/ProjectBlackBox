@@ -10,6 +10,9 @@ export default defineConfig({
             '@controlbox/common': path.resolve(__dirname, '../common/src/index.ts'),
         },
     },
+    build: {
+        outDir: 'build',
+    },
     server: {
         port: 5173,
         proxy: {
