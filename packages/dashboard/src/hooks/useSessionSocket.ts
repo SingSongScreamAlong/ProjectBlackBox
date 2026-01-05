@@ -6,7 +6,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const SERVER_URL = import.meta.env.VITE_API_URL || '';
 
 export function useSessionSocket(sessionId: string | null) {
     const [isConnected, setIsConnected] = useState(false);
