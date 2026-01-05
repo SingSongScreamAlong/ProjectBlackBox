@@ -8,7 +8,7 @@ import { Server, Socket } from 'socket.io';
 import { getViewerTracker } from './services/telemetry/viewer-tracker.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
-const HOST = process.env.HOST || 'localhost';
+const HOST = process.env.HOST || '0.0.0.0';
 
 console.log('🏎️  ControlBox Standalone Server Starting...');
 console.log(`   Mode: Standalone (no database)`);
